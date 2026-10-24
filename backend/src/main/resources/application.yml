@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: backend
+
+  # Đọc file .env ở thư mục gốc dự án (chạy từ backend/ nên là ../.env).
+  # Nhờ vậy Docker và Spring dùng chung một nguồn mật khẩu.
+  # "optional:" = không có file thì vẫn chạy (khi deploy, biến lấy từ môi trường).
+  config:
+    import: optional:file:../.env[.properties]
+
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      # Bảng do Flyway tạo (src/main/resources/db/migration). Hibernate chỉ kiểm tra khớp, không tự sửa DB.
+      ddl-auto: validate
+    open-in-view: false

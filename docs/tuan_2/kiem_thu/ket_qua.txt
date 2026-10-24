@@ -1,0 +1,80 @@
+ no |                         label                          | ket_qua | mong_doi | thuc_te |                                          chi_tiet                                          
+----+--------------------------------------------------------+---------+----------+---------+--------------------------------------------------------------------------------------------
+  1 | A01 nhóm kỹ năng                                       | PASS    | NHẬN     | NHẬN    | 
+  2 | A02 kỹ năng                                            | PASS    | NHẬN     | NHẬN    | 
+  3 | A03 quan hệ Java–Kotlin (1<2)                          | PASS    | NHẬN     | NHẬN    | 
+  4 | A04 ba người dùng + admin                              | PASS    | NHẬN     | NHẬN    | 
+  5 | A05 admin                                              | PASS    | NHẬN     | NHẬN    | 
+  6 | A06 kỹ năng dạy (level 1–4)                            | PASS    | NHẬN     | NHẬN    | 
+  7 | A07 kỹ năng muốn học, target NULL được phép            | PASS    | NHẬN     | NHẬN    | 
+  8 | A08 lịch rảnh                                          | PASS    | NHẬN     | NHẬN    | 
+  9 | A09 yêu cầu TWO_WAY A→B đang chờ                       | PASS    | NHẬN     | NHẬN    | 
+ 10 | A10 yêu cầu ONE_WAY C→B đang chờ                       | PASS    | NHẬN     | NHẬN    | 
+ 11 | A11 B chấp nhận yêu cầu 1                              | PASS    | NHẬN     | NHẬN    | 
+ 12 | A12 tạo phiên từ yêu cầu 1                             | PASS    | NHẬN     | NHẬN    | 
+ 13 | A13 bắt đầu phiên                                      | PASS    | NHẬN     | NHẬN    | 
+ 14 | A14 A bấm hoàn thành trước                             | PASS    | NHẬN     | NHẬN    | 
+ 15 | A15 B xác nhận → COMPLETED                             | PASS    | NHẬN     | NHẬN    | 
+ 16 | A16 hai người đánh giá nhau                            | PASS    | NHẬN     | NHẬN    | 
+ 17 | A17 sau khi A→B hết PENDING, A gửi B yêu cầu mới được  | PASS    | NHẬN     | NHẬN    | 
+ 18 | A18 chiều ngược B→A vẫn gửi được dù A→B đang chờ       | PASS    | NHẬN     | NHẬN    | 
+ 19 | A19 phiên 2: chấp nhận, bắt đầu                        | PASS    | NHẬN     | NHẬN    | 
+ 20 | A20 báo cáo sự cố đang mở cho phiên 2                  | PASS    | NHẬN     | NHẬN    | 
+ 21 | A21 admin xử lý báo cáo → hủy phiên                    | PASS    | NHẬN     | NHẬN    | 
+ 22 | A22 phiên 2 bị hủy (sau khi đã bắt đầu)                | PASS    | NHẬN     | NHẬN    | 
+ 23 | A23 báo cáo mới cho phiên 2 sau khi báo cáo cũ đã đóng | PASS    | NHẬN     | NHẬN    | 
+ 24 | B01 email trùng                                        | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "users_email_key"
+ 25 | B02 role lạ                                            | PASS    | CHẶN     | CHẶN    | new row for relation "users" violates check constraint "users_role_check"
+ 26 | B03 status lạ                                          | PASS    | CHẶN     | CHẶN    | new row for relation "users" violates check constraint "users_status_check"
+ 27 | B04 learning_mode lạ                                   | PASS    | CHẶN     | CHẶN    | new row for relation "users" violates check constraint "users_learning_mode_check"
+ 28 | B05 thiếu password_hash                                | PASS    | CHẶN     | CHẶN    | null value in column "password_hash" of relation "users" violates not-null constraint
+ 29 | B06 token mục đích lạ                                  | PASS    | CHẶN     | CHẶN    | new row for relation "user_tokens" violates check constraint "user_tokens_purpose_check"
+ 30 | B07 token_hash trùng                                   | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "user_tokens_token_hash_key"
+ 31 | B08 tên kỹ năng trùng                                  | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "skills_name_key"
+ 32 | B09 kỹ năng thuộc nhóm không tồn tại                   | PASS    | CHẶN     | CHẶN    | insert or update on table "skills" violates foreign key constraint "skills_category_id_fke
+ 33 | B10 quan hệ (2,1) với a > b                            | PASS    | CHẶN     | CHẶN    | new row for relation "skill_relations" violates check constraint "skill_relations_check"
+ 34 | B11 quan hệ kỹ năng với chính nó (3,3)                 | PASS    | CHẶN     | CHẶN    | new row for relation "skill_relations" violates check constraint "skill_relations_check"
+ 35 | B12 quan hệ trùng (1,2) lần hai                        | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "skill_relations_pkey"
+ 36 | B13 level = 5                                          | PASS    | CHẶN     | CHẶN    | new row for relation "user_teach_skills" violates check constraint "user_teach_skills_leve
+ 37 | B14 level = 0                                          | PASS    | CHẶN     | CHẶN    | new row for relation "user_teach_skills" violates check constraint "user_teach_skills_leve
+ 38 | B15 level NULL (kỹ năng dạy bắt buộc có trình độ)      | PASS    | CHẶN     | CHẶN    | null value in column "level" of relation "user_teach_skills" violates not-null constraint
+ 39 | B16 khai báo dạy cùng kỹ năng hai lần                  | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "user_teach_skills_pkey"
+ 40 | B17 target_level = 5                                   | PASS    | CHẶN     | CHẶN    | new row for relation "user_learn_skills" violates check constraint "user_learn_skills_targ
+ 41 | B18 day_of_week = 8                                    | PASS    | CHẶN     | CHẶN    | new row for relation "user_availability" violates check constraint "user_availability_day_
+ 42 | B19 period lạ                                          | PASS    | CHẶN     | CHẶN    | new row for relation "user_availability" violates check constraint "user_availability_peri
+ 43 | B20 khung giờ trùng                                    | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "user_availability_pkey"
+ 44 | B21 TWO_WAY thiếu receiver_learn_skill_id              | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_requests" violates check constraint "exchange_requests_chec
+ 45 | B22 ONE_WAY lại có receiver_learn_skill_id             | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_requests" violates check constraint "exchange_requests_chec
+ 46 | B23 tự gửi cho chính mình                              | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_requests" violates check constraint "exchange_requests_chec
+ 47 | B24 PENDING thứ hai A→B (G4)                           | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "uq_requests_one_pending"
+ 48 | B25 thời lượng 10 phút (<15)                           | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_requests" violates check constraint "exchange_requests_dura
+ 49 | B26 thời lượng 500 phút (>480)                         | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_requests" violates check constraint "exchange_requests_dura
+ 50 | B27 mode = ANY trong yêu cầu                           | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_requests" violates check constraint "exchange_requests_mode
+ 51 | B28 thiếu proposed_start_at                            | PASS    | CHẶN     | CHẶN    | null value in column "proposed_start_at" of relation "exchange_requests" violates not-null
+ 52 | B29 kỹ năng không tồn tại                              | PASS    | CHẶN     | CHẶN    | insert or update on table "exchange_requests" violates foreign key constraint "exchange_re
+ 53 | B30 tạo phiên thứ hai cho cùng yêu cầu 1               | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "exchange_sessions_request_id_key"
+ 54 | B31 trạng thái phiên lạ                                | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_sessions" violates check constraint "exchange_sessions_stat
+ 55 | B32 hủy phiên không có lý do                           | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_sessions" violates check constraint "exchange_sessions_chec
+ 56 | B33 IN_PROGRESS mà chưa có started_at                  | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_sessions" violates check constraint "exchange_sessions_chec
+ 57 | B34 WAITING_CONFIRMATION mà không biết ai bấm trước    | PASS    | CHẶN     | CHẶN    | new row for relation "exchange_sessions" violates check constraint "exchange_sessions_chec
+ 58 | B35 đánh giá lần hai cùng phiên                        | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "reviews_session_id_reviewer_id_key"
+ 59 | B36 tự đánh giá mình                                   | PASS    | CHẶN     | CHẶN    | new row for relation "reviews" violates check constraint "reviews_check"
+ 60 | B37 rating = 6                                         | PASS    | CHẶN     | CHẶN    | new row for relation "reviews" violates check constraint "reviews_rating_check"
+ 61 | B38 rating = 0                                         | PASS    | CHẶN     | CHẶN    | new row for relation "reviews" violates check constraint "reviews_rating_check"
+ 62 | B39 báo cáo mở thứ hai cho cùng phiên 2                | PASS    | CHẶN     | CHẶN    | duplicate key value violates unique constraint "uq_reports_one_open"
+ 63 | B40 báo cáo không có lý do                             | PASS    | CHẶN     | CHẶN    | null value in column "reason" of relation "incident_reports" violates not-null constraint
+ 64 | B41 RESOLVED mà không có kết luận                      | PASS    | CHẶN     | CHẶN    | new row for relation "incident_reports" violates check constraint "incident_reports_check"
+ 65 | B42 OPEN mà đã có kết luận                             | PASS    | CHẶN     | CHẶN    | new row for relation "incident_reports" violates check constraint "incident_reports_check1
+ 66 | B43 xóa kỹ năng đang được dùng (phải ẩn, không xóa)    | PASS    | CHẶN     | CHẶN    | update or delete on table "skills" violates foreign key constraint "skill_relations_skill_
+ 67 | B44 xóa người đã có yêu cầu/phiên                      | PASS    | CHẶN     | CHẶN    | update or delete on table "users" violates foreign key constraint "exchange_requests_sende
+ 68 | C01 Sim(Java,Kotlin) = 0.5                             | PASS    | 0.5      | 0.5     | 
+ 69 | C02 số khung rảnh trùng A–B = 2                        | PASS    | 2        | 2       | 
+ 70 | C03 Chi chưa khai báo lịch (0 dòng)                    | PASS    | 0        | 0       | 
+ 71 | C04 RatingNorm(Bình) = 1.00                            | PASS    | 1.00     | 1.00    | 
+ 72 | C05 CompletionRate(Bình) = 0.50                        | PASS    | 0.50     | 0.50    | 
+ 73 | C06 CompletionRate(Admin) = NULL khi chưa có phiên     | PASS    |          | NULL    | 
+
+ pass | fail | tong 
+------+------+------
+   73 |    0 |   73
+
