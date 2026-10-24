@@ -409,6 +409,8 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 | POST | `/api/auth/resend-verification` | Public | Gửi lại mã xác thực | FR-01 |
 | POST | `/api/auth/login` | Public | Trả về `accessToken` | FR-01 |
 
+Quên mật khẩu (FR-23) thuộc mức "Nên có" nên chưa thiết kế API. Bảng `user_tokens` đã có `purpose = RESET_PASSWORD` để làm sau mà không phải đổi lược đồ.
+
 ### 4.3. Hồ sơ và kỹ năng của tôi – `user`
 
 | Phương thức | Đường dẫn | Quyền | Mô tả | FR |
@@ -418,11 +420,13 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 | PUT | `/api/me/availability` | User | Thay toàn bộ lịch rảnh bằng danh sách `{dayOfWeek, period}`; danh sách rỗng = chưa khai báo | FR-02 |
 | PUT | `/api/me/teach-skills` | User | Thay danh sách kỹ năng dạy `{skillId, level}` | FR-03 |
 | PUT | `/api/me/learn-skills` | User | Thay danh sách kỹ năng muốn học `{skillId, targetLevel?}` | FR-03 |
-| GET | `/api/users/{id}` | Active | Hồ sơ công khai, **không** có thông tin liên hệ | FR-02 |
+| GET | `/api/users/{id}` | Active | Hồ sơ công khai, **không** có email trường và thông tin liên hệ (NFR-02) | FR-10 |
 | GET | `/api/users/{id}/reviews` | Active | Các đánh giá người đó nhận được | FR-07 |
-| GET | `/api/users/search?skillId=&q=` | Active | Tìm kiếm người dùng theo kỹ năng hoặc tên | MVP (mục 2) |
+| GET | `/api/users/search?skillId=&q=` | Active | Tìm kiếm người dùng theo kỹ năng hoặc tên | FR-10 |
 
 Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì giao diện là một biểu mẫu chỉnh sửa toàn bộ. Cách này đơn giản hơn thêm/xóa từng dòng.
+
+**Thời điểm làm:** các API `/api/me*` làm ở tuần 3. `/api/users/{id}` và `/api/users/search` làm ở tuần 4 cùng màn hình S05, S06, S10. `/api/users/{id}/reviews` làm ở tuần 7 cùng chức năng đánh giá.
 
 ### 4.4. Danh mục kỹ năng – `skill`
 
@@ -519,7 +523,7 @@ Backend kiểm tra khi tạo yêu cầu:
 | DELETE | `/api/admin/skill-relations/{aId}/{bId}` | Admin | Bỏ quan hệ liên quan | FR-08 |
 | GET | `/api/admin/reports?status=OPEN` | Admin | Hàng đợi báo cáo sự cố | FR-09 |
 | POST | `/api/admin/reports/{id}/resolve` | Admin | `{resolution: SESSION_COMPLETED \| SESSION_CANCELLED, note}`; chốt phiên tương ứng | FR-09 |
-| PUT | `/api/admin/users/{id}/status` | Admin | Khóa/mở khóa tài khoản (`ACTIVE` ↔ `LOCKED`) | Giả định G7 |
+| PUT | `/api/admin/users/{id}/status` | Admin | Khóa/mở khóa tài khoản (`ACTIVE` ↔ `LOCKED`) | FR-08 (G7) |
 
 ### 4.10. Ma trận phân quyền rút gọn
 
@@ -704,14 +708,19 @@ Các nút hiện ra tùy theo trạng thái phiên và vai trò của người x
 | FR-05 Yêu cầu trao đổi | `exchange_requests` | `/requests*` | S06, S07, S08 |
 | FR-06 Phiên và xác nhận hoàn thành | `exchange_sessions` | `/sessions*` | S09 |
 | FR-07 Đánh giá | `reviews` | `/sessions/{id}/reviews` | S09 |
-| FR-08 Quản trị danh mục | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 |
+| FR-08 Quản trị danh mục, khóa tài khoản | `skills`, `skill_categories`, `skill_relations`, `users.status` | `/admin/skill*`, `/admin/users/{id}/status` | A01 |
 | FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports`, `/admin/reports*` | S09, A02 |
+| FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills` | `/users/search`, `/users/{id}` | S06, S10 |
+| FR-11 Thực nghiệm | Không dùng bảng nghiệp vụ (chạy trong bộ nhớ) | – (module `evaluation`, chạy offline) | – |
+| FR-23 Quên mật khẩu (nên có) | `user_tokens` (`RESET_PASSWORD`) | Chưa thiết kế | – |
 | NFR-01 Bảo mật | `password_hash`, `user_tokens.token_hash` | JWT, kiểm tra quyền mọi API | – |
-| NFR-02 Riêng tư | `phone`, `contact_info`, `location_or_link` | Chỉ trả về trong `/me`, `/sessions/{id}` | S09 |
+| NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ và địa điểm/link chỉ trả về trong `/me`, `/sessions/{id}`; email trường không có trong `/users/{id}` | S06, S09 |
 
 ## 8. Giả định thiết kế cần xác nhận
 
 Spec tuần 1 chưa quy định các điểm dưới đây. Thiết kế tạm chọn phương án đơn giản nhất và có thể đổi lại mà không phải sửa cấu trúc lớn.
+
+*Cập nhật 2026-10-24:* G1–G4 và G7 đã được đưa vào spec tuần 1 (mục 6.2, 6.3, FR-08), không còn là giả định. G5, G6 là chi tiết kỹ thuật, giữ ở tài liệu này.
 
 | Mã | Giả định | Liên quan |
 | --- | --- | --- |
@@ -725,6 +734,9 @@ Spec tuần 1 chưa quy định các điểm dưới đây. Thiết kế tạm c
 
 ## 9. Kế hoạch tuần 3
 
+Theo kế hoạch hợp nhất ở spec tuần 1 mục 9:
+
 - `V1__init.sql` đã có và đã kiểm thử (mục 3.6). Viết thêm `V2__seed_skills.sql` cho danh mục kỹ năng.
 - Làm luồng đăng ký, xác thực email, đăng nhập JWT (mục 4.2).
-- Làm API hồ sơ, lịch rảnh, kỹ năng (mục 4.3) và màn hình S01–S04.
+- Làm API `/api/me*` cho hồ sơ, lịch rảnh, kỹ năng (mục 4.3), API danh mục kỹ năng (mục 4.4) và màn hình S01–S04.
+- **Không** làm ở tuần 3: `/api/users/{id}`, `/api/users/search` (tuần 4), `/api/users/{id}/reviews` (tuần 7).

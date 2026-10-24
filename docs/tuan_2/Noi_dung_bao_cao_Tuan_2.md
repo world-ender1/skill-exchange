@@ -437,7 +437,7 @@ Bảng 4.12 liệt kê các API chính. Ký hiệu quyền: *Public* – không 
 | GET, PUT | `/api/me` | User | Xem / cập nhật hồ sơ của mình (kể cả liên hệ riêng tư) | FR-02 |
 | PUT | `/api/me/availability` | User | Thay toàn bộ lịch rảnh; danh sách rỗng = chưa khai báo | FR-02 |
 | PUT | `/api/me/teach-skills`, `/api/me/learn-skills` | User | Thay danh sách kỹ năng dạy / muốn học | FR-03 |
-| GET | `/api/users/{id}` | Active | Hồ sơ công khai, không có thông tin liên hệ | FR-02 |
+| GET | `/api/users/{id}` | Active | Hồ sơ công khai, không có email trường và thông tin liên hệ | FR-10 |
 | GET | `/api/users/{id}/reviews` | Active | Các đánh giá người đó nhận được | FR-07 |
 | GET | `/api/users/search` | Active | Tìm người dùng theo kỹ năng hoặc tên | FR-10 |
 | GET | `/api/skill-categories`, `/api/skills` | User | Danh mục kỹ năng cho ô chọn | FR-03 |
@@ -452,7 +452,7 @@ Bảng 4.12 liệt kê các API chính. Ký hiệu quyền: *Public* – không 
 | POST | `/api/sessions/{id}/reports` | Participant | Gửi báo cáo sự cố | FR-09 |
 | POST, PUT, DELETE | `/api/admin/skill-categories`, `/api/admin/skills`, `/api/admin/skill-relations` | Admin | Quản trị nhóm, kỹ năng và quan hệ liên quan | FR-08 |
 | GET, POST | `/api/admin/reports`, `/api/admin/reports/{id}/resolve` | Admin | Hàng đợi báo cáo; chốt phiên sang hoàn thành hoặc hủy | FR-09 |
-| PUT | `/api/admin/users/{id}/status` | Admin | Khóa / mở khóa tài khoản | G7 |
+| PUT | `/api/admin/users/{id}/status` | Admin | Khóa / mở khóa tài khoản | FR-08 |
 
 Mỗi kết quả gợi ý trả về điểm tổng, các điểm thành phần theo từng chiều, các cặp kỹ năng khớp (trùng hay liên quan) và các khung giờ trùng, để giao diện giải thích lý do phù hợp. Hình 4.4 là một phần tử trong kết quả của `GET /api/matches?type=TWO_WAY`. Chiều $u$ học từ $v$ (`forward`) chính là ví dụ ở Bảng 4.9 với $D = 0.94$; chiều ngược lại (`backward`) có $D = 0.65$ vì kỹ năng $u$ dạy chỉ là kỹ năng liên quan; điểm xếp hạng $MutualScore = \sqrt{0.94 \times 0.65} \approx 0.78$. Với gợi ý `ONE_WAY` thì không có `backward`, `theyLearn`, và `score` bằng $D(u,v)$.
 
@@ -600,11 +600,11 @@ Hình 4.7 đến Hình 4.9 là bản phác thảo ba màn hình chính. Nút tr�
 | FR-05 Yêu cầu trao đổi | `exchange_requests` | `/requests*` | S06, S07, S08 |
 | FR-06 Phiên và xác nhận hoàn thành | `exchange_sessions` | `/sessions*` | S09 |
 | FR-07 Đánh giá | `reviews` | `/sessions/{id}/reviews` | S09 |
-| FR-08 Quản trị danh mục | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 |
+| FR-08 Quản trị danh mục, khóa tài khoản | `skills`, `skill_categories`, `skill_relations`, `users.status` | `/admin/skill*`, `/admin/users/{id}/status` | A01 |
 | FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports`, `/admin/reports*` | S09, A02 |
-| FR-10 Tìm kiếm | `users`, `user_teach_skills` | `/users/search` | S10 |
+| FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills` | `/users/search`, `/users/{id}` | S06, S10 |
 | NFR-01 Bảo mật | `password_hash`, `user_tokens.token_hash` | JWT, kiểm tra quyền mọi API | – |
-| NFR-02 Riêng tư | `phone`, `contact_info`, `location_or_link` | Chỉ trả về trong `/me`, `/sessions/{id}` | S09 |
+| NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ và địa điểm/link chỉ trả về trong `/me`, `/sessions/{id}`; email trường không có trong `/users/{id}` | S06, S09 |
 
 ## 4.5. Thiết kế bảo mật
 

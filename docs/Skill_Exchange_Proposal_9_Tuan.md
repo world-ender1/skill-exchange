@@ -54,9 +54,9 @@ Qua đó chứng minh: Mở rộng tập ứng viên giúp cải thiện độ b
 
 ### 3.1. Chức năng bắt buộc
 
-- Đăng ký, đăng nhập, quên mật khẩu và xác thực email trường.
+- Đăng ký, đăng nhập và xác thực email trường.
 
-- Quản lý hồ sơ cá nhân và hồ sơ kỹ năng: kỹ năng có thể dạy, kỹ năng muốn học (chọn từ danh mục chuẩn hóa do admin quản lý), mức độ tự khai báo và mô tả kinh nghiệm.
+- Quản lý hồ sơ cá nhân và hồ sơ kỹ năng: kỹ năng có thể dạy, kỹ năng muốn học (chọn từ danh mục chuẩn hóa do admin quản lý) và mức độ tự khai báo.
 
 - Khai báo lịch rảnh và hình thức học (trực tiếp / trực tuyến) trong hồ sơ; hai dữ liệu này được dùng trong lọc cứng và chấm điểm ghép cặp.
 
@@ -72,23 +72,33 @@ Qua đó chứng minh: Mở rộng tập ứng viên giúp cải thiện độ b
 
 - Phân quyền chặt chẽ ở backend: chỉ hai người tham gia phiên `Completed` mới được mở quyền đánh giá lẫn nhau (Rating & Review) và chỉ xem được liên hệ sau khi yêu cầu được chấp nhận.
 
-- Quản trị cơ bản: quản lý tài khoản, danh mục kỹ năng chuẩn hóa và nhóm kỹ năng liên quan.
+- Quản trị cơ bản: khóa/mở khóa tài khoản, danh mục kỹ năng chuẩn hóa và nhóm kỹ năng liên quan.
+
+- Dữ liệu giả lập, baseline và các chỉ số đánh giá thuật toán (mục 2.3); unit test cho thuật toán và các quy tắc nghiệp vụ chính.
 
 ### 3.2. Chức năng nên có
+
+- Quên mật khẩu (đặt lại qua email trường).
 
 - Thông báo khi có yêu cầu mới, thay đổi trạng thái hoặc lịch trao đổi.
 
 - Lịch sử các phiên trao đổi và điểm uy tín trên hồ sơ.
 
+- Lọc ứng viên theo hình thức học trên giao diện; thống kê đơn giản.
+
+- Khảo sát 15–20 sinh viên thật (bổ trợ định tính).
+
 ### 3.3. Chức năng mở rộng
 
 - Chat realtime bằng WebSocket.
 
-- Báo cáo vi phạm và thống kê hoạt động.
+- Báo cáo vi phạm nâng cao; dashboard thống kê nâng cao.
 
 - Ghép vòng bằng thuật toán đồ thị khi không có cặp hai chiều trực tiếp.
 
-- Gợi ý nâng cao bằng dữ liệu lịch sử nếu có đủ dữ liệu.
+- Chuỗi nhiều buổi trong một thỏa thuận trao đổi.
+
+- Chứng nhận kỹ năng (chứng chỉ/bài kiểm tra) hoặc time-banking.
 
 ## 4. Một số quy tắc nghiệp vụ
 
@@ -140,12 +150,12 @@ Hệ thống cho phép một người dạy người khác mà không bắt bu�
 | --- | --- |
 | 1 | Phân tích yêu cầu, use case, chốt phạm vi, công thức điểm và thiết kế đánh giá thuật toán. |
 | 2 | Thiết kế cơ sở dữ liệu, API, sơ đồ trạng thái (State Diagram) và prototype giao diện. |
-| 3 | Hồ sơ người dùng, danh mục kỹ năng chuẩn hóa, xác thực email trường. |
-| 4 | Xây dựng thuật toán matching, công thức chấm điểm đa tiêu chí và **viết ngay Unit test cho các hàm tính điểm**. |
-| 5 | Hoàn thiện matching theo lịch rảnh/uy tín; tạo dữ liệu giả lập có nhãn Ground Truth độc lập; đo Precision@5, NDCG@5, Coverage, Latency và phân tích độ nhạy bộ trọng số. |
-| 6 | Quản lý yêu cầu trao đổi, vòng đời phiên (Scheduled, In Progress, Waiting Confirmation, Completed) và phân quyền backend. |
-| 7 | Đánh giá sau phiên (Rating/Review), bảo vệ thông tin liên hệ, lịch sử trao đổi. |
-| 8 | Quản trị Admin cơ bản, kiểm thử tích hợp & bảo mật backend, khảo sát thử nghiệm 15–20 sinh viên thật. |
+| 3 | Đăng ký, xác thực email trường, đăng nhập; hồ sơ người dùng gồm lịch rảnh và hình thức học; khai báo kỹ năng; nạp sẵn danh mục kỹ năng chuẩn hóa. |
+| 4 | Xây dựng thuật toán matching, công thức chấm điểm đa tiêu chí và **viết ngay Unit test cho các hàm tính điểm**; tìm kiếm và hồ sơ công khai. |
+| 5 | Tạo dữ liệu giả lập có nhãn Ground Truth độc lập; chạy baseline; đo Precision@5, NDCG@5, Coverage, Latency và phân tích độ nhạy bộ trọng số. |
+| 6 | Quản lý yêu cầu trao đổi, vòng đời phiên (Scheduled, In Progress, Waiting Confirmation, Completed), báo cáo sự cố và phân quyền backend. |
+| 7 | Đánh giá sau phiên (Rating/Review) và điểm uy tín, bảo vệ thông tin liên hệ; quản trị danh mục kỹ năng, xử lý báo cáo sự cố, khóa/mở khóa tài khoản; lịch sử trao đổi nếu kịp. |
+| 8 | Kiểm thử tích hợp & bảo mật backend, sửa lỗi, đo hiệu năng; khảo sát thử nghiệm 15–20 sinh viên thật nếu còn thời gian. |
 | 9 | Deploy cloud, kiểm thử cuối, tổng hợp kết quả thực nghiệm thuật toán, hoàn thiện báo cáo và demo. |
 
 ## 8. Tiêu chí hoàn thành
