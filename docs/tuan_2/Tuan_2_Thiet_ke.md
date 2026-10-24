@@ -731,6 +731,8 @@ Spec tuần 1 chưa quy định các điểm dưới đây. Thiết kế tạm c
 | G5 | JWT có hạn 24 giờ, chưa dùng refresh token | – |
 | G6 | Email trường được nhận diện bằng đuôi tên miền cấu hình sẵn (ví dụ `@<tên-trường>.edu.vn`) | FR-01 |
 | G7 | Có API khóa/mở khóa tài khoản cho admin, vì lọc cứng và nhãn 5.1 có nhắc tới "tài khoản bị khóa" | Spec T9 |
+| G8 | Mã xác thực email hết hạn sau 24 giờ; gửi lại mã thì vô hiệu mã cũ | FR-01 |
+| G9 | Tài khoản PENDING_VERIFICATION được đăng nhập và sửa hồ sơ; LOCKED bị chặn (403) | FR-01 |
 
 ## 9. Kế hoạch tuần 3
 

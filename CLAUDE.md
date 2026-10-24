@@ -10,6 +10,7 @@ Tài liệu dự án (nguồn sự thật, đọc trước khi làm tính năng)
 - Spec yêu cầu + thuật toán matching: `docs/tuan_1/Phan_tich_yeu_cau_Skill_Exchange_Tuan_1.md` (FR-xx, NFR-xx, mục 4 công thức điểm, mục 6 trạng thái/phân quyền)
 - Thiết kế DB, API, sơ đồ trạng thái, màn hình: `docs/tuan_2/Tuan_2_Thiet_ke.md`
 - Kế hoạch 9 tuần: `docs/Skill_Exchange_Proposal_9_Tuan.md`
+- Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng; D1–D24): `docs/tuan_3/Quyet_dinh_tuan_3.md`
 - `hoc_vibe_coding/` là tài liệu học, không phải code hay spec dự án.
 
 ## Công nghệ
