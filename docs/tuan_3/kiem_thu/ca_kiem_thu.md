@@ -25,7 +25,7 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 3
 - "Có token" nghĩa là gửi `Authorization: Bearer <JWT>` hợp lệ của một tài khoản `ACTIVE`, trừ khi ca ghi khác.
 - Email trường mẫu: `@student.example.edu.vn`. Đuôi thật lấy từ cấu hình (G6, D9).
 - Mọi lỗi phải trả về dạng Problem Details (TK 4.1, D24).
-- "Chờ hơn 60 giây" trong test tự động nghĩa là chỉnh đồng hồ giả lập, không ngủ thật.
+- "Chờ hơn 60 giây" trong test tự động nghĩa là chỉnh đồng hồ giả lập (bean `Clock`, D18), không ngủ thật.
 
 ## Tổng quan
 

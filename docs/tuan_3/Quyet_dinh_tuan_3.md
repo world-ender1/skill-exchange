@@ -1,6 +1,6 @@
 # QUYẾT ĐỊNH TRIỂN KHAI – TUẦN 3
 
-Chốt ngày 2026-10-24, cập nhật 2026-10-29 sau rà soát (`docs/ra_soat/Bao_cao_ra_soat.md`, mục R01–R17). Áp dụng khi làm FR-01, FR-02, FR-03.
+Chốt ngày 2026-10-24, cập nhật 2026-10-29 sau rà soát (`docs/ra_soat/Bao_cao_ra_soat.md`, mục R01–R17); D18 bổ sung ngoại lệ đồng hồ `Clock` cùng ngày, phát hiện khi chuẩn bị cách test. Áp dụng khi làm FR-01, FR-02, FR-03.
 
 File này là tài liệu mới nhất cho phạm vi tuần 3. Nếu khác spec tuần 1 hoặc thiết kế tuần 2 (`docs/tuan_2/Tuan_2_Thiet_ke.md`) thì file này đúng. Khi thêm hoặc đổi một quyết định ở đây, phải sửa luôn các tài liệu cũ nhắc tới điểm đó trong cùng commit.
 
@@ -43,7 +43,7 @@ File này là tài liệu mới nhất cho phạm vi tuần 3. Nếu khác spec 
 | D15 | `PUT /api/me` thay toàn bộ hồ sơ. Với `bio`, `learningMode`, `phone`, `contactInfo`: không gửi khóa, gửi `null`, chuỗi rỗng hoặc chỉ có khoảng trắng đều lưu NULL (ví dụ `learningMode = null` là "chưa khai báo"). `fullName` bắt buộc (D16). Trường không có trong API (ví dụ `email`) bị bỏ qua, không báo lỗi: không đổi email được qua API này. |
 | D16 | `fullName` bắt buộc, 1–100 ký tự sau khi bỏ khoảng trắng hai đầu; `bio` tối đa 1000; `contactInfo` tối đa 500; `phone` tối đa 20 ký tự, chỉ gồm số, khoảng trắng, `+`, `-`. |
 | D17 | Email trường không xuất hiện trong hồ sơ công khai (NFR-02). |
-| D18 | `created_at` do Hibernate ghi bằng `@CreationTimestamp`, `updated_at` bằng `@UpdateTimestamp`. |
+| D18 | `created_at` do Hibernate ghi bằng `@CreationTimestamp`, `updated_at` bằng `@UpdateTimestamp`. **Ngoại lệ:** các mốc thời gian dùng cho quy tắc thời gian của token và xác thực (`user_tokens.created_at`, `expires_at`, `used_at`, `users.email_verified_at`, kể cả khi tạo admin ở D4) do service gán từ **một** bean `java.time.Clock` dùng chung; không dùng `@CreationTimestamp` hay `Instant.now()` cho các cột này. Lý do: D7 so `created_at` của token với giờ hiện tại, và test (TC06, TC41, TC43, TC77, TC78, TC89) thay `Clock` bằng đồng hồ giả lập; nếu `created_at` lấy giờ thật của máy còn code so với giờ giả thì hai đồng hồ lệch nhau và test sai. |
 | D19 | Một kỹ năng không được vừa nằm trong danh sách dạy vừa nằm trong danh sách muốn học (400), xét cả hai chiều. Muốn chuyển một kỹ năng từ "muốn học" sang "dạy", S04 lưu danh sách học (đã bỏ kỹ năng đó) trước, rồi mới lưu danh sách dạy. |
 | D20 | Kỹ năng bị ẩn (`is_active = false`) không thêm mới được (400), nhưng nếu người dùng đã có từ trước thì được giữ khi `PUT` lại danh sách. |
 | D21 | Tối đa 10 kỹ năng mỗi danh sách (dạy và học); lịch rảnh tối đa 21 khung. Gửi trùng `skillId` hoặc trùng khung giờ **trong cùng một request** trả 400 (409 dành cho xung đột với dữ liệu đã có, ví dụ email đã đăng ký). |

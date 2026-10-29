@@ -44,6 +44,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Không sửa migration đã chạy (`V1__init.sql`); thay đổi lược đồ thì thêm file `V<n>__mo_ta.sql` mới
 - Ràng buộc nghiệp vụ quan trọng đã nằm trong DB (CHECK, unique index một phần). Đọc `V1__init.sql` trước khi viết Entity/Service
 - Mã xác thực email/đặt lại mật khẩu chỉ lưu bản băm (`user_tokens.token_hash`)
+- Mốc thời gian của token và xác thực (`user_tokens.*_at`, `users.email_verified_at`) lấy từ bean `Clock`, không dùng `Instant.now()` hay `@CreationTimestamp` (D18), để test giả được thời gian
 
 ## Quy ước API (thiết kế tuần 2, mục 4.1)
 - REST JSON, tiền tố `/api`, xác thực `Authorization: Bearer <JWT>` (hạn 24 giờ, chưa có refresh token)
