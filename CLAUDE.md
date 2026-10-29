@@ -6,17 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Nền tảng ghép cặp trao đổi kỹ năng giữa sinh viên. Đồ án cá nhân 9 tuần, người làm là sinh viên đang học Spring Boot.
 
-Tài liệu dự án (nguồn sự thật, đọc trước khi làm tính năng):
+Tài liệu dự án (đọc trước khi làm tính năng):
 - Spec yêu cầu + thuật toán matching: `docs/tuan_1/Phan_tich_yeu_cau_Skill_Exchange_Tuan_1.md` (FR-xx, NFR-xx, mục 4 công thức điểm, mục 6 trạng thái/phân quyền)
 - Thiết kế DB, API, sơ đồ trạng thái, màn hình: `docs/tuan_2/Tuan_2_Thiet_ke.md`
 - Kế hoạch 9 tuần: `docs/Skill_Exchange_Proposal_9_Tuan.md`
-- Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng; D1–D24): `docs/tuan_3/Quyet_dinh_tuan_3.md`
+- Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng; D1–D30): `docs/tuan_3/Quyet_dinh_tuan_3.md`
+- Ca kiểm thử viết trước từ tài liệu: `docs/tuan_<n>/kiem_thu/`
+- Rà soát toàn bộ tài liệu và các vấn đề còn chờ sửa theo đợt (R01–R56): `docs/ra_soat/Bao_cao_ra_soat.md`
 - `hoc_vibe_coding/` là tài liệu học, không phải code hay spec dự án.
+- Không dùng làm nguồn: `Noi_dung_bao_cao_*.md`, `.docx` (sinh lại từ nguồn khi viết báo cáo); `De_xuat_chinh_sua.md`, `de_xuat_sua_spec.md` (lịch sử).
+
+Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Quyết định tuần mới nhất > thiết kế tuần 2 > spec tuần 1 > proposal. `V1__init.sql` là hiện thực của thiết kế; SQL lệch thiết kế là lỗi cần báo. Ngoại lệ: nếu bản mới làm mất một yêu cầu "Bắt buộc" thì hỏi tôi.
+
+## Quy tắc sửa tài liệu
+- Sửa ngược: khi thêm hoặc đổi một quy tắc ở tài liệu mới, grep mọi tài liệu cũ nhắc tới quy tắc đó và sửa trong cùng commit.
+- Trước khi code một tuần: viết ca kiểm thử từ tài liệu (như `docs/tuan_3/kiem_thu/ca_kiem_thu.md`). Chỗ nào chưa quy định rõ thì chốt vào tài liệu trước, rồi mới code.
 
 ## Công nghệ
 - Backend: Java 21, Spring Boot 4.1, Maven wrapper, Spring Security, Spring Data JPA, Flyway, PostgreSQL 17
 - Frontend: React 19 + TypeScript + Vite, lint bằng oxlint
-- Bí mật (DB, JWT_SECRET, MAIL_*) nằm trong `.env` ở thư mục gốc; mẫu ở `.env.example`
+- Bí mật và cấu hình máy (DB, JWT_SECRET, MAIL_*, ADMIN_EMAIL/ADMIN_PASSWORD, FRONTEND_URL) nằm trong `.env` ở thư mục gốc; mẫu ở `.env.example`
 
 ## Lệnh thường dùng (PowerShell, chạy từ `C:\DACN`)
 - Chạy DB: `docker compose up -d`
@@ -37,7 +46,7 @@ Tài liệu dự án (nguồn sự thật, đọc trước khi làm tính năng)
 
 ## Quy ước API (thiết kế tuần 2, mục 4.1)
 - REST JSON, tiền tố `/api`, xác thực `Authorization: Bearer <JWT>` (hạn 24 giờ, chưa có refresh token)
-- Lỗi trả về dạng Problem Details (RFC 9457); 401 chưa đăng nhập, 403 không có quyền, 409 sai trạng thái/trùng
+- Lỗi trả về dạng Problem Details (RFC 9457), kể cả 401/403 từ Spring Security; 400 dữ liệu sai (kể cả trùng lặp trong cùng request), 401 chưa đăng nhập, 403 không có quyền, 409 sai trạng thái hoặc trùng với dữ liệu đã có
 - Đổi trạng thái dùng endpoint riêng (`POST /requests/{id}/accept`), không dùng `PATCH status`
 - Danh sách lịch rảnh/kỹ năng của tôi: `PUT` thay cả danh sách
 - Chỉ tài khoản `ACTIVE` (đã xác thực email) mới được dùng matching và xem hồ sơ người khác

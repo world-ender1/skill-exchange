@@ -374,10 +374,10 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 ### 4.1. Quy ước chung
 
 - Kiểu REST, dữ liệu JSON, tiền tố `/api`.
-- **Xác thực:** sau khi đăng nhập, client gửi `Authorization: Bearer <JWT>` trong mọi request cần đăng nhập. Token có hạn dùng (giả định G5: 24 giờ). Đăng xuất phía client bằng cách xóa token.
+- **Xác thực:** sau khi đăng nhập, client gửi `Authorization: Bearer <JWT>` trong mọi request cần đăng nhập. Token có hạn dùng 24 giờ, chưa có refresh token (quyết định D14 tuần 3). Đăng xuất phía client bằng cách xóa token.
 - **Phân quyền ở backend (NFR-01):** mỗi API kiểm tra (1) đã đăng nhập, (2) vai trò, (3) quyền sở hữu tài nguyên, ví dụ người gọi có phải người tham gia phiên không.
 - **Hành động đổi trạng thái dùng endpoint riêng** (`POST /requests/{id}/accept`), không dùng `PATCH status`. Mỗi chuyển trạng thái có điều kiện và người được phép riêng, nên endpoint riêng giúp kiểm tra quyền rõ ràng và không cho client tự đặt trạng thái tùy ý.
-- **Định dạng lỗi** theo chuẩn Problem Details (RFC 9457), được Spring hỗ trợ sẵn:
+- **Định dạng lỗi** theo chuẩn Problem Details (RFC 9457). Spring hỗ trợ sẵn cho lỗi phát sinh trong controller; lỗi 401/403 sinh ở tầng filter của Spring Security phải tự cấu hình (quyết định D24 tuần 3):
 
 ```json
 {
@@ -396,7 +396,7 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 | 401 | Chưa đăng nhập hoặc token hết hạn |
 | 403 | Đã đăng nhập nhưng không có quyền (sai vai trò, không phải người tham gia, tài khoản chưa xác thực) |
 | 404 | Không tìm thấy tài nguyên |
-| 409 | Xung đột trạng thái: chuyển trạng thái không hợp lệ, đánh giá lần hai, gửi trùng yêu cầu |
+| 409 | Xung đột với dữ liệu đã có: chuyển trạng thái không hợp lệ, đánh giá lần hai, gửi trùng yêu cầu, email đã đăng ký. Trùng lặp ngay trong cùng một request (ví dụ một `skillId` xuất hiện hai lần) là dữ liệu không hợp lệ, trả 400 |
 
 **Ký hiệu quyền** trong các bảng dưới: *Public* = không cần đăng nhập; *User* = đã đăng nhập; *Active* = tài khoản `ACTIVE`; *Participant* = người tham gia phiên/yêu cầu; *Admin* = quản trị viên.
 
@@ -404,10 +404,12 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 
 | Phương thức | Đường dẫn | Quyền | Mô tả | FR |
 | --- | --- | --- | --- | --- |
-| POST | `/api/auth/register` | Public | Đăng ký bằng email trường (giả định G6: kiểm tra đuôi tên miền), gửi mã xác thực | FR-01 |
-| POST | `/api/auth/verify-email` | Public | Gửi `token` để xác thực; tài khoản chuyển sang `ACTIVE` | FR-01 |
-| POST | `/api/auth/resend-verification` | Public | Gửi lại mã xác thực | FR-01 |
-| POST | `/api/auth/login` | Public | Trả về `accessToken` | FR-01 |
+| POST | `/api/auth/register` | Public | Body `{email, password, fullName}`. Đăng ký bằng email trường (kiểm tra đuôi tên miền theo cấu hình), gửi link xác thực. 201 kèm `{id, email, status}` | FR-01 |
+| POST | `/api/auth/verify-email` | Public | Body `{token}`. Tài khoản `PENDING_VERIFICATION` chuyển sang `ACTIVE`. 204; token không dùng được trả 400 | FR-01 |
+| POST | `/api/auth/resend-verification` | Public | Body `{email}`. Gửi lại link xác thực. Luôn trả 204 | FR-01 |
+| POST | `/api/auth/login` | Public | Body `{email, password}`. 200 kèm `{accessToken}` | FR-01 |
+
+Chi tiết quy tắc của các API trên (chuẩn hóa email, độ dài mật khẩu, đăng ký lại email chưa xác thực, giới hạn 60 giây, thứ tự kiểm tra khi đăng nhập) nằm ở quyết định tuần 3, D5–D13 và D25–D29.
 
 Quên mật khẩu (FR-23) thuộc mức "Nên có" nên chưa thiết kế API. Bảng `user_tokens` đã có `purpose = RESET_PASSWORD` để làm sau mà không phải đổi lược đồ.
 
@@ -417,14 +419,19 @@ Quên mật khẩu (FR-23) thuộc mức "Nên có" nên chưa thiết kế API.
 | --- | --- | --- | --- | --- |
 | GET | `/api/me` | User | Xem hồ sơ của mình, kể cả thông tin liên hệ | FR-02 |
 | PUT | `/api/me` | User | Cập nhật họ tên, giới thiệu, hình thức học, điện thoại, liên hệ | FR-02 |
+| GET | `/api/me/availability` | User | Lịch rảnh hiện có `[{dayOfWeek, period}]` | FR-02 |
 | PUT | `/api/me/availability` | User | Thay toàn bộ lịch rảnh bằng danh sách `{dayOfWeek, period}`; danh sách rỗng = chưa khai báo | FR-02 |
+| GET | `/api/me/teach-skills` | User | Kỹ năng dạy hiện có, kèm tên, nhóm, `isActive`, `level` | FR-03 |
 | PUT | `/api/me/teach-skills` | User | Thay danh sách kỹ năng dạy `{skillId, level}` | FR-03 |
+| GET | `/api/me/learn-skills` | User | Kỹ năng muốn học hiện có, kèm tên, nhóm, `isActive`, `targetLevel` | FR-03 |
 | PUT | `/api/me/learn-skills` | User | Thay danh sách kỹ năng muốn học `{skillId, targetLevel?}` | FR-03 |
 | GET | `/api/users/{id}` | Active | Hồ sơ công khai, **không** có email trường và thông tin liên hệ (NFR-02) | FR-10 |
 | GET | `/api/users/{id}/reviews` | Active | Các đánh giá người đó nhận được | FR-07 |
 | GET | `/api/users/search?skillId=&q=` | Active | Tìm kiếm người dùng theo kỹ năng hoặc tên | FR-10 |
 
-Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì giao diện là một biểu mẫu chỉnh sửa toàn bộ. Cách này đơn giản hơn thêm/xóa từng dòng.
+Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì giao diện là một biểu mẫu chỉnh sửa toàn bộ. Cách này đơn giản hơn thêm/xóa từng dòng. Các `PUT` trả 200 kèm dữ liệu vừa lưu, cùng dạng với `GET` tương ứng.
+
+Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn độ dài, tối đa 10 kỹ năng và 21 khung, không vừa dạy vừa học một kỹ năng, kỹ năng bị ẩn được giữ nhưng không thêm mới được) nằm ở quyết định tuần 3, D15–D21 và D28–D29.
 
 **Thời điểm làm:** các API `/api/me*` làm ở tuần 3. `/api/users/{id}` và `/api/users/search` làm ở tuần 4 cùng màn hình S05, S06, S10. `/api/users/{id}/reviews` làm ở tuần 7 cùng chức năng đánh giá.
 
@@ -433,7 +440,7 @@ Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì gi
 | Phương thức | Đường dẫn | Quyền | Mô tả |
 | --- | --- | --- | --- |
 | GET | `/api/skill-categories` | User | Danh sách nhóm kỹ năng |
-| GET | `/api/skills?categoryId=&q=` | User | Kỹ năng đang hoạt động, dùng cho ô chọn kỹ năng |
+| GET | `/api/skills?categoryId=&q=` | User | Kỹ năng đang hoạt động, dùng cho ô chọn kỹ năng. `q` tìm chuỗi con trong tên, không phân biệt hoa thường |
 
 ### 4.5. Gợi ý ứng viên – `matching`
 
@@ -606,8 +613,8 @@ stateDiagram-v2
 
 | Mã | Màn hình | Nội dung chính | API sử dụng |
 | --- | --- | --- | --- |
-| S01 | Đăng ký / Đăng nhập | Form email trường, mật khẩu | `/auth/*` |
-| S02 | Xác thực email | Nhập mã hoặc mở liên kết; gửi lại mã | `/auth/verify-email`, `/auth/resend-verification` |
+| S01 | Đăng ký / Đăng nhập | Đăng ký: email trường, mật khẩu, họ tên. Đăng nhập: email, mật khẩu | `/auth/*` |
+| S02 | Xác thực email | Mở từ link trong email (đọc `token` trên URL); nút gửi lại link | `/auth/verify-email`, `/auth/resend-verification` |
 | S03 | Hồ sơ của tôi | Thông tin cá nhân, liên hệ riêng tư, hình thức học, lưới lịch rảnh 7×3 | `/me`, `/me/availability` |
 | S04 | Kỹ năng của tôi | Hai danh sách: kỹ năng dạy (có trình độ 1–4) và kỹ năng muốn học (mục tiêu tùy chọn) | `/skills`, `/me/teach-skills`, `/me/learn-skills` |
 | S05 | Gợi ý ghép cặp | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn"; thẻ ứng viên có điểm và lý do | `/matches` |
@@ -731,8 +738,8 @@ Spec tuần 1 chưa quy định các điểm dưới đây. Thiết kế tạm c
 | G5 | JWT có hạn 24 giờ, chưa dùng refresh token | – |
 | G6 | Email trường được nhận diện bằng đuôi tên miền cấu hình sẵn (ví dụ `@<tên-trường>.edu.vn`) | FR-01 |
 | G7 | Có API khóa/mở khóa tài khoản cho admin, vì lọc cứng và nhãn 5.1 có nhắc tới "tài khoản bị khóa" | Spec T9 |
-| G8 | Mã xác thực email hết hạn sau 24 giờ; gửi lại mã thì vô hiệu mã cũ | FR-01 |
-| G9 | Tài khoản PENDING_VERIFICATION được đăng nhập và sửa hồ sơ; LOCKED bị chặn (403) | FR-01 |
+| G8 | Link xác thực email hết hạn sau 24 giờ; gửi lại link thì vô hiệu link cũ. *Đã chốt chi tiết ở D7 tuần 3* | FR-01 |
+| G9 | Tài khoản PENDING_VERIFICATION được đăng nhập và sửa hồ sơ; LOCKED bị chặn (403), kể cả với token đã cấp trước khi bị khóa vì trạng thái được đọc lại ở mỗi request. *Đã chốt chi tiết ở D12, D13 tuần 3* | FR-01 |
 
 ## 9. Kế hoạch tuần 3
 
