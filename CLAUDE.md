@@ -11,6 +11,7 @@ Tài liệu dự án (đọc trước khi làm tính năng):
 - Thiết kế DB, API, sơ đồ trạng thái, màn hình: `docs/tuan_2/Tuan_2_Thiet_ke.md`
 - Kế hoạch 9 tuần: `docs/Skill_Exchange_Proposal_9_Tuan.md`
 - Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng; D1–D30): `docs/tuan_3/Quyet_dinh_tuan_3.md`
+- Quyết định triển khai tuần 4 (matching, hồ sơ công khai, tìm kiếm; D31–D38): `docs/tuan_4/Quyet_dinh_tuan_4.md`
 - Ca kiểm thử viết trước từ tài liệu: `docs/tuan_<n>/kiem_thu/`
 - Rà soát toàn bộ tài liệu và các vấn đề còn chờ sửa theo đợt (R01–R56): `docs/ra_soat/Bao_cao_ra_soat.md`
 - `hoc_vibe_coding/` là tài liệu học, không phải code hay spec dự án.
@@ -49,7 +50,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Lỗi trả về dạng Problem Details (RFC 9457), kể cả 401/403 từ Spring Security; 400 dữ liệu sai (kể cả trùng lặp trong cùng request), 401 chưa đăng nhập, 403 không có quyền, 409 sai trạng thái hoặc trùng với dữ liệu đã có
 - Đổi trạng thái dùng endpoint riêng (`POST /requests/{id}/accept`), không dùng `PATCH status`
 - Danh sách lịch rảnh/kỹ năng của tôi: `PUT` thay cả danh sách
-- Chỉ tài khoản `ACTIVE` (đã xác thực email) mới được dùng matching và xem hồ sơ người khác
+- Chỉ sinh viên đã xác thực (`status = ACTIVE` và `role = STUDENT`) mới được dùng matching, tìm kiếm và xem hồ sơ người khác; admin chỉ dùng API quản trị và không xuất hiện trong gợi ý, tìm kiếm
 - Đuôi email trường lấy từ cấu hình, không ghi cứng
 - `phone`, `contact_info`, `location_or_link` là riêng tư: chỉ trả trong `/api/me` và phiên đã `ACCEPTED` (NFR-02)
 

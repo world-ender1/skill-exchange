@@ -4,7 +4,9 @@
 
 Dự án cá nhân | Thời gian thực hiện: 9 tuần
 
-*Cập nhật 2026-10-24:* đồng bộ với `Skill_Exchange_Proposal_9_Tuan.md`, báo cáo tuần 1–2 và thiết kế tuần 2 (giả định G1–G7). Các điểm còn mở được đánh dấu ⚠ và tổng hợp ở mục 5.5.
+*Cập nhật 2026-10-24:* đồng bộ với `Skill_Exchange_Proposal_9_Tuan.md`, báo cáo tuần 1–2 và thiết kế tuần 2. Các điểm còn mở được đánh dấu ⚠ và tổng hợp ở mục 5.5.
+
+*Cập nhật 2026-10-29:* sửa theo rà soát (`docs/ra_soat/Bao_cao_ra_soat.md`): admin không tham gia ghép cặp (4.2, 6.3); kỹ năng bị ẩn vẫn dùng trong matching (4.1); mẫu số CompletionRate chỉ gồm phiên đã kết thúc (4.3); bằng điểm theo sai số $10^{-9}$ (4.4); sắp lại nhóm unit test (7.1) và kế hoạch tuần 5–7 (9).
 
 ## 1. Bối cảnh và mục tiêu
 
@@ -82,6 +84,8 @@ Hệ thống giải bài toán **Gợi ý Top-k ứng viên phù hợp cho từn
 
 Người dùng chỉ chọn kỹ năng từ danh mục chuẩn hóa do admin quản lý (không nhập văn bản tự do). Khởi đầu với khoảng 20–30 kỹ năng thuộc các nhóm như Lập trình, Dữ liệu, Thiết kế, Ngoại ngữ, Âm nhạc và Kỹ năng mềm.
 
+**Kỹ năng bị ẩn:** admin ẩn một kỹ năng nghĩa là ngừng cho chọn mới. Người dùng đã có kỹ năng đó thì vẫn giữ, và kỹ năng đó vẫn được dùng bình thường trong matching ($W_u$, $T_v$, quan hệ liên quan), tìm kiếm và kiểm tra $Sim > 0$ khi tạo yêu cầu.
+
 Gọi $W_u$ là tập kỹ năng $u$ muốn học, $T_v$ là tập kỹ năng $v$ có thể dạy:
 $$SkillFit(u,v) = \frac{1}{|W_u|} \sum_{s \in W_u} \max_{t \in T_v} Sim(s,t)$$
 
@@ -89,7 +93,7 @@ $$SkillFit(u,v) = \frac{1}{|W_u|} \sum_{s \in W_u} \max_{t \in T_v} Sim(s,t)$$
 
 Một ứng viên $v$ chỉ được đưa vào danh sách tính điểm cho $u$ khi thỏa mãn **toàn bộ** các điều kiện sau:
 1. $v$ không phải là chính $u$ ($v \neq u$).
-2. Tài khoản $v$ đang hoạt động và đã xác thực email trường.
+2. Tài khoản $v$ đang hoạt động, đã xác thực email trường (`status = ACTIVE`) và là sinh viên (`role = STUDENT`). Tài khoản quản trị không tham gia ghép cặp.
 3. Có kỹ năng phù hợp: $SkillFit(u,v) > 0$ (có ít nhất 1 kỹ năng trùng khớp hoặc liên quan).
 4. **Quy tắc loại trừ cứng về Lịch rảnh (Schedule Filtering):** Nếu CẢ HAI bên đều đã khai báo lịch rảnh nhưng số khung giờ trùng nhau bằng $0$ $\rightarrow$ **Loại $v$ ngay lập tức**. (Nếu một trong hai bên chưa khai báo lịch rảnh, không loại mà gán giá trị trung tính theo công thức).
 5. **Quy tắc loại trừ cứng về Hình thức học (Mode Filtering):** Nếu CẢ HAI bên đều đã khai báo hình thức học nhưng xung đột hoàn toàn (ví dụ: một bên chỉ chọn `OFFLINE`, bên kia chỉ chọn `ONLINE`) $\rightarrow$ **Loại $v$ ngay lập tức**. (Nếu một trong hai bên chọn `ANY` hoặc chưa khai báo, không loại mà giữ lại để chấm điểm).
@@ -111,8 +115,8 @@ Chỉ những ứng viên vượt qua Giai đoạn 1 mới được tính điể
 *Quy tắc chuẩn hóa Reputation:*
 - **RatingNorm:** $(RatingAverage - 1) / 4$ đối với thang đánh giá 1–5 sao. Nếu chưa có đánh giá nào, $RatingNorm = 0.5$.
 - **CompletionRate:**
-  $$CompletionRate(v) = \frac{\text{Số phiên đã hoàn thành}}{\text{Số phiên đã bắt đầu}}$$
-  Mẫu số gồm các phiên đã bắt đầu, đang chờ xác nhận hoặc đã hoàn thành (`IN_PROGRESS`, `WAITING_CONFIRMATION`, `COMPLETED`); phiên bị hủy sau khi bắt đầu vẫn được tính vào mẫu số. Phiên bị hủy trước khi bắt đầu không được tính.
+  $$CompletionRate(v) = \frac{\text{Số phiên đã hoàn thành}}{\text{Số phiên đã bắt đầu và đã kết thúc}}$$
+  Mẫu số chỉ gồm các phiên đã bắt đầu **và đã kết thúc**: `COMPLETED`, và `CANCELLED` sau khi đã bắt đầu. Phiên đang diễn ra (`IN_PROGRESS`, `WAITING_CONFIRMATION`) chưa được tính, để người vừa bấm "Bắt đầu" hoặc đang chờ bên kia xác nhận không bị giảm điểm. Phiên bị hủy trước khi bắt đầu không được tính.
 - **Quy tắc dữ liệu thiếu:**
   - Chưa có đánh giá: $RatingNorm = 0.5$.
   - Chưa có phiên đủ điều kiện tính tỷ lệ hoàn thành: $CompletionRate = 0.5$.
@@ -132,7 +136,7 @@ $$D(u,v) = 0.55 \times SkillFit(u,v) + 0.20 \times LevelFit(u,v) + 0.15 \times S
 - Điểm chỉ được dùng để xếp hạng các ứng viên hợp lệ. Không có ứng viên vi phạm điều kiện cứng nào xuất hiện trong Top-k.
 - Kiểm thử riêng từng điều kiện lọc và từng thành phần điểm.
 - Không nhầm lẫn giữa cải thiện thứ tự xếp hạng và tăng số người có ứng viên phù hợp.
-- **Bằng điểm:** hai ứng viên bằng điểm thì xếp theo mã người dùng tăng dần, để kết quả ổn định và tái lập được. Quy tắc này áp dụng cho cả P, B0 và B1 (mục 5.2).
+- **Bằng điểm:** hai ứng viên bằng điểm thì xếp theo mã người dùng tăng dần, để kết quả ổn định và tái lập được. Quy tắc này áp dụng cho cả P, B0 và B1 (mục 5.2). Điểm là số thực nên "bằng điểm" nghĩa là chênh lệch nhỏ hơn $10^{-9}$; xếp hạng dùng điểm chưa làm tròn, còn API trả điểm đã làm tròn để hiển thị.
 - **Số gợi ý k:** thực nghiệm dùng $k = 5$ (mục 5.3); giao diện mặc định hiển thị tối đa 10 ứng viên mỗi nhóm.
 
 ### 4.5. Phân loại đề xuất: Ghép hai chiều và Mentoring một chiều
@@ -353,7 +357,7 @@ Yêu cầu và phiên đều có trạng thái tên `CANCELLED` nhưng thuộc h
 | Xử lý báo cáo sự cố (chốt phiên) | ✖ | ✖ | ✖ | ✖ | ✔ |
 | Khóa / mở khóa tài khoản | ✖ | ✖ | ✖ | ✖ | ✔ |
 
-Tài khoản bị khóa hoặc chưa xác thực email không xuất hiện trong gợi ý và không gửi được yêu cầu.
+Tài khoản bị khóa hoặc chưa xác thực email không xuất hiện trong gợi ý và không gửi được yêu cầu. Tài khoản quản trị không xuất hiện trong gợi ý và tìm kiếm, không gửi và không nhận yêu cầu trao đổi; admin chỉ dùng các chức năng quản trị.
 
 ### 6.4. Nội dung yêu cầu trao đổi và tạo phiên
 
@@ -381,11 +385,13 @@ Tài khoản bị khóa hoặc chưa xác thực email không xuất hiện tron
 
 ### 7.1. Danh mục Unit test cốt lõi
 
-Unit test được viết cùng lúc với phần code tương ứng, không chờ đến tuần 8. Nhóm 1–3 hoàn thành ở **tuần 4–5**, nhóm 4 ở tuần 5, nhóm 5 ở tuần 6–7:
+Unit test được viết cùng lúc với phần code tương ứng, không chờ đến tuần 8. Nhóm 1–3 hoàn thành ở **tuần 4**, nhóm 4 ở tuần 5, nhóm 5 ở tuần 6–7:
 
 1. **Kiểm thử Lọc ứng viên cứng (Hard Filtering):**
    - Không được tự gợi ý chính mình ($v \neq u$).
    - Tài khoản chưa xác thực email trường hoặc bị khóa $\rightarrow$ Không xuất hiện trong kết quả gợi ý.
+   - Tài khoản quản trị (`role = ADMIN`) $\rightarrow$ Không xuất hiện trong kết quả gợi ý.
+   - Kỹ năng bị ẩn mà người dùng vẫn giữ $\rightarrow$ Vẫn được tính như kỹ năng bình thường.
    - Cả hai bên đã khai báo lịch nhưng không trùng giờ $\rightarrow$ Bị loại khỏi danh sách xếp hạng.
    - Xung đột hình thức học tuyệt đối (một bên chỉ `OFFLINE`, bên kia chỉ `ONLINE`) $\rightarrow$ Bị loại khỏi danh sách xếp hạng.
    - Một bên chưa khai báo lịch hoặc hình thức học $\rightarrow$ Không bị loại, được gán giá trị trung tính $0.5$.
@@ -395,21 +401,21 @@ Unit test được viết cùng lúc với phần code tương ứng, không ch�
    - Tất cả các điểm thành phần ($SkillFit, LevelFit, ScheduleFit, ModeFit, Reputation$) và điểm tổng $D(u,v), MutualScore$ luôn nằm trong đoạn $[0, 1]$.
    - Người dùng mới chưa có rating/lịch sử không bị điểm 0 (gán mặc định $Reputation = 0.5$).
    - Không phát sinh lỗi chia cho 0 hoặc `NaN` khi tính $CompletionRate$ và $RatingNorm$.
-   - Tính toán $CompletionRate$: Phiên bị hủy trước khi bắt đầu không bị tính vào mẫu số; phiên bị hủy sau khi bắt đầu bị tính vào mẫu số.
+   - Tính toán $CompletionRate$: Phiên bị hủy trước khi bắt đầu không bị tính vào mẫu số; phiên bị hủy sau khi bắt đầu bị tính vào mẫu số; phiên đang `IN_PROGRESS` hoặc `WAITING_CONFIRMATION` chưa bị tính.
    - Có unit test cho Reputation với các trường hợp: thiếu dữ liệu, chỉ có một đánh giá, có nhiều phiên.
 
 3. **Kiểm thử Phân loại và Nghiệp vụ:**
    - Chỉ có phù hợp một chiều ($SkillFit(v,u) = 0$) thì không được phân loại vào nhóm Ghép hai chiều.
-   - Chỉ người tham gia phiên `COMPLETED` mới được gửi đánh giá; mỗi người chỉ được gửi tối đa 1 đánh giá cho 1 phiên.
-   - Một bên bấm hoàn thành thì phiên chuyển sang `WAITING_CONFIRMATION`, bên kia xác nhận mới chuyển sang `COMPLETED`. Không tự động chuyển `CANCELLED` khi phát sinh bất đồng.
-   - Hai ứng viên bằng điểm được xếp theo mã người dùng tăng dần.
+   - Hai ứng viên bằng điểm (chênh lệch nhỏ hơn $10^{-9}$) được xếp theo mã người dùng tăng dần.
 
 4. **Kiểm thử Gán nhãn và Chỉ số đánh giá:**
    - Mỗi cặp hợp lệ nhận đúng một nhãn theo thứ tự thác nước (5.1); có ca cho từng nhãn 0, 1, 2 và ca bị loại ở Bước 1.
    - Precision@5 và NDCG@5 khớp ví dụ tính tay ở Phụ lục A.3; có ca ít hơn 5 ứng viên và ca $IDCG@5 = 0$.
    - Cùng seed sinh ra cùng bộ dữ liệu (NFR-06).
 
-5. **Kiểm thử Chuyển trạng thái bị cấm và Quyền truy cập** (trả về lỗi, không đổi dữ liệu):
+5. **Kiểm thử Vòng đời phiên, Chuyển trạng thái bị cấm và Quyền truy cập** (các ca bị cấm trả về lỗi, không đổi dữ liệu):
+   - Một bên bấm hoàn thành thì phiên chuyển sang `WAITING_CONFIRMATION`, bên kia xác nhận mới chuyển sang `COMPLETED`. Không tự động chuyển `CANCELLED` khi phát sinh bất đồng.
+   - Chỉ người tham gia phiên `COMPLETED` mới được gửi đánh giá; mỗi người chỉ được gửi tối đa 1 đánh giá cho 1 phiên.
    - Người đã bấm hoàn thành bấm xác nhận lần hai.
    - Người tham gia hủy phiên đang `WAITING_CONFIRMATION`.
    - Thao tác trên yêu cầu/phiên đã ở trạng thái cuối (trừ đánh giá phiên `COMPLETED`).
@@ -434,17 +440,17 @@ Bảng so sánh Skill Exchange với các nền tảng mạng xã hội, nền t
 
 ## 9. Kế hoạch 9 tuần
 
-Kế hoạch này thống nhất với mục 7 của proposal; proposal ghi ở mức khái quát hơn.
+Kế hoạch này thống nhất với mục 7 của proposal; proposal ghi ở mức khái quát hơn. *Điều chỉnh 2026-10-29* (rà soát R46, giảm tải tuần 7): quản trị danh mục kỹ năng (A01) chuyển lên tuần 5; quyền xem liên hệ làm cùng chi tiết phiên ở tuần 6; FR-09 chia đôi: gửi báo cáo ở tuần 6, admin xử lý ở tuần 7.
 
 | Tuần | Mục tiêu |
 | --- | --- |
 | 1 | Phân tích yêu cầu, use case, chốt phạm vi, công thức matching, thiết kế đánh giá, quy tắc và phân quyền. |
 | 2 | Thiết kế cơ sở dữ liệu, API, sơ đồ trạng thái và prototype giao diện. |
 | 3 | Đăng ký, xác thực email trường, đăng nhập (FR-01); hồ sơ gồm lịch rảnh và hình thức học (FR-02); khai báo kỹ năng (FR-03). Danh mục kỹ năng mẫu được nạp sẵn bằng migration để tuần 3–4 có dữ liệu trước khi làm màn hình quản trị. |
-| 4 | Hàm matching (lọc cứng, chấm điểm, phân loại hai chiều/một chiều) và **unit test cho các thành phần điểm** (FR-04); hồ sơ công khai và tìm kiếm (FR-10). |
-| 5 | Dữ liệu giả lập có nhãn, baseline B0/B1, đo Precision@5/NDCG@5/Coverage/latency, phân tích độ nhạy (FR-11). Chốt các điểm còn mở ở mục 5.5 trước khi chạy. |
-| 6 | Yêu cầu trao đổi kèm lịch đề xuất, vòng đời phiên, xác nhận hoàn thành và báo cáo sự cố (FR-05, FR-06, FR-09). |
-| 7 | Đánh giá sau phiên và Reputation từ dữ liệu thật (FR-07); quyền xem liên hệ; quản trị danh mục kỹ năng, xử lý báo cáo, khóa/mở khóa tài khoản (FR-08). Nếu kịp: lịch sử trao đổi (FR-14). |
+| 4 | Hàm matching (lọc cứng, chấm điểm, phân loại hai chiều/một chiều) và **unit test nhóm 1–3** (FR-04); hồ sơ công khai và tìm kiếm (FR-10). |
+| 5 | Dữ liệu giả lập có nhãn, baseline B0/B1, đo Precision@5/NDCG@5/Coverage/latency, phân tích độ nhạy (FR-11). Chốt các điểm còn mở ở mục 5.5 trước khi chạy. Quản trị danh mục kỹ năng và quan hệ liên quan (FR-08, màn hình A01). |
+| 6 | Yêu cầu trao đổi kèm lịch đề xuất, vòng đời phiên, xác nhận hoàn thành, quyền xem liên hệ và địa điểm/link, gửi báo cáo sự cố (FR-05, FR-06, FR-09 phần người dùng). |
+| 7 | Đánh giá sau phiên và Reputation từ dữ liệu thật (FR-07); admin xử lý báo cáo sự cố (FR-09); khóa/mở khóa tài khoản (FR-08). Nếu kịp: lịch sử trao đổi (FR-14). |
 | 8 | Tích hợp, kiểm thử phân quyền/bảo mật, sửa lỗi và đo hiệu năng; khảo sát 15–20 sinh viên nếu còn thời gian. |
 | 9 | Triển khai demo, kiểm thử cuối, tổng hợp kết quả thực nghiệm, hoàn thiện báo cáo và chuẩn bị bảo vệ. |
 
@@ -478,7 +484,7 @@ Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và
 | **ScheduleFit(u, v)** | Mức trùng lịch rảnh giữa hai người | $\dfrac{\text{số khung giờ trùng}}{\min(\text{số khung của } u, \text{số khung của } v)}$ | (0, 1] | 0.5 nếu một hoặc cả hai bên chưa khai báo. Nếu cả hai đã khai báo mà không trùng thì bị loại ở lọc cứng. Khung giờ = 1 buổi trong tuần (21 khung) | 4.2, 4.3, 4.6 |
 | **ModeFit(u, v)** | Hình thức học (Online/Offline) có hợp nhau không | 1.0 nếu cả hai đã khai báo và cùng hình thức hoặc ít nhất một bên chọn ANY | {0.5, 1} | 0.5 nếu một hoặc cả hai bên chưa khai báo, kể cả khi bên kia chọn ANY. Xung đột hoàn toàn thì bị loại ở lọc cứng | 4.2, 4.3 |
 | **RatingNorm(v)** | Điểm đánh giá trung bình của $v$, quy về [0, 1] | $(RatingAverage - 1) / 4$, thang 1–5 sao | [0, 1] | 0.5 nếu chưa có đánh giá | 4.3 |
-| **CompletionRate(v)** | Tỷ lệ $v$ đi tới cùng các phiên đã bắt đầu | $\dfrac{\text{số phiên hoàn thành}}{\text{số phiên đã bắt đầu}}$. Phiên hủy sau khi bắt đầu tính vào mẫu số, phiên hủy trước khi bắt đầu thì không | [0, 1] | 0.5 nếu chưa có phiên đủ điều kiện | 4.3 |
+| **CompletionRate(v)** | Tỷ lệ $v$ đi tới cùng các phiên đã bắt đầu | $\dfrac{\text{số phiên hoàn thành}}{\text{số phiên đã bắt đầu và đã kết thúc}}$. Phiên hủy sau khi bắt đầu tính vào mẫu số; phiên hủy trước khi bắt đầu và phiên đang diễn ra thì không | [0, 1] | 0.5 nếu chưa có phiên đủ điều kiện | 4.3 |
 | **Reputation(v)** | Độ tin cậy của $v$ dựa trên lịch sử thật | $0.7 \times RatingNorm + 0.3 \times CompletionRate$ | [0, 1] | 0.5 nếu hoàn toàn chưa có lịch sử (tránh Cold Start) | 4.3 |
 | **D(u, v)** | Mức phù hợp khi $u$ học từ $v$ (một chiều) | $0.55 \cdot SkillFit + 0.20 \cdot LevelFit + 0.15 \cdot ScheduleFit + 0.05 \cdot ModeFit + 0.05 \cdot Reputation(v)$ | [0, 1] | Thừa hưởng giá trị trung tính của từng thành phần | 4.4 |
 | **MutualScore(u, v)** | Mức phù hợp cho trao đổi hai chiều | $\sqrt{D(u,v) \times D(v,u)}$ (trung bình nhân) | [0, 1] | Chỉ tính cho cặp được phân loại hai chiều | 4.5 |

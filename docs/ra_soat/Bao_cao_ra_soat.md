@@ -613,7 +613,8 @@ Mỗi mục được chốt: sửa tài liệu mới nhất, grep và sửa ngư
 | Đợt | Trạng thái | Ghi chú |
 | --- | --- | --- |
 | 1 | Đã sửa 2026-10-29 | Quyết định tuần 3 (sửa D3, D4, D5, D7–D10, D13, D15, D16, D18, D19, D21, D24; thêm D25–D30), TK §4.1–4.4, §6.1 (S01, S02), §8 (G8, G9), ca kiểm thử tuần 3 (90 ca), CLAUDE.md, `.env.example`. **Còn mở:** danh sách seed kỹ năng của D3 chưa duyệt; thêm Mailpit vào `docker-compose.yml` làm khi code (R15). Phần R13 về tên kỹ năng trùng hoa thường dời sang tuần 7 (admin) |
-| 2–5 | Chưa sửa | R47 (deploy cloud) chưa có gợi ý, cần người dùng chọn |
+| 2 | Đã sửa 2026-10-29 | R18–R23, R46, R51, R55, cộng thêm R32 và R43 (unit test tuần 4 cần). Spec 4.1–4.4, 6.3, 7.1, 9 và phụ lục A.1; TK §2, 3.3, 3.5, 4.1, 4.3, 4.5, 4.6, 5.2, 6.1, 7, 8; tạo `docs/tuan_4/Quyet_dinh_tuan_4.md` (D31–D38); TC2 truy vấn C05/C06 (chạy lại 2026-10-29: 73/73 PASS); CLAUDE.md. **Không sửa** Proposal §7: đây là tài liệu đã nộp, phần điều chỉnh kế hoạch được ghi ở spec mục 9 |
+| 3–5 | Chưa sửa | R47 (deploy cloud) chưa có gợi ý, cần người dùng chọn |
 
 ---
 

@@ -228,16 +228,16 @@ SELECT pg_temp.expect_eq('C03 Chi chưa khai báo lịch (0 dòng)',
 -- RatingNorm(Bình) = (AVG-1)/4 = (5-1)/4 = 1.00
 SELECT pg_temp.expect_eq('C04 RatingNorm(Bình) = 1.00',
   $q$SELECT round((avg(rating)-1)/4, 2)::text FROM reviews WHERE reviewee_id=2$q$, '1.00');
--- CompletionRate(Bình): tham gia 2 phiên đã bắt đầu, 1 hoàn thành → 0.50
+-- CompletionRate(Bình): 2 phiên đã bắt đầu và đã kết thúc (1 hoàn thành, 1 hủy) → 0.50
 SELECT pg_temp.expect_eq('C05 CompletionRate(Bình) = 0.50',
   $q$SELECT round(count(*) FILTER (WHERE s.status='COMPLETED')::numeric
-                  / NULLIF(count(*) FILTER (WHERE s.started_at IS NOT NULL),0), 2)::text
+                  / NULLIF(count(*) FILTER (WHERE s.started_at IS NOT NULL AND s.status IN ('COMPLETED','CANCELLED')),0), 2)::text
        FROM exchange_sessions s JOIN exchange_requests r ON r.id=s.request_id
       WHERE 2 IN (r.sender_id, r.receiver_id)$q$, '0.50');
 -- Người chưa có phiên nào: mẫu số 0 → NULL, service phải đổi thành mặc định
 SELECT pg_temp.expect_eq('C06 CompletionRate(Admin) = NULL khi chưa có phiên',
   $q$SELECT round(count(*) FILTER (WHERE s.status='COMPLETED')::numeric
-                  / NULLIF(count(*) FILTER (WHERE s.started_at IS NOT NULL),0), 2)::text
+                  / NULLIF(count(*) FILTER (WHERE s.started_at IS NOT NULL AND s.status IN ('COMPLETED','CANCELLED')),0), 2)::text
        FROM exchange_sessions s JOIN exchange_requests r ON r.id=s.request_id
       WHERE 4 IN (r.sender_id, r.receiver_id)$q$, NULL);
 

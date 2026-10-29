@@ -49,7 +49,7 @@ flowchart LR
 | `auth` | Đăng ký, xác thực email, đăng nhập, JWT |
 | `user` | Hồ sơ, lịch rảnh, hình thức học, kỹ năng của người dùng |
 | `skill` | Danh mục kỹ năng, nhóm, quan hệ liên quan |
-| `matching` | Lọc cứng, chấm điểm, phân loại hai chiều/một chiều |
+| `matching` | Lọc cứng, chấm điểm, phân loại hai chiều/một chiều. Lõi tính toán không phụ thuộc DB, dùng chung với `evaluation` (quyết định tuần 4, D34) |
 | `exchange` | Yêu cầu trao đổi và phiên |
 | `review` | Đánh giá, tính Reputation |
 | `admin` | Quản trị danh mục, xử lý báo cáo sự cố |
@@ -67,7 +67,7 @@ flowchart LR
 - Cột liệt kê, cột trạng thái và cột số bắt buộc đều `NOT NULL`. Cột `status` có giá trị mặc định là trạng thái khởi đầu (`PENDING`, `SCHEDULED`, `OPEN`...). Cột `created_at` mặc định là thời điểm chèn.
 - **Quy tắc xóa dữ liệu:**
   - Kỹ năng, lịch rảnh và mã xác thực của người dùng bị xóa theo khi xóa người dùng (`ON DELETE CASCADE`).
-  - Yêu cầu, phiên, đánh giá và báo cáo là lịch sử nên **không được xóa** (mặc định `RESTRICT`). Người dùng đã có lịch sử thì chỉ khóa tài khoản (G7), không xóa.
+  - Yêu cầu, phiên, đánh giá và báo cáo là lịch sử nên **không được xóa** (mặc định `RESTRICT`). Người dùng đã có lịch sử thì chỉ khóa tài khoản (FR-08), không xóa.
   - Kỹ năng đang được dùng cũng không xóa được, chỉ ẩn bằng `is_active = false`.
 - **Quy tắc nhất quán được đặt ngay trong database** bằng `CHECK`, không chỉ ở tầng service. Ví dụ: phiên `CANCELLED` bắt buộc có lý do hủy. Như vậy kể cả khi code có lỗi, dữ liệu sai cũng không ghi được.
 - Lược đồ do Flyway tạo (`V1__init.sql`, ...). Hibernate chỉ kiểm tra khớp (`ddl-auto: validate`).
@@ -218,7 +218,7 @@ erDiagram
 - Mỗi cặp kỹ năng liên quan chỉ lưu **một dòng**. CHECK `a < b` ngăn lưu trùng (Java, Kotlin) và (Kotlin, Java).
 - Điều kiện "cùng nhóm" được kiểm tra ở tầng service khi admin tạo quan hệ.
 - Từ ba bảng này tính được $Sim(s,t)$: bằng 1.0 nếu $s = t$, bằng 0.5 nếu có dòng trong `skill_relations`, còn lại bằng 0.
-- Kỹ năng bị ẩn không hiện trong danh sách chọn mới, nhưng vẫn giữ trong dữ liệu cũ để không làm hỏng yêu cầu và phiên đã có.
+- Kỹ năng bị ẩn không hiện trong danh sách chọn mới, nhưng vẫn giữ trong dữ liệu cũ để không làm hỏng yêu cầu và phiên đã có. Kỹ năng người dùng đang có vẫn được dùng bình thường trong matching, tìm kiếm và khi tạo yêu cầu (spec mục 4.1).
 
 #### `user_teach_skills`, `user_learn_skills` – kỹ năng của người dùng (FR-03)
 
@@ -260,7 +260,7 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | `version` | INTEGER | NOT NULL, mặc định 0 | Khóa lạc quan, chống người gửi hủy đúng lúc người nhận chấp nhận (mục 5.1) |
 
 - **Ràng buộc nhất quán loại yêu cầu:** `CHECK ((type = 'TWO_WAY') = (receiver_learn_skill_id IS NOT NULL))`. Yêu cầu hai chiều bắt buộc có kỹ năng chiều ngược lại; yêu cầu một chiều thì không được có.
-- **Chống gửi trùng (giả định G4):** chỉ mục duy nhất một phần `UNIQUE (sender_id, receiver_id) WHERE status = 'PENDING'`, nghĩa là mỗi người chỉ có một yêu cầu đang chờ với cùng một người nhận.
+- **Chống gửi trùng (spec mục 6.2):** chỉ mục duy nhất một phần `UNIQUE (sender_id, receiver_id) WHERE status = 'PENDING'`, nghĩa là mỗi người chỉ có một yêu cầu đang chờ với cùng một người nhận.
 
 #### `exchange_sessions` – phiên trao đổi (FR-06)
 
@@ -281,7 +281,7 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | `created_at` | TIMESTAMPTZ | NOT NULL | Thời điểm tạo phiên (= lúc chấp nhận yêu cầu) |
 
 - Hai người tham gia phiên là `sender_id` và `receiver_id` của yêu cầu gốc.
-- Cột `started_at` giải quyết quy tắc CompletionRate: phiên `CANCELLED` có `started_at` khác NULL là *hủy sau khi bắt đầu*, nên được tính vào mẫu số.
+- Cột `started_at` giải quyết quy tắc CompletionRate: phiên `CANCELLED` có `started_at` khác NULL là *hủy sau khi bắt đầu*, nên được tính vào mẫu số. Phiên đang `IN_PROGRESS` hoặc `WAITING_CONFIRMATION` chưa kết thúc nên chưa tính (spec mục 4.3).
 - **Ràng buộc nhất quán trạng thái** (`CHECK`):
 
   | Nếu `status` là | Thì bắt buộc có |
@@ -349,11 +349,11 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | $ScheduleFit(u,v)$ | `user_availability` | Không có dòng = chưa khai báo → 0.5 |
 | $ModeFit(u,v)$ | `users.learning_mode` | NULL = chưa khai báo |
 | $RatingNorm(v)$ | `AVG(reviews.rating)` với `reviewee_id = v` | Chưa có đánh giá → 0.5 |
-| $CompletionRate(v)$ | `exchange_sessions` mà $v$ tham gia | Tử số: `status = COMPLETED`. Mẫu số: `started_at IS NOT NULL`. Chưa có phiên nào đã bắt đầu thì truy vấn trả về NULL; service đổi thành **0.5** theo spec mục 4.3 |
+| $CompletionRate(v)$ | `exchange_sessions` mà $v$ tham gia | Tử số: `status = COMPLETED`. Mẫu số: `started_at IS NOT NULL AND status IN ('COMPLETED', 'CANCELLED')`. Chưa có phiên nào đủ điều kiện thì truy vấn trả về NULL; service đổi thành **0.5** theo spec mục 4.3 |
 
-**Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh và Reputation của các người dùng `ACTIVE` vào bộ nhớ bằng vài truy vấn gộp, sau đó lọc và chấm điểm bằng Java. Cách này tránh truy vấn lặp cho từng ứng viên. Reputation tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm.
+**Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh và Reputation của các người dùng `ACTIVE` có `role = STUDENT` vào bộ nhớ bằng vài truy vấn gộp, sau đó lọc và chấm điểm bằng Java. Cách này tránh truy vấn lặp cho từng ứng viên. Reputation tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm. Phần lọc và chấm điểm là một lõi thuần Java nhận dữ liệu trong bộ nhớ, không gọi Repository (chi tiết ở quyết định tuần 4, D34).
 
-**Dữ liệu giả lập cho thực nghiệm** (tuần 5) được sinh và đánh giá trong bộ nhớ bởi module `evaluation`, không ghi vào các bảng nghiệp vụ.
+**Dữ liệu giả lập cho thực nghiệm** (tuần 5) được sinh và đánh giá trong bộ nhớ bởi module `evaluation`, không ghi vào các bảng nghiệp vụ. Module này gọi cùng lõi matching với API, nên kết quả thực nghiệm đo đúng thuật toán đang chạy trong hệ thống.
 
 **Dữ liệu khởi tạo:** danh mục 20–30 kỹ năng, các nhóm và quan hệ liên quan được nạp sẵn bằng migration Flyway (`V2__seed_skills.sql`), để tuần 3–4 có dữ liệu trước khi làm màn hình quản trị.
 
@@ -398,7 +398,7 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 | 404 | Không tìm thấy tài nguyên |
 | 409 | Xung đột với dữ liệu đã có: chuyển trạng thái không hợp lệ, đánh giá lần hai, gửi trùng yêu cầu, email đã đăng ký. Trùng lặp ngay trong cùng một request (ví dụ một `skillId` xuất hiện hai lần) là dữ liệu không hợp lệ, trả 400 |
 
-**Ký hiệu quyền** trong các bảng dưới: *Public* = không cần đăng nhập; *User* = đã đăng nhập; *Active* = tài khoản `ACTIVE`; *Participant* = người tham gia phiên/yêu cầu; *Admin* = quản trị viên.
+**Ký hiệu quyền** trong các bảng dưới: *Public* = không cần đăng nhập; *User* = đã đăng nhập; *Active* = sinh viên đã xác thực (`status = ACTIVE` và `role = STUDENT`; admin gọi API loại này nhận 403, spec mục 6.3); *Participant* = người tham gia phiên/yêu cầu; *Admin* = quản trị viên.
 
 ### 4.2. Xác thực – `auth`
 
@@ -433,6 +433,12 @@ Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì gi
 
 Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn độ dài, tối đa 10 kỹ năng và 21 khung, không vừa dạy vừa học một kỹ năng, kỹ năng bị ẩn được giữ nhưng không thêm mới được) nằm ở quyết định tuần 3, D15–D21 và D28–D29.
 
+**Hồ sơ công khai và tìm kiếm (FR-10):**
+
+- **Ai được hiển thị:** chỉ người dùng `ACTIVE` có `role = STUDENT`. `GET /api/users/{id}` với người không thỏa điều kiện này (không tồn tại, chưa xác thực, bị khóa, admin) trả **404**, để không lộ trạng thái tài khoản. Xem hồ sơ của chính mình qua `/users/{id}` vẫn được (200).
+- **Hồ sơ công khai trả về:** `id`, `fullName`, `bio`, `learningMode`, `teachSkills[{skillId, skillName, categoryName, level}]`, `learnSkills[{skillId, skillName, categoryName, targetLevel}]`, `availability[{dayOfWeek, period}]`. Trình độ được ghi rõ trên giao diện là "tự khai báo". **Không** có `email`, `phone`, `contactInfo` (NFR-02). Điểm đánh giá trung bình và số lượt đánh giá được thêm ở tuần 7 cùng FR-07.
+- **Tìm kiếm `GET /api/users/search?skillId=&q=`:** cần ít nhất một tham số, thiếu cả hai trả 400. `skillId` khớp người có kỹ năng đó trong danh sách **dạy** (trùng chính xác, không tính kỹ năng liên quan). `q` tìm chuỗi con trong `full_name`, không phân biệt hoa thường. Có cả hai tham số thì phải thỏa cả hai. Kết quả không gồm chính người gọi, xếp theo `fullName` rồi `id`, tối đa 20 người. Mỗi kết quả gồm `id`, `fullName`, `learningMode` và danh sách kỹ năng dạy.
+
 **Thời điểm làm:** các API `/api/me*` làm ở tuần 3. `/api/users/{id}` và `/api/users/search` làm ở tuần 4 cùng màn hình S05, S06, S10. `/api/users/{id}/reviews` làm ở tuần 7 cùng chức năng đánh giá.
 
 ### 4.4. Danh mục kỹ năng – `skill`
@@ -449,23 +455,41 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
 | GET | `/api/matches?type=TWO_WAY&limit=10` | Active | Danh sách ghép hai chiều, xếp theo MutualScore | FR-04 |
 | GET | `/api/matches?type=ONE_WAY&limit=10` | Active | Danh sách mentoring một chiều, xếp theo $D(u,v)$ | FR-04 |
 
-Mỗi kết quả trả về điểm, các thành phần điểm và lý do phù hợp để giao diện giải thích (mục 2 spec: "giải thích kết quả"):
+**Tham số:** `type` bắt buộc (`TWO_WAY` hoặc `ONE_WAY`), thiếu hoặc sai trả 400. `limit` từ 1 đến 50, mặc định 10, ngoài khoảng trả 400.
+
+**Response** gồm tổng số ứng viên của nhóm và danh sách top `limit`. Mỗi kết quả có điểm, các thành phần điểm và lý do phù hợp để giao diện giải thích (mục 2 spec: "giải thích kết quả", NFR-09):
 
 ```json
 {
-  "userId": 17,
-  "fullName": "Trần B",
   "type": "TWO_WAY",
-  "score": 0.78,
-  "forward":  { "d": 0.94, "skillFit": 1.0, "levelFit": 1.0, "scheduleFit": 0.667, "modeFit": 1.0, "reputation": 0.8 },
-  "backward": { "d": 0.65, "skillFit": 0.5, "levelFit": 1.0, "scheduleFit": 0.667, "modeFit": 1.0, "reputation": 0.5 },
-  "youLearn":  [{ "want": "Java", "teach": "Java", "relation": "EXACT", "theirLevel": 3 }],
-  "theyLearn": [{ "want": "IELTS Writing", "teach": "Tiếng Anh", "relation": "RELATED", "yourLevel": 3 }],
-  "commonSlots": [{ "dayOfWeek": 2, "period": "EVENING" }, { "dayOfWeek": 5, "period": "EVENING" }]
+  "needsLearnSkills": false,
+  "total": 8,
+  "items": [
+    {
+      "userId": 17,
+      "fullName": "Trần B",
+      "type": "TWO_WAY",
+      "score": 0.78,
+      "forward":  { "d": 0.94, "skillFit": 1.0, "levelFit": 1.0, "scheduleFit": 0.667, "modeFit": 1.0, "reputation": 0.8 },
+      "backward": { "d": 0.65, "skillFit": 0.5, "levelFit": 1.0, "scheduleFit": 0.667, "modeFit": 1.0, "reputation": 0.5 },
+      "learningMode": "ONLINE",
+      "ratingAverage": 4.2,
+      "reviewCount": 5,
+      "hasPendingRequest": false,
+      "youLearn":  [{ "want": "Java", "teach": "Java", "relation": "EXACT", "theirLevel": 3 }],
+      "theyLearn": [{ "want": "IELTS Writing", "teach": "Tiếng Anh", "relation": "RELATED", "yourLevel": 3 }],
+      "commonSlots": [{ "dayOfWeek": 2, "period": "EVENING" }, { "dayOfWeek": 5, "period": "EVENING" }]
+    }
+  ]
 }
 ```
 
-Với `ONE_WAY` thì không có `backward` và `theyLearn`, còn `score` bằng $D(u,v)$.
+- Với `ONE_WAY` thì không có `backward` và `theyLearn`, còn `score` bằng $D(u,v)$.
+- `ratingAverage` là `null` và `reviewCount = 0` khi chưa có đánh giá; giao diện hiện nhãn "Mới".
+- `hasPendingRequest = true` khi người gọi đang có yêu cầu `PENDING` gửi tới ứng viên này; giao diện thay nút "Gửi yêu cầu" bằng "Đã gửi". Ứng viên vẫn nằm trong danh sách (lọc cứng không loại họ).
+- Người gọi chưa khai báo kỹ năng muốn học ($W_u$ rỗng): trả 200 với `needsLearnSkills = true`, `total = 0`, `items = []`; giao diện dẫn sang S04.
+- Điểm trong response làm tròn 3 chữ số thập phân để hiển thị; thứ tự xếp hạng dùng điểm chưa làm tròn (spec mục 4.4).
+- Response không bao giờ chứa `email`, `phone`, `contactInfo` (NFR-02).
 
 ### 4.6. Yêu cầu trao đổi – `exchange`
 
@@ -497,10 +521,10 @@ POST /api/requests
 
 Backend kiểm tra khi tạo yêu cầu:
 
-1. Người nhận đang `ACTIVE` và khác người gửi.
+1. Người nhận đang `ACTIVE`, có `role = STUDENT` và khác người gửi.
 2. `senderLearnSkillId` có $Sim > 0$ với một kỹ năng dạy của người nhận. Nếu là `TWO_WAY` thì `receiverLearnSkillId` cũng phải có $Sim > 0$ với một kỹ năng dạy của người gửi.
 3. `proposedStartAt` ở tương lai.
-4. Chưa có yêu cầu `PENDING` nào giữa hai người theo cùng chiều (giả định G4).
+4. Chưa có yêu cầu `PENDING` nào giữa hai người theo cùng chiều (spec mục 6.2).
 
 ### 4.7. Phiên trao đổi – `exchange`
 
@@ -508,7 +532,7 @@ Backend kiểm tra khi tạo yêu cầu:
 | --- | --- | --- | --- | --- |
 | GET | `/api/sessions?status=` | Active | Các phiên của tôi | FR-06 |
 | GET | `/api/sessions/{id}` | Participant, Admin | Chi tiết phiên, **kèm thông tin liên hệ và địa điểm/link** của bên kia | FR-06, NFR-02 |
-| POST | `/api/sessions/{id}/start` | Participant | `SCHEDULED` → `IN_PROGRESS` (giả định G1) | FR-06 |
+| POST | `/api/sessions/{id}/start` | Participant | `SCHEDULED` → `IN_PROGRESS` (spec mục 6.2) | FR-06 |
 | POST | `/api/sessions/{id}/complete` | Participant | Lần 1: → `WAITING_CONFIRMATION`. Lần 2 (bên còn lại): → `COMPLETED` | FR-06 |
 | POST | `/api/sessions/{id}/cancel` | Participant | Hủy kèm `reason` bắt buộc; chỉ từ `SCHEDULED` hoặc `IN_PROGRESS` | FR-06 |
 
@@ -530,7 +554,7 @@ Backend kiểm tra khi tạo yêu cầu:
 | DELETE | `/api/admin/skill-relations/{aId}/{bId}` | Admin | Bỏ quan hệ liên quan | FR-08 |
 | GET | `/api/admin/reports?status=OPEN` | Admin | Hàng đợi báo cáo sự cố | FR-09 |
 | POST | `/api/admin/reports/{id}/resolve` | Admin | `{resolution: SESSION_COMPLETED \| SESSION_CANCELLED, note}`; chốt phiên tương ứng | FR-09 |
-| PUT | `/api/admin/users/{id}/status` | Admin | Khóa/mở khóa tài khoản (`ACTIVE` ↔ `LOCKED`) | FR-08 (G7) |
+| PUT | `/api/admin/users/{id}/status` | Admin | Khóa/mở khóa tài khoản (`ACTIVE` ↔ `LOCKED`) | FR-08 |
 
 ### 4.10. Ma trận phân quyền rút gọn
 
@@ -591,10 +615,10 @@ stateDiagram-v2
 
 | Từ | Sang | Ai | API | Điều kiện / tác động phụ |
 | --- | --- | --- | --- | --- |
-| `SCHEDULED` | `IN_PROGRESS` | Participant | `POST /sessions/{id}/start` | Chỉ từ 15 phút trước `start_at` (giả định G1); ghi `started_at` |
+| `SCHEDULED` | `IN_PROGRESS` | Participant | `POST /sessions/{id}/start` | Chỉ từ 15 phút trước `start_at` (spec mục 6.2); ghi `started_at` |
 | `SCHEDULED` | `CANCELLED` | Participant | `POST /sessions/{id}/cancel` | Lý do bắt buộc; `started_at` vẫn NULL nên **không** tính vào CompletionRate |
 | `IN_PROGRESS` | `WAITING_CONFIRMATION` | Participant | `POST /sessions/{id}/complete` | Ghi `first_completed_by` |
-| `IN_PROGRESS` | `CANCELLED` | Participant | `POST /sessions/{id}/cancel` | Lý do bắt buộc; **có** tính vào mẫu số CompletionRate |
+| `IN_PROGRESS` | `CANCELLED` | Participant | `POST /sessions/{id}/cancel` | Lý do bắt buộc; **có** tính vào mẫu số CompletionRate (phiên đã bắt đầu và đã kết thúc) |
 | `WAITING_CONFIRMATION` | `COMPLETED` | Bên còn lại | `POST /sessions/{id}/complete` | Người gọi phải khác `first_completed_by`; mở quyền đánh giá |
 | `WAITING_CONFIRMATION` | `COMPLETED` / `CANCELLED` | Admin | `POST /admin/reports/{id}/resolve` | Chỉ khi có báo cáo `OPEN`; báo cáo chuyển sang `RESOLVED` |
 
@@ -618,11 +642,11 @@ stateDiagram-v2
 | S03 | Hồ sơ của tôi | Thông tin cá nhân, liên hệ riêng tư, hình thức học, lưới lịch rảnh 7×3 | `/me`, `/me/availability` |
 | S04 | Kỹ năng của tôi | Hai danh sách: kỹ năng dạy (có trình độ 1–4) và kỹ năng muốn học (mục tiêu tùy chọn) | `/skills`, `/me/teach-skills`, `/me/learn-skills` |
 | S05 | Gợi ý ghép cặp | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn"; thẻ ứng viên có điểm và lý do | `/matches` |
-| S06 | Hồ sơ người khác | Thông tin công khai, kỹ năng, đánh giá; nút "Gửi yêu cầu" | `/users/{id}`, `/users/{id}/reviews` |
+| S06 | Hồ sơ người khác | Thông tin công khai, kỹ năng, lịch rảnh; nút "Gửi yêu cầu". Phần đánh giá thêm ở tuần 7 | `/users/{id}`, `/users/{id}/reviews` |
 | S07 | Gửi yêu cầu | Chọn kỹ năng từng chiều, thời điểm (gợi ý khung trùng), thời lượng, hình thức, địa điểm/link | `POST /requests` |
 | S08 | Hộp yêu cầu | Tab Đã nhận / Đã gửi; nút Chấp nhận, Từ chối, Hủy | `/requests` |
 | S09 | Phiên của tôi và chi tiết phiên | Trạng thái, liên hệ bên kia, nút Bắt đầu / Hoàn thành / Hủy / Báo cáo / Đánh giá | `/sessions`, `/sessions/{id}/*` |
-| S10 | Tìm kiếm | Tìm theo kỹ năng hoặc tên | `/users/search` |
+| S10 | Tìm kiếm | Tìm theo kỹ năng dạy và/hoặc tên | `/users/search`, `/skills` |
 | A01 | Quản trị danh mục kỹ năng | Bảng kỹ năng theo nhóm; thêm/sửa/ẩn; quản lý quan hệ liên quan | `/admin/skills*` |
 | A02 | Xử lý báo cáo sự cố | Hàng đợi báo cáo; xem phiên; chốt Hoàn thành / Hủy kèm ghi chú | `/admin/reports*` |
 
@@ -706,40 +730,51 @@ Các nút hiện ra tùy theo trạng thái phiên và vai trò của người x
 
 ## 7. Bảng truy vết yêu cầu
 
-| Yêu cầu | Bảng dữ liệu | API | Màn hình |
-| --- | --- | --- | --- |
-| FR-01 Tài khoản, xác thực email | `users`, `user_tokens` | `/auth/*` | S01, S02 |
-| FR-02 Hồ sơ, lịch rảnh, hình thức học | `users`, `user_availability` | `/me`, `/me/availability` | S03 |
-| FR-03 Kỹ năng và trình độ | `user_teach_skills`, `user_learn_skills` | `/me/teach-skills`, `/me/learn-skills` | S04 |
-| FR-04 Gợi ý, phân loại, xếp hạng | Đọc các bảng trên, `reviews`, `exchange_sessions` | `/matches` | S05 |
-| FR-05 Yêu cầu trao đổi | `exchange_requests` | `/requests*` | S06, S07, S08 |
-| FR-06 Phiên và xác nhận hoàn thành | `exchange_sessions` | `/sessions*` | S09 |
-| FR-07 Đánh giá | `reviews` | `/sessions/{id}/reviews` | S09 |
-| FR-08 Quản trị danh mục, khóa tài khoản | `skills`, `skill_categories`, `skill_relations`, `users.status` | `/admin/skill*`, `/admin/users/{id}/status` | A01 |
-| FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports`, `/admin/reports*` | S09, A02 |
-| FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills` | `/users/search`, `/users/{id}` | S06, S10 |
-| FR-11 Thực nghiệm | Không dùng bảng nghiệp vụ (chạy trong bộ nhớ) | – (module `evaluation`, chạy offline) | – |
-| FR-23 Quên mật khẩu (nên có) | `user_tokens` (`RESET_PASSWORD`) | Chưa thiết kế | – |
-| NFR-01 Bảo mật | `password_hash`, `user_tokens.token_hash` | JWT, kiểm tra quyền mọi API | – |
-| NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ và địa điểm/link chỉ trả về trong `/me`, `/sessions/{id}`; email trường không có trong `/users/{id}` | S06, S09 |
+Cột "Kiểm thử" trỏ tới nhóm unit test ở spec mục 7.1 (N1–N5) hoặc file ca kiểm thử của tuần đó. Cột "Tuần" theo spec mục 9 (đã điều chỉnh 2026-10-29). Ô "chưa có" là phần sẽ bổ sung khi chốt tài liệu của tuần tương ứng.
 
-## 8. Giả định thiết kế cần xác nhận
+| Yêu cầu | Bảng dữ liệu | API | Màn hình | Kiểm thử | Tuần |
+| --- | --- | --- | --- | --- | --- |
+| FR-01 Tài khoản, xác thực email | `users`, `user_tokens` | `/auth/*` | S01, S02 | `tuan_3/kiem_thu` | 3 |
+| FR-02 Hồ sơ, lịch rảnh, hình thức học | `users`, `user_availability` | `/me`, `/me/availability` | S03 | `tuan_3/kiem_thu` | 3 |
+| FR-03 Kỹ năng và trình độ | `user_teach_skills`, `user_learn_skills`, `skills`, `skill_categories` | `/me/teach-skills`, `/me/learn-skills`, `/skills`, `/skill-categories` | S04 | `tuan_3/kiem_thu` | 3 |
+| FR-04 Gợi ý, phân loại, xếp hạng | Đọc các bảng trên, `skill_relations`, `reviews`, `exchange_sessions` | `/matches` | S05 | N1, N2, N3 | 4 |
+| FR-05 Yêu cầu trao đổi | `exchange_requests` | `/requests*` | S06, S07, S08 | N5 | 6 |
+| FR-06 Phiên và xác nhận hoàn thành | `exchange_sessions` | `/sessions*` | S09 | N5 | 6 |
+| FR-07 Đánh giá | `reviews` | `/sessions/{id}/reviews`, `/users/{id}/reviews` | S09, S06 | N5 | 7 |
+| FR-08 Quản trị danh mục kỹ năng | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 | chưa có | 5 |
+| FR-08 Khóa/mở khóa tài khoản | `users.status` | `/admin/users/{id}/status` | chưa có màn hình (rà soát R41) | chưa có | 7 |
+| FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports` (tuần 6), `/admin/reports*` (tuần 7) | S09, A02 | N5 | 6, 7 |
+| FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills`, `user_availability` | `/users/search`, `/users/{id}` | S06, S10 | N5 (riêng tư) | 4 |
+| FR-11 Thực nghiệm | Không dùng bảng nghiệp vụ (chạy trong bộ nhớ) | – (module `evaluation`, chạy offline) | – | N4 | 5 |
+| FR-12 Lọc theo hình thức học (nên có) | – | Lọc phía giao diện trên kết quả `/matches` | S05 | chưa có | 8 nếu kịp |
+| FR-13, FR-15, FR-16 (nên có) | Chưa thiết kế | – | – | – | 8 nếu kịp |
+| FR-14 Lịch sử trao đổi (nên có) | `exchange_requests`, `exchange_sessions` | Dùng lại `/requests`, `/sessions` | S08, S09 | chưa có | 7 nếu kịp |
+| FR-23 Quên mật khẩu (nên có) | `user_tokens` (`RESET_PASSWORD`) | Chưa thiết kế | – | – | 8 nếu kịp |
+| NFR-01 Bảo mật | `password_hash`, `user_tokens.token_hash` | JWT, kiểm tra quyền mọi API | – | `tuan_3/kiem_thu` nhóm C, N5 | 3 trở đi; kiểm thử tổng ở 8 |
+| NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ và địa điểm/link chỉ trả về trong `/me`, `/sessions/{id}`; email trường không có trong `/users/{id}` | S06, S09 | N5 | 4, 6 |
+| NFR-03 Hiệu năng | – | `/matches`, module `evaluation` | – | Đo thời gian (cách đo chốt ở rà soát R30) | 5, 8 |
+| NFR-04 Tính đúng | – | Lõi matching | – | N2 | 4 |
+| NFR-05 Bảo trì | – | Tách lọc cứng và chấm điểm, trọng số tập trung | – | Xem xét code | 4 |
+| NFR-06 Tái lập thực nghiệm | – | Module `evaluation` | – | N4 | 5 |
+| NFR-07 Khả năng triển khai | `docker-compose.yml` | – | – | Dựng lại từ repo theo README | 9 |
+| NFR-08 Tương thích nền tảng | – | – | Mọi màn hình | Kiểm tra thủ công 3 trình duyệt, rộng 360 px | 8 |
+| NFR-09 Khả năng sử dụng | – | Trường lý do trong `/matches` | S05 | chưa có | 4 |
 
-Spec tuần 1 chưa quy định các điểm dưới đây. Thiết kế tạm chọn phương án đơn giản nhất và có thể đổi lại mà không phải sửa cấu trúc lớn.
+## 8. Giả định thiết kế (đã chốt hết)
 
-*Cập nhật 2026-10-24:* G1–G4 và G7 đã được đưa vào spec tuần 1 (mục 6.2, 6.3, FR-08), không còn là giả định. G5, G6 là chi tiết kỹ thuật, giữ ở tài liệu này.
+Khi viết thiết kế tuần 2, spec tuần 1 chưa quy định các điểm dưới đây nên thiết kế tạm chọn phương án đơn giản nhất. Đến 2026-10-29 cả 9 giả định đã được chốt vào tài liệu nguồn; bảng này chỉ còn để tra cứu. Khi đọc hoặc sửa, dùng nơi chốt ở cột cuối, không dùng mã G.
 
-| Mã | Giả định | Liên quan |
+| Mã | Nội dung | Đã chốt ở |
 | --- | --- | --- |
-| G1 | Phiên chuyển sang `IN_PROGRESS` khi một bên bấm "Bắt đầu", chỉ được bấm từ 15 phút trước giờ hẹn. Không dùng tác vụ chạy định kỳ | Spec T7 |
-| G2 | Yêu cầu `PENDING` và phiên `IN_PROGRESS` chưa có thời hạn tự hết hạn trong MVP | Spec T7 |
-| G3 | Khi một bên hủy phiên đang diễn ra, phiên tính vào mẫu số CompletionRate của **cả hai** bên, đúng theo spec hiện tại | Spec T8 |
-| G4 | Mỗi người chỉ có một yêu cầu `PENDING` tới cùng một người nhận | Spec L4 |
-| G5 | JWT có hạn 24 giờ, chưa dùng refresh token | – |
-| G6 | Email trường được nhận diện bằng đuôi tên miền cấu hình sẵn (ví dụ `@<tên-trường>.edu.vn`) | FR-01 |
-| G7 | Có API khóa/mở khóa tài khoản cho admin, vì lọc cứng và nhãn 5.1 có nhắc tới "tài khoản bị khóa" | Spec T9 |
-| G8 | Link xác thực email hết hạn sau 24 giờ; gửi lại link thì vô hiệu link cũ. *Đã chốt chi tiết ở D7 tuần 3* | FR-01 |
-| G9 | Tài khoản PENDING_VERIFICATION được đăng nhập và sửa hồ sơ; LOCKED bị chặn (403), kể cả với token đã cấp trước khi bị khóa vì trạng thái được đọc lại ở mỗi request. *Đã chốt chi tiết ở D12, D13 tuần 3* | FR-01 |
+| G1 | Phiên chuyển sang `IN_PROGRESS` khi một bên bấm "Bắt đầu", chỉ được bấm từ 15 phút trước giờ hẹn. Không dùng tác vụ chạy định kỳ | Spec 6.2 |
+| G2 | Yêu cầu `PENDING` và phiên `IN_PROGRESS` chưa có thời hạn tự hết hạn trong MVP | Spec 6.2 |
+| G3 | Khi một bên hủy phiên đang diễn ra, phiên tính vào mẫu số CompletionRate của **cả hai** bên | Spec 4.3, 6.2 |
+| G4 | Mỗi người chỉ có một yêu cầu `PENDING` tới cùng một người nhận | Spec 6.2 |
+| G5 | JWT có hạn 24 giờ, chưa dùng refresh token | Quyết định tuần 3, D14 |
+| G6 | Email trường được nhận diện bằng đuôi tên miền cấu hình sẵn | Quyết định tuần 3, D9 |
+| G7 | Có API khóa/mở khóa tài khoản cho admin | Spec FR-08, 6.3 |
+| G8 | Link xác thực email hết hạn sau 24 giờ; gửi lại link thì vô hiệu link cũ | Quyết định tuần 3, D7 |
+| G9 | Tài khoản `PENDING_VERIFICATION` được đăng nhập và sửa hồ sơ; `LOCKED` bị chặn (403), kể cả với token đã cấp trước khi bị khóa | Quyết định tuần 3, D12, D13 |
 
 ## 9. Kế hoạch tuần 3
 
@@ -749,3 +784,5 @@ Theo kế hoạch hợp nhất ở spec tuần 1 mục 9:
 - Làm luồng đăng ký, xác thực email, đăng nhập JWT (mục 4.2).
 - Làm API `/api/me*` cho hồ sơ, lịch rảnh, kỹ năng (mục 4.3), API danh mục kỹ năng (mục 4.4) và màn hình S01–S04.
 - **Không** làm ở tuần 3: `/api/users/{id}`, `/api/users/search` (tuần 4), `/api/users/{id}/reviews` (tuần 7).
+
+Từ tuần 3, phạm vi và quyết định chi tiết của từng tuần nằm ở `docs/tuan_<n>/Quyet_dinh_tuan_<n>.md`.
