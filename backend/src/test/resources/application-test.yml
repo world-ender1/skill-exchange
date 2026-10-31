@@ -1,0 +1,6 @@
+# Profile "test" (D39): chỉ đổi tên database sang skillexchange_test.
+# Tài khoản và mật khẩu DB vẫn đọc từ ../.env như application.yml.
+# Tạo DB một lần: docker compose exec db createdb -U skillexchange skillexchange_test
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/skillexchange_test
