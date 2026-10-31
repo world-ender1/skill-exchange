@@ -406,10 +406,10 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 | --- | --- | --- | --- | --- |
 | POST | `/api/auth/register` | Public | Body `{email, password, fullName}`. Đăng ký bằng email trường (kiểm tra đuôi tên miền theo cấu hình), gửi link xác thực. 201 kèm `{id, email, status}` | FR-01 |
 | POST | `/api/auth/verify-email` | Public | Body `{token}`. Tài khoản `PENDING_VERIFICATION` chuyển sang `ACTIVE`. 204; token không dùng được trả 400 | FR-01 |
-| POST | `/api/auth/resend-verification` | Public | Body `{email}`. Gửi lại link xác thực. Luôn trả 204 | FR-01 |
+| POST | `/api/auth/resend-verification` | Public | Body `{email}`. Gửi lại link xác thực. Email đúng định dạng thì luôn trả 204, kể cả email chưa đăng ký; thiếu hoặc sai định dạng trả 400 (D42) | FR-01 |
 | POST | `/api/auth/login` | Public | Body `{email, password}`. 200 kèm `{accessToken}` | FR-01 |
 
-Chi tiết quy tắc của các API trên (chuẩn hóa email, độ dài mật khẩu, đăng ký lại email chưa xác thực, giới hạn 60 giây, thứ tự kiểm tra khi đăng nhập) nằm ở quyết định tuần 3, D5–D13 và D25–D29.
+Chi tiết quy tắc của các API trên (chuẩn hóa email, độ dài mật khẩu, đăng ký lại email chưa xác thực, giới hạn 60 giây, thứ tự kiểm tra khi đăng nhập) nằm ở quyết định tuần 3, D5–D13, D25–D29 và D42.
 
 Quên mật khẩu (FR-23) thuộc mức "Nên có" nên chưa thiết kế API. Bảng `user_tokens` đã có `purpose = RESET_PASSWORD` để làm sau mà không phải đổi lược đồ.
 
@@ -429,9 +429,9 @@ Quên mật khẩu (FR-23) thuộc mức "Nên có" nên chưa thiết kế API.
 | GET | `/api/users/{id}/reviews` | Active | Các đánh giá người đó nhận được | FR-07 |
 | GET | `/api/users/search?skillId=&q=` | Active | Tìm kiếm người dùng theo kỹ năng hoặc tên | FR-10 |
 
-Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì giao diện là một biểu mẫu chỉnh sửa toàn bộ. Cách này đơn giản hơn thêm/xóa từng dòng. Các `PUT` trả 200 kèm dữ liệu vừa lưu, cùng dạng với `GET` tương ứng.
+Lịch rảnh và danh sách kỹ năng dùng `PUT` thay cả danh sách, vì giao diện là một biểu mẫu chỉnh sửa toàn bộ. Cách này đơn giản hơn thêm/xóa từng dòng. Các `PUT` trả 200 kèm dữ liệu vừa lưu, cùng dạng và cùng thứ tự với `GET` tương ứng (thứ tự ở D41).
 
-Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn độ dài, tối đa 10 kỹ năng và 21 khung, không vừa dạy vừa học một kỹ năng, kỹ năng bị ẩn được giữ nhưng không thêm mới được) nằm ở quyết định tuần 3, D15–D21 và D28–D29.
+Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn độ dài, tối đa 10 kỹ năng và 21 khung, không vừa dạy vừa học một kỹ năng, kỹ năng bị ẩn được giữ nhưng không thêm mới được) nằm ở quyết định tuần 3, D15–D21, D28–D29 và D41.
 
 **Hồ sơ công khai và tìm kiếm (FR-10):**
 
@@ -445,8 +445,8 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
 
 | Phương thức | Đường dẫn | Quyền | Mô tả |
 | --- | --- | --- | --- |
-| GET | `/api/skill-categories` | User | Danh sách nhóm kỹ năng |
-| GET | `/api/skills?categoryId=&q=` | User | Kỹ năng đang hoạt động, dùng cho ô chọn kỹ năng. `q` tìm chuỗi con trong tên, không phân biệt hoa thường |
+| GET | `/api/skill-categories` | User | Danh sách nhóm kỹ năng `[{id, name}]`, xếp theo tên (D40) |
+| GET | `/api/skills?categoryId=&q=` | User | Kỹ năng đang hoạt động `[{id, name, categoryId, categoryName}]`, dùng cho ô chọn kỹ năng. `q` tìm chuỗi con trong tên, không phân biệt hoa thường. Xếp theo tên (D40) |
 
 ### 4.5. Gợi ý ứng viên – `matching`
 

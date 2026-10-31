@@ -10,7 +10,7 @@ Tài liệu dự án (đọc trước khi làm tính năng):
 - Spec yêu cầu + thuật toán matching: `docs/tuan_1/Phan_tich_yeu_cau_Skill_Exchange_Tuan_1.md` (FR-xx, NFR-xx, mục 4 công thức điểm, mục 6 trạng thái/phân quyền)
 - Thiết kế DB, API, sơ đồ trạng thái, màn hình: `docs/tuan_2/Tuan_2_Thiet_ke.md`
 - Kế hoạch 9 tuần: `docs/Skill_Exchange_Proposal_9_Tuan.md`
-- Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng; D1–D30): `docs/tuan_3/Quyet_dinh_tuan_3.md`
+- Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng, cách chạy test; D1–D30, D39–D42): `docs/tuan_3/Quyet_dinh_tuan_3.md`
 - Quyết định triển khai tuần 4 (matching, hồ sơ công khai, tìm kiếm; D31–D38): `docs/tuan_4/Quyet_dinh_tuan_4.md`
 - Ca kiểm thử viết trước từ tài liệu: `docs/tuan_<n>/kiem_thu/`
 - Rà soát toàn bộ tài liệu và các vấn đề còn chờ sửa theo đợt (R01–R56): `docs/ra_soat/Bao_cao_ra_soat.md`
@@ -33,7 +33,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Backend: `cd backend; .\mvnw.cmd spring-boot:run` (phải chạy từ `backend/` vì `application.yml` đọc `../.env`)
 - Test backend: `cd backend; .\mvnw.cmd test`
 - Một test: `.\mvnw.cmd test -Dtest=TenClassTest#tenPhuongThuc`
-- Test `@SpringBootTest` cần PostgreSQL đang chạy (Flyway chạy migration vào DB thật)
+- Test `@SpringBootTest` chạy trên DB riêng `skillexchange_test` (D39), cần PostgreSQL đang chạy; tạo DB một lần: `docker compose exec db createdb -U skillexchange skillexchange_test`
 - Frontend: `cd frontend; npm run dev` (http://localhost:5173)
 - Build / lint frontend: `npm run build` (gồm `tsc -b`), `npm run lint`
 

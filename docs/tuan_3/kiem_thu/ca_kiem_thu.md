@@ -4,6 +4,8 @@ Mục đích: liệt kê trước các ca kiểm thử cho chức năng tuần 3
 
 *Cập nhật 2026-10-29:* đồng bộ với các quyết định D25–D30 và các quyết định đã sửa sau rà soát (`docs/ra_soat/Bao_cao_ra_soat.md`, R01–R17). TC34, TC35 đổi nghĩa (đăng ký lại email chưa xác thực nay là hợp lệ, xem TC77). TC48 chuyển sang nhóm A. Thêm TC77–TC90.
 
+*Cập nhật 2026-10-31:* thêm TC91–TC93 cho D40–D42. D39 là cách chạy test, không có ca riêng.
+
 ## Nguồn
 
 Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 3 > thiết kế tuần 2 > spec tuần 1.
@@ -15,7 +17,7 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 3
 | TK 3.1, TK 3.3 | `docs/tuan_2/Tuan_2_Thiet_ke.md`: quy ước dữ liệu, mô tả bảng `users`, `user_tokens`, `skills`, `user_*` |
 | TK 4.1–4.4 | Thiết kế tuần 2: quy ước API, API `auth`, `user`, `skill` |
 | G5–G9 | Thiết kế tuần 2, mục 8 |
-| D1–D30 | `docs/tuan_3/Quyet_dinh_tuan_3.md` |
+| D1–D30, D39–D42 | `docs/tuan_3/Quyet_dinh_tuan_3.md` |
 
 **Loại:**
 - **Tự động**: test JUnit chạy bằng `.\mvnw.cmd test`.
@@ -31,10 +33,10 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 3
 
 | Nhóm | Số ca | Ý nghĩa |
 | --- | --- | --- |
-| A. Hợp lệ phải được nhận | 38 | Đi trọn luồng đăng ký → xác thực → đăng nhập → hồ sơ → lịch rảnh → kỹ năng, kể cả các giá trị biên. Chứng minh hệ thống không chặn nhầm. |
-| B. Sai phải bị chặn | 34 | Mỗi quy tắc dữ liệu có ít nhất một ca vi phạm. Phải bị từ chối và **không đổi dữ liệu**. |
+| A. Hợp lệ phải được nhận | 40 | Đi trọn luồng đăng ký → xác thực → đăng nhập → hồ sơ → lịch rảnh → kỹ năng, kể cả các giá trị biên. Chứng minh hệ thống không chặn nhầm. |
+| B. Sai phải bị chặn | 35 | Mỗi quy tắc dữ liệu có ít nhất một ca vi phạm. Phải bị từ chối và **không đổi dữ liệu**. |
 | C. Bảo mật và phân quyền | 18 | Băm mật khẩu, băm token, xác thực JWT, quyền sở hữu dữ liệu, trạng thái tài khoản, không lộ thông tin. 2 ca dành cho tuần 4. |
-| **Tổng** | **90** | |
+| **Tổng** | **93** | |
 
 ---
 
@@ -80,6 +82,8 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 3
 | TC80 | D27 | Giả lập máy chủ mail lỗi khi đăng ký | 201, user được tạo ở `PENDING_VERIFICATION`, có log lỗi. Sau khi mail hoạt động lại, `resend-verification` (sau 60 giây) gửi được thư | Tự động |
 | TC81 | D4 | Khởi động ứng dụng với `ADMIN_EMAIL = " Admin@Student.Example.edu.vn "`; khởi động lại lần hai | Có đúng 1 tài khoản `admin@student.example.edu.vn` với `role = ADMIN`, `status = ACTIVE`, `email_verified_at` khác NULL; lần hai không tạo thêm | Tự động |
 | TC82 | D19 | Đang muốn học Java. Gửi `PUT /api/me/learn-skills` không có Java, rồi `PUT /api/me/teach-skills` có Java | Cả hai đều 200; Java chỉ nằm trong danh sách dạy | Tự động |
+| TC92 | TK 4.4, D40 | `GET /api/skill-categories`; `GET /api/skills`; `GET /api/skills?categoryId=999999` (không tồn tại) | Nhóm có đúng các khóa `id`, `name`; kỹ năng có đúng `id`, `name`, `categoryId`, `categoryName`. Cả hai xếp theo tên (so trên các tên không dấu, ví dụ Java đứng trước Python). `categoryId` không tồn tại: 200, danh sách rỗng | Tự động |
+| TC93 | D41 | `PUT /api/me/availability` với `[{7, EVENING}, {1, EVENING}, {1, MORNING}]`; `PUT /api/me/teach-skills` với Python rồi Java | Response của `PUT` và `GET` đều trả lịch theo thứ tự `{1, MORNING}`, `{1, EVENING}`, `{7, EVENING}`; kỹ năng theo thứ tự Java, Python | Tự động |
 
 ---
 
@@ -123,6 +127,7 @@ Mọi ca trong nhóm này còn phải kiểm thêm: **dữ liệu trong DB khôn
 | TC87 | D26 | Tạo một token `purpose = RESET_PASSWORD` cho tài khoản `PENDING_VERIFICATION`, dùng nó gọi `verify-email` | 400. User vẫn `PENDING_VERIFICATION` | Tự động |
 | TC88 | D26 | Tài khoản `PENDING_VERIFICATION` có token hợp lệ, admin chuyển sang `LOCKED`, rồi verify bằng token đó | 400. User vẫn `LOCKED` | Tự động |
 | TC89 | D7 | Đăng ký, rồi gọi `resend-verification` sau 30 giây | 204, không có email mới (thư đăng ký cũng tính vào giới hạn 60 giây) | Tự động |
+| TC91 | D42 | `resend-verification` với body `{}`, với `{email: ""}` và với `{email: "abc"}` | Cả ba trả 400 dạng Problem Details, có `errors[].field = email`; không gửi email | Tự động |
 
 ---
 
