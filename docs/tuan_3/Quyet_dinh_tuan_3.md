@@ -51,7 +51,7 @@ Không đánh số lại, vì các mã này đã được trích ở ca kiểm t
 | --- | --- | --- | --- |
 | D12 | Tài khoản chưa xác thực email có đăng nhập được không? | Tài khoản `PENDING_VERIFICATION` **được đăng nhập** và dùng các API quyền *User* (`/api/me*`, danh mục kỹ năng). Các API quyền *Active* trả 403. | TK 4.1, 4.3, G9 |
 | D13 | Đăng nhập kiểm tra theo thứ tự nào? Khóa tài khoản thì token đã cấp còn dùng được không? | Đăng nhập kiểm tra theo thứ tự: tìm email → so mật khẩu → xét trạng thái. Email không tồn tại hoặc sai mật khẩu đều trả 401 với cùng một thông báo. Chỉ khi mật khẩu **đúng** mà tài khoản `LOCKED` mới trả 403 (kiểm tra trạng thái trước mật khẩu sẽ cho người ngoài biết email đó tồn tại). Mỗi request có token đều đọc lại user từ DB: user không còn tồn tại thì 401; `LOCKED` thì 403. Nhờ vậy khóa tài khoản có hiệu lực ngay, không chờ token hết hạn. | FR-01, NFR-01, G9; R07, R16 |
-| D14 | Làm JWT bằng thư viện nào, token chứa gì? | Dùng `spring-boot-starter-oauth2-resource-server` (Nimbus). Token ký HS256 bằng `JWT_SECRET`, hạn 24 giờ, chưa có refresh token. Claim `sub` = userId, claim `role` = `STUDENT`/`ADMIN`. | TK 4.1, G5 |
+| D14 | Làm JWT bằng thư viện nào, token chứa gì? | Dùng `spring-boot-starter-security-oauth2-resource-server` (Nimbus; Spring Boot 4 đổi tên, tên cũ `spring-boot-starter-oauth2-resource-server` đã deprecated). Token ký HS256 bằng `JWT_SECRET`, hạn 24 giờ, chưa có refresh token. Claim `sub` = userId, claim `role` = `STUDENT`/`ADMIN`. | TK 4.1, G5 |
 
 ## 4. Hồ sơ, lịch rảnh, kỹ năng
 

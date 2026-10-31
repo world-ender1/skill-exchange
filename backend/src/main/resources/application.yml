@@ -18,3 +18,9 @@ spring:
       # Bảng do Flyway tạo (src/main/resources/db/migration). Hibernate chỉ kiểm tra khớp, không tự sửa DB.
       ddl-auto: validate
     open-in-view: false
+
+app:
+  jwt:
+    # Khóa ký JWT HS256 (D14), ít nhất 32 byte. Cố ý KHÔNG có giá trị mặc định:
+    # thiếu JWT_SECRET trong .env thì ứng dụng dừng ngay lúc khởi động.
+    secret: ${JWT_SECRET}

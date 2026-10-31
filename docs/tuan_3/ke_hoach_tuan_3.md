@@ -55,9 +55,14 @@ Ràng buộc khi sửa danh sách về sau: Python, Tiếng Anh không được 
 
 ### Bước 3 – Bảo vệ cổng + lỗi chung (D14, D24)
 
-- **Sửa:** `pom.xml` (thêm `spring-boot-starter-oauth2-resource-server`), `application.yml` (khóa JWT từ `JWT_SECRET`, không có giá trị mặc định).
+- **Sửa:** `pom.xml` (thêm `spring-boot-starter-security-oauth2-resource-server`, tên mới của Spring Boot 4), `application.yml` (khóa JWT từ `JWT_SECRET`, không có giá trị mặc định).
 - **Tạo:** `common/SecurityConfig` (stateless, tắt formLogin/httpBasic/CSRF, mở `/api/auth/**`, còn lại cần đăng nhập, `JwtDecoder` HS256, `PasswordEncoder` BCrypt); `common/ProblemAuthenticationEntryPoint` (401), `ProblemAccessDeniedHandler` (403); `common/GlobalExceptionHandler` (400 kèm `errors`, JSON hỏng 400, `DataIntegrityViolationException` không ra 500, 500 không lộ stack trace).
-- **Ca:** TC62 (phần `/api/skills`, `/api/skill-categories`), TC73 (phần lỗi 500).
+- **Ca:** TC62 (phần `/api/skills`, `/api/skill-categories`), TC73 (phần lỗi 500). Thêm test cho phần D24 mà ca chưa phủ ở bước này (400 kèm `errors`, JSON hỏng, 403, lỗi ràng buộc DB), dùng một controller chỉ có trong test; các ca TC36, TC59, TC69 kiểm lại ở bước sau trên API thật.
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - `DataIntegrityViolationException` lọt tới controller trả **409**, `detail` chung, không lộ tên ràng buộc hay câu SQL (chi tiết ghi log). Service vẫn phải kiểm trước để trả 400/409 có thông báo rõ (D24); 409 chỉ là lưới an toàn.
+  - 401/403/500 đều có `detail` chung bằng tiếng Việt; 500 ghi đầy đủ stack trace vào log, không đưa vào response. 401 kèm header `WWW-Authenticate: Bearer` (RFC 6750).
+  - `/api/admin/**` cần vai trò `ADMIN` ngay từ bước này (TK 4, quyền *Admin*), để quy tắc phân quyền nằm ở `SecurityConfig` trước khi có API quản trị.
+  - Lỗi bảo mật ném từ trong controller/service (`AccessDeniedException`, `AuthenticationException`) cũng thành 403/401 Problem Details, không bị bộ bắt lỗi chung đổi thành 500. Bộ xử lý 401/403 của tầng filter chuyển lỗi sang `GlobalExceptionHandler`, nên mọi Problem Details được tạo ở một chỗ.
 - **Tự kiểm:** gọi `/api/skills` không có vé → 401 `application/problem+json`; test bước 2 vẫn xanh.
 - **Commit:** `feat(common): add security config and problem details error handling`
 
