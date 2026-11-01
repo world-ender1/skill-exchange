@@ -51,7 +51,8 @@ public class AuthService {
      * - Email mới: tạo tài khoản PENDING_VERIFICATION.
      * - Email đang PENDING_VERIFICATION: ghi đè mật khẩu và họ tên (D8), trả 201 như đăng ký mới.
      * - Email đã ACTIVE hoặc LOCKED: 409.
-     * Tài khoản mới thì tạo token và gửi thư xác thực sau khi commit (D27).
+     * Tài khoản mới: tạo token và gửi thư xác thực sau khi commit (D27).
+     * Đăng ký lại: chỉ gửi thư mới nếu đã qua 60 giây kể từ thư trước (D7).
      */
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -73,11 +74,28 @@ public class AuthService {
             // Entity đang được JPA quản lý trong transaction: đổi field là đủ,
             // Hibernate tự UPDATE khi commit (dirty checking), không cần gọi save().
             user.overwritePendingRegistration(passwordHash, request.fullName());
+            // D8 + D7: ghi đè luôn xảy ra; thư mới chỉ khi đã qua 60 giây kể từ thư trước.
+            if (tokenService.canIssueVerifyEmailToken(user)) {
+                sendVerificationMail(user);
+            }
         } else {
             user = userRepository.save(User.register(request.email(), passwordHash, request.fullName()));
             sendVerificationMail(user);
         }
         return RegisterResponse.from(user);
+    }
+
+    /**
+     * Gửi lại link xác thực (D7). Controller luôn trả 204: chỉ gửi thư khi tài khoản đang
+     * PENDING_VERIFICATION và đã qua 60 giây. Mọi trường hợp khác im lặng không làm gì,
+     * để người ngoài không dò được email nào đã đăng ký hay bị khóa.
+     */
+    @Transactional
+    public void resendVerification(String email) {
+        userRepository.findByEmail(email)
+                .filter(user -> user.getStatus() == UserStatus.PENDING_VERIFICATION)
+                .filter(tokenService::canIssueVerifyEmailToken)
+                .ifPresent(this::sendVerificationMail);
     }
 
     /**

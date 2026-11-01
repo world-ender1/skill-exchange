@@ -34,4 +34,11 @@ public class AuthController {
     public void verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
         authService.verifyEmail(request.token());
     }
+
+    // Luôn 204 khi email đúng định dạng, kể cả email chưa đăng ký (D7, D42).
+    @PostMapping("/resend-verification")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        authService.resendVerification(request.email());
+    }
 }

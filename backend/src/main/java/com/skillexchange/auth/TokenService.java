@@ -22,6 +22,7 @@ import com.skillexchange.user.User;
 public class TokenService {
 
     static final Duration VERIFY_EMAIL_LIFETIME = Duration.ofHours(24);
+    static final Duration MIN_INTERVAL_BETWEEN_MAILS = Duration.ofSeconds(60);
     private static final int TOKEN_BYTES = 32; // 256 bit
 
     // SecureRandom (không phải Random): số ngẫu nhiên đủ mạnh cho mục đích bảo mật, không đoán trước được.
@@ -45,6 +46,19 @@ public class TokenService {
         tokenRepository.save(UserToken.issue(
                 user, TokenPurpose.VERIFY_EMAIL, hash(rawToken), clock.instant(), VERIFY_EMAIL_LIFETIME));
         return rawToken;
+    }
+
+    /**
+     * Đã đủ 60 giây kể từ token xác thực mới nhất chưa (D7)? Token tạo lúc đăng ký cũng tính.
+     * Chưa có token nào (ví dụ dữ liệu cũ) thì được gửi.
+     */
+    public boolean canIssueVerifyEmailToken(User user) {
+        return tokenRepository.findFirstByUserIdAndPurposeOrderByCreatedAtDesc(user.getId(), TokenPurpose.VERIFY_EMAIL)
+                .map(latest -> {
+                    Duration elapsed = Duration.between(latest.getCreatedAt(), clock.instant());
+                    return elapsed.compareTo(MIN_INTERVAL_BETWEEN_MAILS) >= 0; // đúng 60 giây là được
+                })
+                .orElse(true);
     }
 
     /** Token xác thực email còn dùng được: đúng mục đích, chưa dùng, chưa hết hạn (D26). */
