@@ -8,7 +8,7 @@ Dự án cá nhân | Thời gian thực hiện: 9 tuần
 
 *Cập nhật 2026-10-29:* sửa theo rà soát (`docs/ra_soat/Bao_cao_ra_soat.md`): admin không tham gia ghép cặp (4.2, 6.3); kỹ năng bị ẩn vẫn dùng trong matching (4.1); mẫu số CompletionRate chỉ gồm phiên đã kết thúc (4.3); bằng điểm theo sai số $10^{-9}$ (4.4); sắp lại nhóm unit test (7.1) và kế hoạch tuần 5–7 (9).
 
-*Cập nhật 2026-11-01:* sửa theo góp ý của giảng viên sau báo cáo tuần 2: nhãn tính trên giá trị thật, thuật toán chỉ thấy giá trị tự khai có nhiễu (5.1, 5.4); thêm mốc ngẫu nhiên, thí nghiệm bỏ từng thành phần và lập luận về lợi thế của P (5.2); lý do chọn mẫu số của ScheduleFit và so sánh với hai công thức khác trong phân tích độ nhạy (4.3, 5.4); đóng điểm mở C5 (5.5).
+*Cập nhật 2026-11-01:* sửa theo góp ý của giảng viên sau báo cáo tuần 2: nhãn tính trên giá trị thật, thuật toán chỉ thấy giá trị tự khai có nhiễu (5.1, 5.4); thêm mốc ngẫu nhiên, thí nghiệm bỏ từng thành phần và lập luận về lợi thế của P (5.2); lý do chọn mẫu số của ScheduleFit và so sánh với hai công thức khác trong phân tích độ nhạy (4.3, 5.4); đóng điểm mở C5 (5.5). Bổ sung cùng ngày: tách seed chọn cấu hình với seed báo cáo, đổi trọng tâm câu hỏi RQ2 sang mức đóng góp của từng tiêu chí (5.2, 5.4).
 
 ## 1. Bối cảnh và mục tiêu
 
@@ -232,10 +232,11 @@ Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy
 - **Mốc ngẫu nhiên (R):** cùng tập ứng viên như B1, xếp ngẫu nhiên (theo seed). Cho biết một con số Precision@5/NDCG@5 là cao hay thấp so với việc không xếp gì. Mốc trên không cần thêm phương án, vì NDCG@5 đã chia cho xếp hạng lý tưởng (bằng 1 khi xếp đúng hoàn toàn).
 - **Bỏ từng thành phần (ablation):** chạy P bỏ lần lượt LevelFit, ScheduleFit, ModeFit (trọng số của thành phần bị bỏ chia đều cho các thành phần còn lại) để biết thành phần nào thật sự đóng góp.
 
-**P có "thắng sẵn" theo thiết kế không?** Có một phần: nhãn và P dùng cùng loại thuộc tính (kỹ năng, trình độ, lịch, hình thức), còn B1 chỉ dùng SkillFit. Nếu nhãn tính trên đúng dữ liệu P thấy, P gần như chắc chắn thắng B1. Thiết kế giảm lợi thế này bằng ba cách:
-1. Nhãn tính trên giá trị thật, P chỉ thấy giá trị tự khai có nhiễu (5.1, 5.4). P phải xếp đúng dù dữ liệu đầu vào sai lệch.
-2. Chạy thêm mức nhiễu bằng 0 làm đối chứng. Khoảng cách giữa kết quả không nhiễu và có nhiễu cho thấy phần thắng nào đến từ thiết kế, phần nào còn lại khi dữ liệu không hoàn hảo.
-3. Thu hẹp kết luận của RQ2: thực nghiệm chỉ trả lời "khi trình độ và lịch tự khai có sai lệch, xếp hạng đa tiêu chí có đưa ứng viên phù hợp theo quy tắc nghiệp vụ lên đầu tốt hơn xếp theo kỹ năng không". Thực nghiệm **không** chứng minh mức phù hợp ngoài đời; điều đó ghi vào phần hạn chế và chỉ khảo sát người thật (5.4) mới trả lời được.
+**P có "thắng sẵn" theo thiết kế không?** Có một phần, và các biện pháp dưới đây chỉ **giảm** chứ không loại bỏ được lợi thế này. Nhãn và P dùng cùng loại thuộc tính (kỹ năng, trình độ, lịch, hình thức), còn B1 chỉ dùng SkillFit. Nếu nhãn tính trên đúng dữ liệu P thấy, P gần như chắc chắn thắng B1. Thêm nhiễu vào dữ liệu tự khai không đổi được điều đó: dùng một tín hiệu có nhiễu nhưng liên quan tới nhãn gần như luôn tốt hơn bỏ qua nó, nên kết quả "P tốt hơn B1" vẫn đoán trước được. Lý do sâu hơn là cùng một người quyết định cả quy tắc nhãn lẫn công thức P; chỉ nguồn đánh giá do người khác tạo (ví dụ người dùng thật chấm kết quả) mới kiểm chứng được quy tắc đó, và đề tài không có nguồn như vậy trong phạm vi 9 tuần. Vì vậy thiết kế không tuyên bố đã loại bỏ lợi thế, mà xử lý như sau:
+1. **Nhãn tính trên giá trị thật, P chỉ thấy giá trị tự khai có nhiễu** (5.1, 5.4). Cách này giảm sự phụ thuộc trực tiếp giữa nhãn và dữ liệu P dùng, và đo được P còn tốt hơn bao nhiêu khi dữ liệu tự khai sai lệch.
+2. **Chạy thêm mức nhiễu bằng 0 làm đối chứng.** Khoảng cách giữa kết quả không nhiễu và có nhiễu cho thấy phần thắng nào chỉ do thiết kế.
+3. **Tách seed chọn cấu hình với seed báo cáo** (5.4), để phân tích độ nhạy không biến thành chọn bộ trọng số cho khớp nhãn.
+4. **Đổi trọng tâm câu hỏi RQ2:** không hỏi "P có tốt hơn B1 không" (câu trả lời đã đoán trước), mà hỏi "mỗi tiêu chí (trình độ, lịch, hình thức học) đóng góp bao nhiêu vào chất lượng xếp hạng so với chỉ dùng kỹ năng, và phần đóng góp đó còn lại bao nhiêu khi dữ liệu tự khai sai lệch". Câu này trả lời bằng thí nghiệm bỏ từng thành phần ở nhiều mức nhiễu. Thực nghiệm **không** chứng minh mức phù hợp ngoài đời; điều đó ghi vào phần hạn chế.
 
 ### 5.3. Chỉ số đo lường
 
@@ -253,6 +254,7 @@ Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy
 - **Quy mô dữ liệu giả lập:** Sinh các bộ dữ liệu với quy mô 100, 500 và 1.000 người dùng; mỗi người có 2–5 kỹ năng dạy, 1–3 kỹ năng muốn học, mức tự khai, lịch rảnh và hình thức học.
 - **Sinh giá trị tự khai từ giá trị thật (cho 5.1):** trình độ tự khai = trình độ thật cộng hoặc trừ 1 (giữ trong 1–4) với xác suất $p_{level}$; lịch tự khai bỏ sót mỗi khung thật với xác suất $p_{miss}$ và thêm khung không thật với xác suất $p_{extra}$. Chạy ít nhất hai mức: không nhiễu (đối chứng) và nhiễu mặc định (ví dụ $p_{level} = 0.3$, $p_{miss} = 0.2$, $p_{extra} = 0.05$; con số chốt trước tuần 5). Ứng viên bị lọc cứng trên dữ liệu tự khai loại nhầm thì không xuất hiện trong danh sách của P, B0, B1; đây là hành vi đúng, giống ngoài đời.
 - **Tính tái lập (Reproducibility):** Chạy thực nghiệm với 5 random seed cố định; báo cáo kết quả trung bình và độ lệch chuẩn.
+- **Tách seed chọn cấu hình và seed báo cáo:** 2 seed dùng để so sánh và chọn cấu hình (bộ trọng số, công thức ScheduleFit); 3 seed còn lại chỉ dùng để báo cáo kết quả của cấu hình mặc định và cấu hình đã chọn. Tham số nhiễu, trọng số mặc định và cách tính chỉ số chốt trước khi chạy seed báo cáo.
 - **Phân tích độ nhạy của bộ trọng số (Sensitivity Analysis):** So sánh hiệu năng của 4 cấu hình trọng số:
   1. *Mặc định:* (0.55 Skill, 0.20 Level, 0.15 Schedule, 0.05 Mode, 0.05 Reputation)
   2. *Ưu tiên kỹ năng:* (0.65, 0.15, 0.10, 0.05, 0.05)
@@ -269,7 +271,7 @@ Các điểm dưới đây chưa ảnh hưởng tới tuần 3–4, nhưng phả
 | --- | --- |
 | N6 | P có hai danh sách (hai chiều theo $MutualScore$, một chiều theo $D$), nhãn lại gán theo hướng "$u$ học từ $v$". Chỉ số đo trên danh sách nào, hay trộn hai danh sách thành một Top-5? |
 | C4 | IDCG@5 tính trên tập ứng viên nào (của từng phương án, hay tập chung của B1/P)? B0 và B1 có áp dụng lọc lịch rảnh và hình thức học không? |
-| C5 | **Đã chốt 2026-11-01:** nhãn tính trên giá trị thật, thuật toán thấy giá trị tự khai có nhiễu; chạy thêm mức không nhiễu, mốc ngẫu nhiên và bỏ từng thành phần; thu hẹp kết luận RQ2 và ghi vào hạn chế (5.1, 5.2, 5.4). |
+| C5 | **Đã chốt 2026-11-01:** lợi thế của P chỉ giảm được, không loại bỏ được. Nhãn tính trên giá trị thật, thuật toán thấy giá trị tự khai có nhiễu; chạy thêm mức không nhiễu, mốc ngẫu nhiên và bỏ từng thành phần; tách seed chọn cấu hình với seed báo cáo; RQ2 đổi sang mức đóng góp của từng tiêu chí; ghi giới hạn vào phần hạn chế (5.1, 5.2, 5.4). |
 | T3 | Nhãn 2 "hình thức học tương thích hoàn toàn": `ANY` + `ONLINE` có tính không; bên chưa khai báo xử lý thế nào? |
 | T5 | Precision@5 tính cả nhãn 1 nên dễ gần 1.0 với mọi phương án. Có nên chỉ tính nhãn 2, hoặc báo cáo thêm Precision@5 nghiêm ngặt? |
 | T6 | Dữ liệu giả lập có nên để một tỷ lệ người dùng chưa khai báo lịch/hình thức học, để đánh giá được nhánh giá trị trung tính 0.5? |

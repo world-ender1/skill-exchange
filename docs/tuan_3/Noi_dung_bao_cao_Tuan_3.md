@@ -19,7 +19,7 @@ Nguồn: `git log` tuần 3, `Quyet_dinh_tuan_3.md`, `ke_hoach_tuan_3.md`, `kiem
 
 | Góp ý | Sửa ở đâu |
 | --- | --- |
-| 1. Quy tắc gán nhãn, P có "thắng sẵn" không | 4.3: Bảng 4.11 quy tắc thác nước, giá trị thật / tự khai, lập luận và cách giảm lợi thế; 3.1: thu hẹp RQ2; 7.2: hạn chế. Spec tuần 1 mục 5.1, 5.2, 5.4, 5.5 (C5) đã sửa ngược |
+| 1. Quy tắc gán nhãn, P có "thắng sẵn" không | 4.3: Bảng 4.11 quy tắc thác nước, giá trị thật / tự khai, thừa nhận lợi thế chỉ giảm được, tách seed; 3.1: RQ2 đổi sang mức đóng góp của từng tiêu chí; 1.2, 1.4, 1.5: sửa câu chữ về thực nghiệm ("tránh" → "hạn chế" tự chấm điểm); 7.2: hạn chế. Spec tuần 1 mục 5.1, 5.2, 5.4, 5.5 (C5), mục 9 và proposal đã sửa ngược |
 | 2. Mẫu số ScheduleFit | 4.3: lý do chọn min, nhược điểm; 3.1: RQ3 thêm so sánh 3 công thức; spec 4.3, 5.4 |
 | 3. Link GitHub, link commit từng tuần | 5.2: link repo, Bảng 5.3 |
 | 4. Khóa tài khoản khi token còn hạn | 4.5: thêm mục kiểm trạng thái mỗi request (D13, TC69) |
@@ -41,7 +41,13 @@ Bảng mới 4.11 nằm ở mục 4.3 nên các bảng 4.11–4.14 cũ của bá
 
 # CHƯƠNG 3 – MỤC 3.1 (sửa RQ2, RQ3)
 
-- **RQ2:** Khi trình độ và lịch rảnh tự khai có sai lệch so với thực tế, xếp hạng đa tiêu chí (P) có đưa ứng viên phù hợp theo quy tắc nghiệp vụ lên đầu tốt hơn xếp hạng chỉ theo $SkillFit$ (B1) không, đo bằng Precision@5 và NDCG@5 trên cùng tập ứng viên?
+- **RQ2:** Trên cùng tập ứng viên, mỗi tiêu chí ngoài kỹ năng (trình độ, lịch rảnh, hình thức học) đóng góp bao nhiêu vào Precision@5 và NDCG@5 so với xếp hạng chỉ theo $SkillFit$ (B1), và phần đóng góp đó còn lại bao nhiêu khi trình độ và lịch tự khai sai lệch so với thực tế?
+
+# CHƯƠNG 1 – sửa câu chữ ở mục 1.2, 1.4, 1.5
+
+- **1.2, mục tiêu 3:** thêm "nhãn tính trên giá trị thật, thuật toán chỉ thấy giá trị tự khai có nhiễu".
+- **1.4, đóng góp 3:** "Thiết kế đánh giá **tránh** tự chấm điểm" → "**hạn chế** tự chấm điểm"; câu hỏi thứ hai đổi thành "từng tiêu chí của hàm xếp hạng đa tiêu chí đóng góp bao nhiêu vào thứ tự (B1, P và các phiên bản bỏ từng thành phần trên cùng tập ứng viên)", kèm câu về giá trị thật / tự khai.
+- **1.5, tiêu chí mục tiêu 3:** "5 seed (2 seed để chọn cấu hình, 3 seed để báo cáo)"; thêm 3 công thức ScheduleFit, kết quả ở mức không nhiễu và có nhiễu, và thí nghiệm bỏ từng thành phần.
 - **RQ3:** Kết quả của P thay đổi thế nào khi thay đổi bộ trọng số (4 cấu hình) và công thức $ScheduleFit$ (3 phương án) trong phân tích độ nhạy?
 
 # CHƯƠNG 4 – MỤC 4.3 (thêm vào cuối) và 4.5
@@ -61,12 +67,12 @@ Bảng mới 4.11 nằm ở mục 4.3 nên các bảng 4.11–4.14 cũ của bá
 
 **Giá trị thật và giá trị tự khai.** Mỗi người dùng giả lập có hai lớp dữ liệu: giá trị thật (trình độ thật, lịch rảnh thật) và giá trị tự khai. Nhãn ở Bảng 4.11 tính trên giá trị thật, còn P, B0, B1 chỉ thấy giá trị tự khai, được sinh bằng cách thêm nhiễu: trình độ lệch ±1 bậc với xác suất $p_{level}$, lịch bỏ sót khung thật với xác suất $p_{miss}$ và thêm khung không thật với xác suất $p_{extra}$ (giá trị cụ thể chốt trước tuần 5).
 
-**P có "thắng sẵn" theo thiết kế không?** Có một phần. Nhãn và P dùng cùng loại thuộc tính, còn B1 chỉ dùng $SkillFit$; nếu nhãn tính trên đúng dữ liệu P thấy thì P gần như chắc chắn thắng B1. Thiết kế thực nghiệm giảm lợi thế này như sau:
+**P có "thắng sẵn" theo thiết kế không?** Có một phần, và các biện pháp dưới đây chỉ giảm chứ không loại bỏ được lợi thế này. Nhãn và P dùng cùng loại thuộc tính, còn B1 chỉ dùng $SkillFit$; nếu nhãn tính trên đúng dữ liệu P thấy thì P gần như chắc chắn thắng B1. Thêm nhiễu vào dữ liệu tự khai không đổi được điều đó: dùng một tín hiệu có nhiễu nhưng liên quan tới nhãn gần như luôn tốt hơn bỏ qua nó, nên kết quả "P tốt hơn B1" vẫn đoán trước được. Lý do sâu hơn là cùng một người thiết kế cả quy tắc nhãn lẫn công thức P; chỉ nguồn đánh giá do người khác tạo (ví dụ người dùng thật chấm kết quả) mới kiểm chứng được quy tắc đó, và đề tài không có nguồn như vậy trong phạm vi 9 tuần. Vì vậy thiết kế không tuyên bố đã loại bỏ lợi thế, mà xử lý như sau:
 
-- **Nhãn trên giá trị thật, thuật toán trên giá trị tự khai có nhiễu:** P phải xếp đúng dù dữ liệu đầu vào sai lệch.
+- **Nhãn trên giá trị thật, thuật toán trên giá trị tự khai có nhiễu:** giảm sự phụ thuộc trực tiếp giữa nhãn và dữ liệu P dùng, và đo được P còn tốt hơn bao nhiêu khi dữ liệu tự khai sai lệch.
 - **Chạy thêm mức không nhiễu làm đối chứng:** khoảng cách giữa hai mức cho thấy phần thắng nào chỉ do thiết kế.
-- **Thêm mốc so sánh:** mốc ngẫu nhiên R và thí nghiệm bỏ lần lượt LevelFit, ScheduleFit, ModeFit.
-- **Thu hẹp kết luận:** RQ2 chỉ khẳng định khả năng xếp đúng theo quy tắc nghiệp vụ khi dữ liệu tự khai sai lệch; giới hạn ghi ở 7.2.
+- **Tách seed:** 2 seed dùng để so sánh và chọn cấu hình (bộ trọng số, công thức $ScheduleFit$), 3 seed còn lại chỉ dùng để báo cáo.
+- **Đổi trọng tâm câu hỏi:** RQ2 hỏi mỗi tiêu chí đóng góp bao nhiêu và còn lại bao nhiêu khi dữ liệu sai lệch, trả lời bằng mốc ngẫu nhiên R và thí nghiệm bỏ lần lượt LevelFit, ScheduleFit, ModeFit ở nhiều mức nhiễu. Thực nghiệm không chứng minh mức phù hợp ngoài đời; giới hạn ghi ở 7.2.
 
 **Mục 4.5 – thêm sau mục "Xác thực":**
 
@@ -182,7 +188,7 @@ Backend đạt **139/139 test** (ngày 01/11/2026); 88/88 ca tự động tuần
 | TC64 | D14 | Gọi API bằng vé đã hết hạn | 401 Problem Details | Đạt |
 | TC69 | D13 | Tài khoản bị khóa sau khi đã đăng nhập | 403 ngay ở request kế tiếp | Đạt |
 | TC67 | NFR-01 | A sửa danh sách kỹ năng | Chỉ dữ liệu của A thay đổi | Đạt |
-| TC31 | FR-01–03 | Trọn luồng S01 → S04 trên trình duyệt, tải lại trang | Vẫn đăng nhập, dữ liệu còn | **[CẦN BỔ SUNG]** |
+| TC31 | FR-01–03 | Trọn luồng S01 → S04 trên trình duyệt, tải lại trang | Vẫn đăng nhập, dữ liệu còn | Đạt |
 
 *Bảng 6.3: Làm hỏng code để kiểm tra bộ test*
 
@@ -211,7 +217,7 @@ Hình 6.2 là kết quả chạy toàn bộ kiểm thử backend ngày 01/11/202
 - JWT chưa có refresh token và chưa thu hồi được; đăng xuất chỉ xóa vé ở trình duyệt. Tài khoản bị khóa vẫn bị chặn ngay nhờ kiểm trạng thái mỗi request.
 - Vé lưu trong `localStorage` nên có rủi ro nếu trang bị XSS.
 - Frontend chưa có test tự động.
-- Thực nghiệm dùng dữ liệu giả lập và nhãn từ quy tắc nghiệp vụ: kết quả chỉ cho biết P xếp đúng theo quy tắc khi dữ liệu tự khai có sai lệch, không chứng minh mức phù hợp ngoài đời. Khảo sát người dùng thật (nếu kịp ở tuần 8) mới trả lời được câu hỏi này.
+- Thực nghiệm dùng dữ liệu giả lập, và quy tắc nhãn do chính người thiết kế thuật toán đặt ra, nên P vẫn có lợi thế nhất định so với B1. Nhiễu trong dữ liệu tự khai và mức đối chứng không nhiễu chỉ giảm và đo được lợi thế này; đề tài chưa có nguồn nhãn độc lập. Kết quả không chứng minh mức phù hợp ngoài đời; khảo sát người dùng thật (nếu kịp ở tuần 8) mới trả lời được câu hỏi này.
 
 ---
 
