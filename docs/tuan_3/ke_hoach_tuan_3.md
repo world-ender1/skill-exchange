@@ -87,6 +87,13 @@ Tách 2–3 commit.
 - **5b. Token, verify, resend:** tạo `common/ClockConfig` (bean `Clock`); `auth/UserToken` (Entity, enum `TokenPurpose`), `UserTokenRepository`; `auth/TokenService` (SecureRandom 32 byte → Base64URL, SHA-256 hex, xóa token chưa dùng, giới hạn 60 giây theo `created_at`); `auth/VerificationMailer` (gửi sau commit, lỗi thì ghi log); mở rộng `AuthService` (verify, resend, đăng ký lại tài khoản `PENDING_VERIFICATION`); DTO `VerifyEmailRequest`, `ResendVerificationRequest`.
 - **Test:** lớp nền thêm đồng hồ giả chỉnh tay được và mock `JavaMailSender`.
 - **Ca:** TC03, TC05, TC06, TC07, TC39–TC43, TC61, TC72, TC77, TC78, TC80, TC87, TC88, TC89, TC91.
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - Chia 3 commit: 5a Mailpit; 5b đăng ký gửi thư + verify (TC03, TC05, TC06, TC39–TC41, TC61, TC80, TC87, TC88); 5c resend + giới hạn 60 giây + đăng ký lại (TC07, TC42, TC43, TC72, TC77, TC78, TC89, TC91).
+  - Mailpit ghim `axllent/mailpit:v1.31.6`. `spring.mail.properties` đặt timeout 5 giây để máy chủ thư tắt không làm treo request. `app.frontend-url: ${FRONTEND_URL}` không có mặc định; `app.mail.from: no-reply@skillexchange.local`.
+  - Biên thời gian: được gửi thư mới khi đã qua **≥ 60 giây** kể từ `created_at` của token mới nhất; token còn dùng được khi giờ hiện tại **< `expires_at`** (đúng 24 giờ là hết hạn).
+  - `verify-email` thất bại trả 400 với một `detail` chung "Link xác thực không hợp lệ hoặc đã hết hạn" (D26). Body thiếu hoặc rỗng `token` là lỗi validation, trả 400 kèm `errors[].field = token` (chỉ phụ thuộc chuỗi gửi lên, như D42).
+  - Thư dạng văn bản thường, tiêu đề "Xác thực email Skill Exchange", gửi bằng `@TransactionalEventListener(phase = AFTER_COMMIT)`; lỗi gửi thì ghi log mức ERROR, API vẫn trả 201/204 (D27).
+  - TC77 phần "đăng nhập bằng mật khẩu cũ/mới" kiểm ở bước 6 (chưa có login); bước 5 kiểm bằng `PasswordEncoder.matches` trên `password_hash`.
 - **Tự kiểm:** thư hiện trong Mailpit có link `http://localhost:5173/verify-email?token=...`; gọi verify bằng `.http` lần 1 → 204, lần 2 → 400; `token_hash` khác token; tắt Mailpit vẫn đăng ký được.
 - **Commit:** `feat(auth): add email verification links with hashed tokens` (có thể tách verify và resend + đăng ký lại).
 

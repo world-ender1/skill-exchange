@@ -9,3 +9,5 @@ spring:
 app:
   allowed-email-domains:
     - student.example.edu.vn
+  # Ghi rõ để test kiểm được link trong thư mà không phụ thuộc .env (TC03).
+  frontend-url: http://localhost:5173

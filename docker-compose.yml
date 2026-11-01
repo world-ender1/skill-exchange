@@ -12,5 +12,13 @@ services:
       timeout: 3s
       retries: 10
 
+  # Hộp thư giả khi dev (D11): backend gửi SMTP tới localhost:1025, xem thư ở http://localhost:8025.
+  # Không cần tài khoản; thư chỉ nằm trong bộ nhớ, tắt container là mất.
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # giao diện web
+
 volumes:
   pgdata:

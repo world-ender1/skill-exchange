@@ -19,7 +19,26 @@ spring:
       ddl-auto: validate
     open-in-view: false
 
+  # Gửi thư xác thực (D11). Máy dev: Mailpit ở localhost:1025, không cần tài khoản.
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      # Máy chủ thư tắt hoặc chậm thì báo lỗi sau 5 giây, không treo request đăng ký (D27).
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
 app:
+  # Địa chỉ frontend để tạo link xác thực ${FRONTEND_URL}/verify-email?token=... (D5).
+  # Không có giá trị mặc định: thiếu thì ứng dụng dừng lúc khởi động.
+  frontend-url: ${FRONTEND_URL}
+
+  mail:
+    from: no-reply@skillexchange.local
+
   # Đuôi email trường được phép đăng ký (D9, G6). So khớp chính xác phần sau dấu @;
   # tên miền con không tự được nhận. Đổi sang đuôi trường thật khi triển khai.
   allowed-email-domains:
