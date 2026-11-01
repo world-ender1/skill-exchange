@@ -144,6 +144,13 @@ Tách 2–3 commit.
 
 - **Tạo:** Entity khóa ghép `UserAvailability`, `UserTeachSkill`, `UserLearnSkill` (lớp khóa, enum `Period`, kiểu `Short`) và Repository; service thay danh sách (xóa rồi chèn trong một `@Transactional`; kiểm trùng trong request, tối đa 10 kỹ năng / 21 khung, kỹ năng ẩn, dạy–học chồng nhau); mở rộng `MeController` với 6 API `GET`/`PUT`; DTO tương ứng.
 - **Ca:** TC21–TC30, TC49–TC58, TC67, TC79, TC82, TC83, TC84, TC93; phần `PUT /api/me/availability` của TC62. Ca cần ẩn kỹ năng đổi thẳng `is_active` trong test rồi trả lại.
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - Body của 3 `PUT` là mảng JSON (TK 4.3). Lỗi 400 vẫn có `errors` (D24): lỗi của phần tử thứ `i` (đếm từ 0) có `field = "[i].tenTruong"` (ví dụ `[0].dayOfWeek`, `[2].skillId`); lỗi của cả danh sách (quá 10 kỹ năng / 21 khung) có `field` là tên danh sách: `availability`, `teachSkills`, `learnSkills`. Phần tử `null` trong mảng → 400. Không gửi body → 400.
+  - `period` nhận chuỗi `MORNING`/`AFTERNOON`/`EVENING` (đúng chữ hoa), giá trị khác → 400 kèm `errors[].field = [i].period` (như `learningMode` ở bước 8). `dayOfWeek`, `level`, `targetLevel` là số nguyên; `level` bắt buộc.
+  - Thứ tự kiểm khi `PUT` kỹ năng: dữ liệu từng phần tử và số lượng → trùng `skillId` trong request (báo ở lần xuất hiện thứ hai) → kỹ năng không tồn tại → kỹ năng bị ẩn mà chưa có → chồng với danh sách kia (D19). Gặp lỗi đầu tiên thì dừng, không thay đổi gì trong DB.
+  - "Đã có từ trước" ở D20 nghĩa là đã nằm trong **chính** danh sách đang `PUT` (đang dạy Java bị ẩn thì `PUT` dạy vẫn giữ được Java; nhưng chuyển Java bị ẩn sang danh sách học là thêm mới → 400).
+  - Lỗi trùng, không tồn tại, bị ẩn, chồng dạy–học đều trả 400 với `field = "[i].skillId"` (D21 dành 409 cho xung đột với dữ liệu đã có kiểu email; ở đây là dữ liệu gửi lên sai).
+  - Admin cũng gọi được 6 API này (quyền *User*); không có gì đặc biệt.
 - **Tự kiểm:** lưu 2 khung rồi 1 khung → còn 1; gửi trùng kỹ năng → 400, không phải 500.
 - **Commit:** `feat(user): add availability and skill profile APIs`
 

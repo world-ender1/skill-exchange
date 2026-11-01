@@ -1,5 +1,6 @@
 package com.skillexchange.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,10 +14,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.method.ParameterErrors;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -46,6 +51,38 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         List<FieldErrorItem> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> new FieldErrorItem(error.getField(), error.getDefaultMessage()))
                 .toList();
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ");
+        problem.setProperty("errors", errors);
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    /**
+     * Body là mảng JSON (PUT /api/me/availability, teach-skills, learn-skills): Spring kiểm bằng
+     * "method validation" và ném exception khác với trường hợp body là object. Đổi về cùng dạng errors:
+     * - lỗi một trường của phần tử thứ i → field "[i].tenTruong" (ví dụ "[0].dayOfWeek");
+     * - lỗi cả phần tử (phần tử null) → field "[i]";
+     * - lỗi cả danh sách (@Size) → field là tên tham số ("availability", "teachSkills"...).
+     */
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
+                                                                           HttpHeaders headers,
+                                                                           HttpStatusCode status,
+                                                                           WebRequest request) {
+        List<FieldErrorItem> errors = new ArrayList<>();
+        for (ParameterValidationResult result : ex.getParameterValidationResults()) {
+            Integer index = result.getContainerIndex();
+            if (result instanceof ParameterErrors beanErrors) {
+                String prefix = index == null ? "" : "[" + index + "].";
+                for (FieldError error : beanErrors.getFieldErrors()) {
+                    errors.add(new FieldErrorItem(prefix + error.getField(), error.getDefaultMessage()));
+                }
+            } else {
+                String field = index != null ? "[" + index + "]" : result.getMethodParameter().getParameterName();
+                result.getResolvableErrors().forEach(error ->
+                        errors.add(new FieldErrorItem(field, error.getDefaultMessage())));
+            }
+        }
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ");
         problem.setProperty("errors", errors);
