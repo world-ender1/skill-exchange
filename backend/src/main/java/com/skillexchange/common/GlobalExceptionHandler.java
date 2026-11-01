@@ -52,6 +52,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(problem);
     }
 
+    /** Lỗi theo trường do Service phát hiện: cùng dạng với lỗi @Valid ở trên. */
+    @ExceptionHandler(FieldValidationException.class)
+    ResponseEntity<ProblemDetail> handleFieldValidation(FieldValidationException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ");
+        problem.setProperty("errors", List.of(new FieldErrorItem(ex.getField(), ex.getMessage())));
+        return ResponseEntity.badRequest().body(problem);
+    }
+
     /** Body không phải JSON hợp lệ. Không trả lại thông báo của Jackson (có thể lộ cấu trúc class). */
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
@@ -76,7 +84,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này");
     }
 
-    // ---------- 409: lưới an toàn cho ràng buộc DB ----------
+    // ---------- 409: xung đột ----------
+
+    /** Service đã kiểm và biết rõ lý do xung đột: dùng thông báo của nó. */
+    @ExceptionHandler(ConflictException.class)
+    ResponseEntity<ProblemDetail> handleConflict(ConflictException ex) {
+        return problem(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    // Lưới an toàn cho ràng buộc DB:
 
     /**
      * Service nên kiểm tra trước để trả thông báo rõ ràng (D24). Nếu vẫn lọt tới đây

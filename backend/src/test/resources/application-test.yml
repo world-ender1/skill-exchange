@@ -4,3 +4,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/skillexchange_test
+
+# Đuôi email trường dùng trong test (D9). Ghi rõ ở đây để test không phụ thuộc cấu hình chính.
+app:
+  allowed-email-domains:
+    - student.example.edu.vn

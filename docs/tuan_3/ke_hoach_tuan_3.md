@@ -71,6 +71,12 @@ Ràng buộc khi sửa danh sách về sau: Python, Tiếng Anh không được 
 - **Sửa:** `application.yml` (danh sách đuôi email trường, ví dụ `app.allowed-email-domains`; cấu hình test dùng `student.example.edu.vn`).
 - **Tạo:** `user/User` (Entity, enum `Role`, `UserStatus`, giá trị mặc định ở field), `UserRepository`; `auth/RegisterRequest` (chuẩn hóa email trước khi validate), `RegisterResponse`, `AuthService.register`, `AuthController`; kiểm đuôi email và giới hạn 72 byte của mật khẩu.
 - **Ca:** TC01, TC02, TC32–TC37, TC38 (phần đăng ký), TC60, TC85, TC86. TC34, TC35 tạo sẵn user `ACTIVE` bằng Repository.
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - Ghi đè khi đăng ký lại email `PENDING_VERIFICATION` (D8) làm ngay ở bước này: ghi đè `password_hash`, `full_name`, trả 201 với cùng `id`. Phần token, thư và giới hạn 60 giây làm ở bước 5 (TC77, TC78). Bước này có test riêng `D8 ...` cho phần ghi đè.
+  - `ACTIVE` và `LOCKED` cùng trả 409 với cùng một thông báo (không lộ trạng thái tài khoản).
+  - DTO kiểm định dạng và độ dài (`@Email`, `@Size`); Service kiểm đuôi email trường và giới hạn 72 byte. Cả hai loại lỗi đều trả 400 với `errors[{field, message}]`.
+  - `fullName` bỏ khoảng trắng hai đầu trước khi kiểm và lưu (D16). `password` không bị cắt khoảng trắng, chỉ kiểm 8–72 ký tự và 72 byte (D10 không đặt thêm điều kiện).
+  - Đuôi email so khớp chính xác phần sau dấu `@` cuối cùng với danh sách `app.allowed-email-domains`. `application.yml` dùng tạm `student.example.edu.vn` (giống `ADMIN_EMAIL` mẫu); đổi sang đuôi trường thật khi triển khai.
 - **Tự kiểm:** `SELECT email, password_hash, status FROM users;` → băm `$2a$`/`$2b$`, email chữ thường; đăng ký `@gmail.com` → 400.
 - **Commit:** `feat(auth): add registration with school email validation`
 
