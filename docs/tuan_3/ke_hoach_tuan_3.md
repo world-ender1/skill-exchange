@@ -159,6 +159,13 @@ Tách 2–3 commit.
 - **Sửa:** `frontend/package.json` (thêm `react-router`), `vite.config.ts` (proxy `/api` → `http://localhost:8080`).
 - **Tạo:** `src/api/` (hàm gọi API chung: gắn vé, đọc Problem Details, 401 → về đăng nhập), `src/auth/` (lưu vé trong `localStorage`), `src/pages/` (đăng nhập/đăng ký S01, xác thực S02 tại `/verify-email`, hồ sơ S03, kỹ năng S04), router trong `App.tsx`.
 - **Ca:** TC04, TC31, TC74 (kiểm thử thủ công; frontend chưa có test tự động).
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - Đường dẫn: `/login` (S01, hai tab Đăng nhập / Đăng ký), `/verify-email` (S02, D5), `/profile` (S03, TC74), `/skills` (S04). `/` và đường dẫn lạ → `/profile` nếu đã đăng nhập, ngược lại `/login`. `/profile`, `/skills` cần vé; chưa có vé → `/login`.
+  - Hàm gọi API chung (`src/api/client.ts`): tự gắn `Authorization: Bearer` (trừ `/api/auth/*`, khớp bước 6); đọc Problem Details và đưa `detail` + `errors[]` lên màn hình để hiện lỗi cạnh từng ô. Gặp 401 ở API cần đăng nhập → xóa vé, về `/login`. 403 (ví dụ tài khoản bị khóa) chỉ hiện `detail`. Không kết nối được backend → "Không kết nối được máy chủ", không trắng trang.
+  - Đăng ký xong ở lại S01, báo "kiểm tra email" và chuyển sang tab Đăng nhập. S02 không có `token` trên URL (hoặc xác thực thất bại) thì hiện ô nhập email + nút "Gửi lại link".
+  - S03 hiện thông báo "chưa xác thực email" khi `status = PENDING_VERIFICATION` (D29), kèm đường tới S02 để gửi lại link. Hồ sơ và lịch rảnh có hai nút Lưu riêng vì là hai API riêng.
+  - S04: chọn kỹ năng từ `GET /api/skills` (gộp theo nhóm); kỹ năng đã bị ẩn đang có thì vẫn hiện, kèm chữ "(đã ngừng)". Hai danh sách có hai nút Lưu riêng; S04 nhắc người dùng lưu danh sách học trước khi chuyển kỹ năng sang dạy (D19).
+  - Dùng `react-router` 8 (bản hiện hành; D23 chỉ ghi tên thư viện). Giao diện CSS viết tay, không thêm thư viện UI.
 - **Tự kiểm:** đi trọn S01 → S04 rồi F5; email Gmail báo lỗi; tắt backend không trắng trang; đăng xuất rồi gõ `/profile` → về đăng nhập; `npm run build`, `npm run lint` không lỗi.
 - **Commit:** mỗi màn hình một commit, ví dụ `feat(frontend): add login and register pages`.
 
