@@ -1,4 +1,4 @@
-# Profile "test" (D39): chỉ đổi tên database sang skillexchange_test.
+# Profile "test" (D39): đổi tên database sang skillexchange_test và ghi cố định vài giá trị test cần kiểm.
 # Tài khoản và mật khẩu DB vẫn đọc từ ../.env như application.yml.
 # Tạo DB một lần: docker compose exec db createdb -U skillexchange skillexchange_test
 spring:
