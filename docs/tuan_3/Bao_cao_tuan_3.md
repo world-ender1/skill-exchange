@@ -41,6 +41,7 @@ Repo: https://github.com/world-ender1/skill-exchange
 ## 4. Kế hoạch tuần 4
 
 - Làm xong kiểm thủ công TC04, TC31, TC74, chụp màn hình cho báo cáo.
+- Đã sửa báo cáo theo góp ý tuần 2 (quy tắc gán nhãn, mẫu số ScheduleFit, link commit, kiểm trạng thái tài khoản mỗi request, mục 2.1); giữ công thức ScheduleFit chia cho min khi code tuần 4, so sánh với hai công thức khác ở tuần 5.
 - Viết ca kiểm thử tuần 4 từ tài liệu trước khi code.
 - Lõi matching (lọc cứng, chấm điểm, phân loại, xếp hạng) kèm unit test cho từng hàm tính điểm.
 - API `GET /api/matches`, `GET /api/users/{id}`, `GET /api/users/search`; màn hình S05, S06, S10.

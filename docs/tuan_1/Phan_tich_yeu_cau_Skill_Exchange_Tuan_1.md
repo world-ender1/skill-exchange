@@ -8,6 +8,8 @@ Dự án cá nhân | Thời gian thực hiện: 9 tuần
 
 *Cập nhật 2026-10-29:* sửa theo rà soát (`docs/ra_soat/Bao_cao_ra_soat.md`): admin không tham gia ghép cặp (4.2, 6.3); kỹ năng bị ẩn vẫn dùng trong matching (4.1); mẫu số CompletionRate chỉ gồm phiên đã kết thúc (4.3); bằng điểm theo sai số $10^{-9}$ (4.4); sắp lại nhóm unit test (7.1) và kế hoạch tuần 5–7 (9).
 
+*Cập nhật 2026-11-01:* sửa theo góp ý của giảng viên sau báo cáo tuần 2: nhãn tính trên giá trị thật, thuật toán chỉ thấy giá trị tự khai có nhiễu (5.1, 5.4); thêm mốc ngẫu nhiên, thí nghiệm bỏ từng thành phần và lập luận về lợi thế của P (5.2); lý do chọn mẫu số của ScheduleFit và so sánh với hai công thức khác trong phân tích độ nhạy (4.3, 5.4); đóng điểm mở C5 (5.5).
+
 ## 1. Bối cảnh và mục tiêu
 
 Sinh viên có thể sở hữu các kỹ năng khác nhau và có nhu cầu học hỏi lẫn nhau, nhưng thường phải tìm người phù hợp thủ công qua bài đăng hoặc mạng xã hội. Skill Exchange cho phép người dùng khai báo kỹ năng có thể hướng dẫn, kỹ năng muốn học, lịch rảnh và hình thức học; hệ thống tạo danh sách ứng viên và xếp hạng mức độ phù hợp.
@@ -108,7 +110,7 @@ Chỉ những ứng viên vượt qua Giai đoạn 1 mới được tính điể
 | :--- | :--- |
 | **SkillFit(u,v)** | Trung bình độ tương đồng tốt nhất cho từng kỹ năng $u$ muốn học theo danh mục của $v$. Thuộc $[0, 1]$. |
 | **LevelFit(u,v)** | • $1.0$: Mức tự khai báo của $v$ đạt hoặc vượt mục tiêu của $u$.<br>• $0.5$: Mức của $v$ thấp hơn 1 bậc so với mục tiêu của $u$ (hoặc $u$ không đặt mục tiêu).<br>• $0.0$: Mức của $v$ thấp hơn từ 2 bậc trở lên.<br>**Khi $u$ muốn học nhiều kỹ năng:** với mỗi kỹ năng $s \in W_u$ có $Sim > 0$, chọn kỹ năng $t \in T_v$ có $Sim(s,t)$ cao nhất (bằng nhau thì chọn $t$ có trình độ cao hơn), tính LevelFit cho cặp $(s, t)$, rồi lấy trung bình. Kỹ năng có $Sim = 0$ không được tính (đã phản ánh trong SkillFit). Kỹ năng liên quan ($Sim = 0.5$) vẫn so trình độ bình thường, không giảm thêm. Thang trình độ và ví dụ: mục 4.6. |
-| **ScheduleFit(u,v)** | • Nếu một hoặc cả hai bên chưa khai báo: Gán $0.5$ (trung tính).<br>• Nếu cả hai đã khai báo: $\frac{\text{Số khung giờ trùng}}{\min(\text{Số khung giờ của } u, \text{Số khung giờ của } v)}$. (Nếu không trùng thì đã bị loại ở Bước 1).<br>Khung giờ được định nghĩa ở mục 4.6 (21 khung/tuần). |
+| **ScheduleFit(u,v)** | • Nếu một hoặc cả hai bên chưa khai báo: Gán $0.5$ (trung tính).<br>• Nếu cả hai đã khai báo: $\frac{\text{Số khung giờ trùng}}{\min(\text{Số khung giờ của } u, \text{Số khung giờ của } v)}$. (Nếu không trùng thì đã bị loại ở Bước 1).<br>Khung giờ được định nghĩa ở mục 4.6 (21 khung/tuần).<br>*Vì sao chia cho min:* công thức đo tỷ lệ lịch của bên **bận hơn** được bên kia phủ (hệ số overlap). Người rảnh nhiều không bị phạt, vì muốn hẹn được thì chỉ cần lịch của bên bận hơn khớp. Chia cho số khung của hợp hai lịch (Jaccard) sẽ phạt người khai nhiều buổi rảnh và khuyến khích khai ít đi.<br>*Nhược điểm đã biết:* người khai rất ít khung được lợi, ví dụ khai 1 khung và trùng 1 khung thì ScheduleFit = 1.0. Vì vậy phân tích độ nhạy (5.4) so sánh công thức này với Jaccard và với số khung trùng có trần $\min(\text{số khung trùng}, 3)/3$ trước khi giữ hay đổi. |
 | **ModeFit(u,v)** | • $1.0$: Cả hai đã khai báo và cùng chọn `ONLINE`, cùng chọn `OFFLINE`, hoặc ít nhất một bên chọn `ANY`.<br>• $0.5$: Một hoặc cả hai bên chưa khai báo hình thức học, **kể cả khi bên kia chọn `ANY`**. (Nếu xung đột hoàn toàn thì đã bị loại ở Bước 1). |
 | **Reputation(v)** | • Chưa có bất kỳ lịch sử nào (Người mới): Gán $0.5$ (trung tính, tránh Cold Start).<br>• Khi đã có dữ liệu: $Reputation(v) = 0.7 \times RatingNorm(v) + 0.3 \times CompletionRate(v)$. |
 
@@ -185,6 +187,8 @@ Phương pháp chính là dữ liệu giả lập có nhãn phù hợp "đáp á
 
 Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy nhãn được gán riêng biệt cho từng hướng trao đổi ($u$ học từ $v$). Để khắc phục triệt để tình trạng chồng chéo điều kiện, nhãn được áp dụng theo **thứ tự thác nước (Waterfall logic)**:
 
+**Giá trị thật và giá trị tự khai.** Mỗi người dùng giả lập có hai lớp dữ liệu: *giá trị thật* (trình độ thật của từng kỹ năng dạy, lịch rảnh thật) và *giá trị tự khai* (những gì người đó nhập vào hệ thống). Nhãn dưới đây tính trên **giá trị thật**; P, B0, B1 chỉ thấy **giá trị tự khai**, giống ngoài đời, nơi trình độ và lịch rảnh không được xác minh (mục 4.3, *Giới hạn*). Kỹ năng và hình thức học không có nhiễu: người dùng biết rõ mình dạy, học gì và muốn học theo hình thức nào. Cách sinh nhiễu ở mục 5.4.
+
 1. **Bước 1 - Kiểm tra điều kiện loại trừ cứng (Hard Filtering):**
    - Nếu $v = u$, hoặc tài khoản chưa xác thực/bị khóa $\rightarrow$ Loại.
    - Nếu không có bất kỳ kỹ năng nào trùng hoặc liên quan ($Sim = 0$) $\rightarrow$ Loại.
@@ -225,6 +229,13 @@ Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy
 - So sánh $B0$ với $B1$ để đánh giá thay đổi về độ bao phủ (Recommendation Coverage) khi mở rộng tập ứng viên.
 - So sánh $B1$ với $P$ trên cùng tập ứng viên để đánh giá sự cải thiện về chất lượng xếp hạng (Precision@5, NDCG@5).
 - Không khẳng định công thức $P$ làm tăng Coverage nếu tập ứng viên không thay đổi.
+- **Mốc ngẫu nhiên (R):** cùng tập ứng viên như B1, xếp ngẫu nhiên (theo seed). Cho biết một con số Precision@5/NDCG@5 là cao hay thấp so với việc không xếp gì. Mốc trên không cần thêm phương án, vì NDCG@5 đã chia cho xếp hạng lý tưởng (bằng 1 khi xếp đúng hoàn toàn).
+- **Bỏ từng thành phần (ablation):** chạy P bỏ lần lượt LevelFit, ScheduleFit, ModeFit (trọng số của thành phần bị bỏ chia đều cho các thành phần còn lại) để biết thành phần nào thật sự đóng góp.
+
+**P có "thắng sẵn" theo thiết kế không?** Có một phần: nhãn và P dùng cùng loại thuộc tính (kỹ năng, trình độ, lịch, hình thức), còn B1 chỉ dùng SkillFit. Nếu nhãn tính trên đúng dữ liệu P thấy, P gần như chắc chắn thắng B1. Thiết kế giảm lợi thế này bằng ba cách:
+1. Nhãn tính trên giá trị thật, P chỉ thấy giá trị tự khai có nhiễu (5.1, 5.4). P phải xếp đúng dù dữ liệu đầu vào sai lệch.
+2. Chạy thêm mức nhiễu bằng 0 làm đối chứng. Khoảng cách giữa kết quả không nhiễu và có nhiễu cho thấy phần thắng nào đến từ thiết kế, phần nào còn lại khi dữ liệu không hoàn hảo.
+3. Thu hẹp kết luận của RQ2: thực nghiệm chỉ trả lời "khi trình độ và lịch tự khai có sai lệch, xếp hạng đa tiêu chí có đưa ứng viên phù hợp theo quy tắc nghiệp vụ lên đầu tốt hơn xếp theo kỹ năng không". Thực nghiệm **không** chứng minh mức phù hợp ngoài đời; điều đó ghi vào phần hạn chế và chỉ khảo sát người thật (5.4) mới trả lời được.
 
 ### 5.3. Chỉ số đo lường
 
@@ -240,12 +251,14 @@ Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy
 ### 5.4. Dữ liệu giả lập và phân tích thực nghiệm
 
 - **Quy mô dữ liệu giả lập:** Sinh các bộ dữ liệu với quy mô 100, 500 và 1.000 người dùng; mỗi người có 2–5 kỹ năng dạy, 1–3 kỹ năng muốn học, mức tự khai, lịch rảnh và hình thức học.
+- **Sinh giá trị tự khai từ giá trị thật (cho 5.1):** trình độ tự khai = trình độ thật cộng hoặc trừ 1 (giữ trong 1–4) với xác suất $p_{level}$; lịch tự khai bỏ sót mỗi khung thật với xác suất $p_{miss}$ và thêm khung không thật với xác suất $p_{extra}$. Chạy ít nhất hai mức: không nhiễu (đối chứng) và nhiễu mặc định (ví dụ $p_{level} = 0.3$, $p_{miss} = 0.2$, $p_{extra} = 0.05$; con số chốt trước tuần 5). Ứng viên bị lọc cứng trên dữ liệu tự khai loại nhầm thì không xuất hiện trong danh sách của P, B0, B1; đây là hành vi đúng, giống ngoài đời.
 - **Tính tái lập (Reproducibility):** Chạy thực nghiệm với 5 random seed cố định; báo cáo kết quả trung bình và độ lệch chuẩn.
 - **Phân tích độ nhạy của bộ trọng số (Sensitivity Analysis):** So sánh hiệu năng của 4 cấu hình trọng số:
   1. *Mặc định:* (0.55 Skill, 0.20 Level, 0.15 Schedule, 0.05 Mode, 0.05 Reputation)
   2. *Ưu tiên kỹ năng:* (0.65, 0.15, 0.10, 0.05, 0.05)
   3. *Ưu tiên lịch rảnh:* (0.50, 0.15, 0.25, 0.05, 0.05)
   4. *Ưu tiên uy tín:* (0.45, 0.15, 0.15, 0.05, 0.20)
+- **So sánh công thức ScheduleFit** (với bộ trọng số mặc định): chia cho min (mặc định, 4.3), Jaccard (chia cho số khung của hợp hai lịch), và số khung trùng có trần $\min(\text{số khung trùng}, 3)/3$. Báo cáo thêm Precision@5, NDCG@5 riêng cho nhóm người khai ít khung (ví dụ ≤ 3 khung) để thấy họ có được lợi không công bằng không.
 - **Khảo sát người dùng thật:** Khảo sát 15–20 sinh viên chỉ là phần bổ trợ định tính nếu còn thời gian ở tuần 8–9; không phải điều kiện bắt buộc để hoàn thành MVP.
 
 ### 5.5. Điểm còn mở (quyết định trước tuần 5)
@@ -256,7 +269,7 @@ Các điểm dưới đây chưa ảnh hưởng tới tuần 3–4, nhưng phả
 | --- | --- |
 | N6 | P có hai danh sách (hai chiều theo $MutualScore$, một chiều theo $D$), nhãn lại gán theo hướng "$u$ học từ $v$". Chỉ số đo trên danh sách nào, hay trộn hai danh sách thành một Top-5? |
 | C4 | IDCG@5 tính trên tập ứng viên nào (của từng phương án, hay tập chung của B1/P)? B0 và B1 có áp dụng lọc lịch rảnh và hình thức học không? |
-| C5 | Nhãn được xây từ chính các đặc trưng P dùng, nên P có lợi thế do thiết kế. Nêu ở phần hạn chế hay thiết kế nhãn khác? |
+| C5 | **Đã chốt 2026-11-01:** nhãn tính trên giá trị thật, thuật toán thấy giá trị tự khai có nhiễu; chạy thêm mức không nhiễu, mốc ngẫu nhiên và bỏ từng thành phần; thu hẹp kết luận RQ2 và ghi vào hạn chế (5.1, 5.2, 5.4). |
 | T3 | Nhãn 2 "hình thức học tương thích hoàn toàn": `ANY` + `ONLINE` có tính không; bên chưa khai báo xử lý thế nào? |
 | T5 | Precision@5 tính cả nhãn 1 nên dễ gần 1.0 với mọi phương án. Có nên chỉ tính nhãn 2, hoặc báo cáo thêm Precision@5 nghiêm ngặt? |
 | T6 | Dữ liệu giả lập có nên để một tỷ lệ người dùng chưa khai báo lịch/hình thức học, để đánh giá được nhánh giá trị trung tính 0.5? |
@@ -495,7 +508,7 @@ Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và
 
 | Chỉ số | Ý nghĩa | Cách tính | Miền giá trị | Lưu ý | Mục |
 | :--- | :--- | :--- | :---: | :--- | :---: |
-| **rel** (nhãn Ground Truth) | Đáp án đúng do quy tắc độc lập gán cho từng cặp ($u$ học từ $v$) | Theo thứ tự thác nước: loại cứng → nhãn 2 → nhãn 0 → nhãn 1 | {0, 1, 2} | Không dùng $D$ hay $MutualScore$ để gán nhãn. ⚠ Điều kiện "hình thức học tương thích hoàn toàn" của nhãn 2 chưa chốt (T3) | 5.1 |
+| **rel** (nhãn Ground Truth) | Đáp án đúng do quy tắc độc lập gán cho từng cặp ($u$ học từ $v$) | Theo thứ tự thác nước: loại cứng → nhãn 2 → nhãn 0 → nhãn 1, tính trên giá trị thật (thuật toán chỉ thấy giá trị tự khai) | {0, 1, 2} | Không dùng $D$ hay $MutualScore$ để gán nhãn. ⚠ Điều kiện "hình thức học tương thích hoàn toàn" của nhãn 2 chưa chốt (T3) | 5.1 |
 | **Precision@5** | Trong 5 gợi ý đầu, bao nhiêu phần là phù hợp | Số ứng viên có nhãn 1 hoặc 2 trong top 5, chia cho 5 | [0, 1] | Thiếu ứng viên thì vị trí trống tính là không phù hợp. ⚠ Đo trên danh sách nào (N6); có tính nhãn 1 không (T5) | 5.3 |
 | **DCG@5** | Tổng "giá trị" của top 5, ứng viên càng tốt và càng đứng đầu thì đóng góp càng nhiều | $\sum_{i=1}^{5} \dfrac{2^{rel_i} - 1}{\log_2(i+1)}$ | ≥ 0 | Nhãn 2 đóng góp gấp 3 lần nhãn 1 ở cùng vị trí | 5.3 |
 | **IDCG@5** | DCG lớn nhất có thể đạt được | DCG của danh sách đã sắp xếp lý tưởng theo nhãn giảm dần | ≥ 0 | ⚠ Chưa nói rõ sắp xếp lý tưởng trên tập ứng viên nào (C4) | 5.3 |

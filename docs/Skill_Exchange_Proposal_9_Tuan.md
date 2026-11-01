@@ -39,7 +39,7 @@ Tất cả các thành phần điểm đều được chuẩn hóa trong đoạn
 
 Hệ thống định nghĩa bài toán cốt lõi là **Gợi ý Top-k ứng viên phù hợp cho từng người dùng (Top-k Recommendation)**, không phải bài toán ghép cặp toàn cục 1-1 cố định. Người dùng nhận danh sách đề xuất xếp hạng cao nhất và chủ động quyết định kết nối.
 
-Để kiểm chứng hiệu quả, hệ thống sử dụng dữ liệu giả lập có gán nhãn "đáp án đúng" (Ground Truth) ngầm định theo quy tắc nghiệp vụ độc lập (không dùng chính hàm điểm để tạo nhãn). Thuật toán được đánh giá qua các chỉ số chuẩn trong Hệ thống gợi ý: **Precision@5, NDCG@5, Recommendation Coverage và Thời gian xử lý (Latency)**. 
+Để kiểm chứng hiệu quả, hệ thống sử dụng dữ liệu giả lập có gán nhãn "đáp án đúng" (Ground Truth) ngầm định theo quy tắc nghiệp vụ độc lập (không dùng chính hàm điểm để tạo nhãn). Nhãn tính trên trình độ và lịch rảnh *thật* của người dùng giả lập, còn thuật toán chỉ thấy giá trị *tự khai* có sai lệch, để thuật toán không thắng sẵn chỉ vì nhãn và hàm điểm dùng cùng dữ liệu. Thuật toán được đánh giá qua các chỉ số chuẩn trong Hệ thống gợi ý: **Precision@5, NDCG@5, Recommendation Coverage và Thời gian xử lý (Latency)**. 
 
 Hệ thống so sánh 3 kịch bản:
 - Baseline $B0$: Chỉ tìm ứng viên trùng chính xác kỹ năng.
