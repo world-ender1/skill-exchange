@@ -234,3 +234,32 @@ form {
   font-weight: 600;
   border-bottom-color: var(--primary);
 }
+
+/* ---------- Lưới lịch rảnh (S03) ---------- */
+
+.grid-scroll {
+  overflow-x: auto; /* màn hình hẹp: cuộn ngang trong bảng, không làm vỡ cả trang */
+  margin-bottom: 14px;
+}
+
+.availability {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 520px;
+}
+
+.availability th, .availability td {
+  border: 1px solid var(--border);
+  padding: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.availability td.on {
+  background: var(--selected);
+}
+
+.availability input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+}

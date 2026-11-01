@@ -4,6 +4,7 @@ import { RequireAuth } from './auth/RequireAuth'
 import { getToken } from './auth/token'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 /** Bản đồ đường dẫn → màn hình (xem "Chốt ở bước này" của bước 10). */
@@ -18,7 +19,7 @@ export default function App() {
         {/* Các trang cần đăng nhập: RequireAuth kiểm vé, Layout vẽ thanh điều hướng. */}
         <Route element={<RequireAuth />}>
           <Route element={<Layout />}>
-            <Route path="/profile" element={<p>Hồ sơ của tôi: làm ở màn hình S03.</p>} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 
