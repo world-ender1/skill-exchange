@@ -79,9 +79,9 @@ Một lượt review độc lập (phiên AI riêng, chỉ đọc) đối chiế
 
 | Ca | Kết quả |
 | --- | --- |
-| TC04 – thư trong Mailpit, bấm link mở S02 báo thành công | [CẦN BỔ SUNG – tự bấm trên trình duyệt] |
+| TC04 – thư trong Mailpit, bấm link mở S02 báo thành công | Đạt (chạy bằng trình duyệt tự động trên bản clone sạch từ GitHub, 01/11/2026) |
 | TC31 – trọn luồng S01 → S04, F5 vẫn đăng nhập và còn dữ liệu | Đạt (kiểm thủ công trên trình duyệt, 01/11/2026) |
-| TC74 – đăng xuất rồi gõ `/profile` → về trang đăng nhập, `localStorage` hết vé | [CẦN BỔ SUNG] |
+| TC74 – đăng xuất rồi gõ `/profile` → về trang đăng nhập, `localStorage` hết vé | Đạt (chạy bằng trình duyệt tự động trên bản clone sạch từ GitHub, 01/11/2026) |
 
 ## Giới hạn
 

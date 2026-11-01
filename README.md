@@ -19,20 +19,33 @@ Nền tảng ghép cặp trao đổi kỹ năng giữa sinh viên: mỗi ngườ
 
 ## Chạy trên máy
 
-Yêu cầu: Java 21, Node.js, Docker Desktop.
+Yêu cầu: Java 21, Node.js 22+, Docker Desktop. Giá trị mẫu trong `.env.example` chạy được ngay trên máy dev.
 
 ```powershell
-copy .env.example .env                      # điền giá trị (DB, JWT_SECRET, MAIL_*, ADMIN_*, FRONTEND_URL)
+# Windows (PowerShell), từ thư mục gốc
+copy .env.example .env
 docker compose up -d                        # PostgreSQL + Mailpit (http://localhost:8025)
-cd backend; .\mvnw.cmd spring-boot:run      # API: http://localhost:8080
-cd frontend; npm install; npm run dev       # Giao diện: http://localhost:5173
+cd backend; .\mvnw.cmd spring-boot:run      # API: http://localhost:8080 (lần đầu tải thư viện, mất vài phút)
+cd frontend; npm install; npm run dev       # Giao diện: http://localhost:5173 (mở terminal khác)
 ```
+
+```bash
+# macOS / Linux
+cp .env.example .env
+docker compose up -d
+cd backend && ./mvnw spring-boot:run
+cd frontend && npm install && npm run dev
+```
+
+**Dùng thử:**
+- Đăng ký bằng email có đuôi `@student.example.edu.vn` (đuôi email trường cấu hình trong `backend/src/main/resources/application.yml`). Thư xác thực không gửi ra ngoài mà nằm ở Mailpit: http://localhost:8025, bấm link trong thư để kích hoạt tài khoản.
+- Tài khoản quản trị tạo sẵn lúc khởi động: `ADMIN_EMAIL` / `ADMIN_PASSWORD` trong `.env` (mẫu: `admin@student.example.edu.vn` / `change-me`).
 
 ## Kiểm thử
 
 ```powershell
 docker compose exec db createdb -U skillexchange skillexchange_test   # tạo DB test một lần
-cd backend; .\mvnw.cmd test                                           # 139 test
+cd backend; .\mvnw.cmd test                                           # 139 test (macOS/Linux: ./mvnw test)
 cd frontend; npm run build; npm run lint
 ```
 
