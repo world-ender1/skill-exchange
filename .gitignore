@@ -21,3 +21,6 @@ Thumbs.db
 
 # Tài liệu học cá nhân: chỉ giữ trên máy, không đưa lên GitHub
 hoc_vibe_coding/
+
+# Skill Claude Code của dự án: chỉ giữ trên máy
+.claude/skills/
