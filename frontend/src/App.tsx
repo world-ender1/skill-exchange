@@ -4,6 +4,7 @@ import { RequireAuth } from './auth/RequireAuth'
 import { getToken } from './auth/token'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 /** Bản đồ đường dẫn → màn hình (xem "Chốt ở bước này" của bước 10). */
 export default function App() {
@@ -11,6 +12,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        {/* D5: link trong thư trỏ tới ${FRONTEND_URL}/verify-email?token=...; trang công khai. */}
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Các trang cần đăng nhập: RequireAuth kiểm vé, Layout vẽ thanh điều hướng. */}
         <Route element={<RequireAuth />}>
