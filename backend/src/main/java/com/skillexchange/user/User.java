@@ -81,6 +81,17 @@ public class User {
         return user;
     }
 
+    /**
+     * Tài khoản admin (D4): đã xác thực sẵn, không qua thư.
+     * verifiedAt lấy từ bean Clock (D18), không tự gọi Instant.now().
+     */
+    public static User createAdmin(String email, String passwordHash, String fullName, Instant verifiedAt) {
+        User user = register(email, passwordHash, fullName);
+        user.role = Role.ADMIN;
+        user.verifyEmail(verifiedAt);
+        return user;
+    }
+
     /** D8: đăng ký lại email chưa xác thực thì ghi đè mật khẩu và họ tên. */
     public void overwritePendingRegistration(String passwordHash, String fullName) {
         if (status != UserStatus.PENDING_VERIFICATION) {

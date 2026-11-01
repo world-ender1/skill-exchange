@@ -117,6 +117,12 @@ Tách 2–3 commit.
 
 - **Tạo:** `auth/AdminInitializer` (`ApplicationRunner`; chuẩn hóa email; tạo nếu chưa có; `email_verified_at` từ `Clock`). Hành vi khi thiếu `ADMIN_EMAIL`/`ADMIN_PASSWORD` chốt ở bước này và ghi bổ sung vào file này.
 - **Ca:** TC81 (gọi runner hai lần trong test).
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ; cách xử lý khi thiếu cấu hình do người dùng chọn ngày 2026-11-01):
+  - Cấu hình `app.admin.email: ${ADMIN_EMAIL:}`, `app.admin.password: ${ADMIN_PASSWORD:}`. Thiếu hoặc rỗng một trong hai, email sai định dạng hoặc dài hơn 255 ký tự, mật khẩu không đạt D10 (8–72 ký tự, ≤ 72 byte) → **ứng dụng dừng lúc khởi động**, thông báo lỗi nói rõ biến nào sai nhưng **không** in giá trị mật khẩu. Giống cách làm với `JWT_SECRET`, `FRONTEND_URL`: không có hệ thống nào chạy mà không có người quản trị danh mục kỹ năng.
+  - Email đã có tài khoản (bất kể vai trò, trạng thái) → không tạo, không sửa gì. Nếu tài khoản đó không phải `ADMIN` thì ghi log WARN; **không** tự nâng quyền (ai đó đăng ký trước bằng email này thì không thành admin).
+  - Không kiểm đuôi email trường cho admin (admin không phải sinh viên, D9 chỉ áp dụng cho đăng ký). `full_name` của admin: "Quản trị viên".
+  - Đổi `ADMIN_PASSWORD` sau khi admin đã được tạo không đổi mật khẩu trong DB.
+  - Log khi tạo chỉ ghi email, không ghi mật khẩu.
 - **Tự kiểm:** khởi động 2 lần vẫn 1 admin; vé admin có `role = ADMIN`; log không có mật khẩu.
 - **Commit:** `feat(auth): create initial admin account on startup`
 

@@ -44,6 +44,14 @@ app:
   allowed-email-domains:
     - student.example.edu.vn
 
+  # Tài khoản admin đầu tiên, tạo lúc khởi động nếu chưa có (D4).
+  # Thiếu hoặc sai thì ứng dụng dừng lúc khởi động (AdminInitializer báo lỗi, không in mật khẩu).
+  # ":" ở cuối = giá trị mặc định rỗng, để AdminInitializer báo lỗi tiếng Việt rõ ràng
+  # thay vì lỗi "Could not resolve placeholder" của Spring.
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+
   jwt:
     # Khóa ký JWT HS256 (D14), ít nhất 32 byte. Cố ý KHÔNG có giá trị mặc định:
     # thiếu JWT_SECRET trong .env thì ứng dụng dừng ngay lúc khởi động.

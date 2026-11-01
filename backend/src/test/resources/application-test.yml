@@ -11,3 +11,7 @@ app:
     - student.example.edu.vn
   # Ghi rõ để test kiểm được link trong thư mà không phụ thuộc .env (TC03).
   frontend-url: http://localhost:5173
+  # Admin đầu tiên (D4, TC81): cố ý viết hoa và có khoảng trắng để kiểm chuẩn hóa email.
+  admin:
+    email: " Admin@Student.Example.edu.vn "
+    password: matkhau-admin-test
