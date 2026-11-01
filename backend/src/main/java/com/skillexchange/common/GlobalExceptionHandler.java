@@ -60,6 +60,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(problem);
     }
 
+    /** Yêu cầu sai nhưng không thuộc trường nào (ví dụ link xác thực hỏng): chỉ có "detail". */
+    @ExceptionHandler(InvalidRequestException.class)
+    ResponseEntity<ProblemDetail> handleInvalidRequest(InvalidRequestException ex) {
+        return problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     /** Body không phải JSON hợp lệ. Không trả lại thông báo của Jackson (có thể lộ cấu trúc class). */
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
