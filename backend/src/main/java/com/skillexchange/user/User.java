@@ -101,6 +101,19 @@ public class User {
         this.fullName = fullName;
     }
 
+    /**
+     * PUT /api/me thay toàn bộ hồ sơ (D15): null nghĩa là "chưa khai báo".
+     * Giá trị đã được chuẩn hóa và kiểm ở UpdateProfileRequest. Không đổi email, role, status.
+     */
+    public void updateProfile(String fullName, String bio, LearningMode learningMode,
+                              String phone, String contactInfo) {
+        this.fullName = fullName;
+        this.bio = bio;
+        this.learningMode = learningMode;
+        this.phone = phone;
+        this.contactInfo = contactInfo;
+    }
+
     /** Đánh dấu đã xác thực email (bước 5 gọi với thời điểm lấy từ Clock). */
     public void verifyEmail(Instant verifiedAt) {
         this.status = UserStatus.ACTIVE;

@@ -130,6 +130,13 @@ Tách 2–3 commit.
 
 - **Tạo:** `user/MeController`, `UserProfileService`, DTO `MyProfileResponse`, `UpdateProfileRequest` (không có `email`/`role`/`status`; rỗng → NULL); `updated_at` bằng `@UpdateTimestamp`.
 - **Ca:** TC16–TC20, TC38 (phần `PUT /api/me`), TC45, TC46, TC47, TC48, TC59, TC66; phần `/api/me` của TC62, TC73.
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - "Tôi là ai" chỉ lấy từ claim `sub` của vé đã kiểm chữ ký; body không có trường `id`, gửi kèm `id`, `email`, `role`, `status` đều bị bỏ qua (D15, TC48, TC66).
+  - `bio`, `phone`, `contactInfo` bỏ khoảng trắng hai đầu trước khi kiểm và lưu (như `fullName`, D16); còn rỗng thì lưu NULL (D15). Độ dài kiểm sau khi bỏ khoảng trắng.
+  - `learningMode` nhận chuỗi `ONLINE`/`OFFLINE`/`ANY` (đúng chữ hoa); giá trị khác → 400 kèm `errors[].field = learningMode` (không để lỗi đọc JSON chung, để frontend hiện lỗi cạnh ô).
+  - `phone` chỉ gồm chữ số, khoảng trắng, `+`, `-` (D16), không bắt buộc phải có chữ số.
+  - Admin gọi được `GET`/`PUT /api/me` (quyền *User*, TK 4.3); frontend cần `role` từ `GET /api/me`.
+  - `PUT /api/me` không có body hoặc body là `null` → 400 (lỗi đọc JSON, như TC59).
 - **Tự kiểm:** sửa hồ sơ bằng `.http` rồi xem lại; tấn công thử A sửa hồ sơ B, ghi các cách đã thử vào `.http`.
 - **Commit:** `feat(user): add my profile APIs`
 
