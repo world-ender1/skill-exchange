@@ -17,6 +17,9 @@ Repo: https://github.com/world-ender1/skill-exchange
 | API hồ sơ, lịch rảnh, kỹ năng dạy / muốn học | [cd8794b](https://github.com/world-ender1/skill-exchange/commit/cd8794b), [5a0e824](https://github.com/world-ender1/skill-exchange/commit/5a0e824) |
 | Giao diện S01–S04 (đăng nhập/đăng ký, xác thực, hồ sơ, kỹ năng) | [4d9dcf2](https://github.com/world-ender1/skill-exchange/commit/4d9dcf2), [bfaf318](https://github.com/world-ender1/skill-exchange/commit/bfaf318), [d48726c](https://github.com/world-ender1/skill-exchange/commit/d48726c), [8be14ae](https://github.com/world-ender1/skill-exchange/commit/8be14ae) |
 | Kiểm tra cả tuần: 139/139 test đạt, làm hỏng 6 quy tắc đều bị test bắt | [f416650](https://github.com/world-ender1/skill-exchange/commit/f416650) |
+| Báo cáo tuần 3, ảnh chụp màn hình S01–S04 và kết quả test | [ab89627](https://github.com/world-ender1/skill-exchange/commit/ab89627), [974572c](https://github.com/world-ender1/skill-exchange/commit/974572c) |
+| Sửa báo cáo theo góp ý tuần 2 (quy tắc gán nhãn, mẫu số ScheduleFit, link commit, kiểm trạng thái tài khoản mỗi request, mục 2.1) | [64c9e83](https://github.com/world-ender1/skill-exchange/commit/64c9e83), [915e1a6](https://github.com/world-ender1/skill-exchange/commit/915e1a6), [8d52053](https://github.com/world-ender1/skill-exchange/commit/8d52053) |
+| README; chạy thử trên bản clone sạch từ GitHub: 139/139 test, 20/20 kiểm thử đầu cuối trên trình duyệt | [ba236d1](https://github.com/world-ender1/skill-exchange/commit/ba236d1), [48dbc8a](https://github.com/world-ender1/skill-exchange/commit/48dbc8a) |
 
 ## 2. Trạng thái chức năng bắt buộc
 
@@ -36,12 +39,11 @@ Repo: https://github.com/world-ender1/skill-exchange
 - Spring Boot 4 / Spring Security 7 khác nhiều tài liệu cũ (tên starter, cách cấu hình JWT); phải đối chiếu đúng phiên bản trong `pom.xml`.
 - Kiểm thời gian (hạn link 24 giờ, giới hạn 60 giây, hạn JWT): phải dùng chung một đồng hồ `Clock` để test tua giờ được, kể cả bộ kiểm hạn JWT.
 - Một quy tắc ("link chỉ dùng một lần") bị xóa mà test vẫn xanh, vì có lớp chặn khác che mất; phải thêm unit test riêng.
-- Chưa tự bấm kiểm thủ công đủ 3 ca trên trình duyệt (TC04, TC31, TC74).
+- Góp ý về thực nghiệm: nhãn đánh giá và thuật toán dùng cùng loại dữ liệu nên thuật toán có lợi thế; chỉ giảm được (nhiễu dữ liệu tự khai, đối chứng, tách seed), chưa có nguồn nhãn độc lập.
+- Chạy thử trên bản clone sạch phát hiện `mvnw` thiếu quyền chạy trên macOS/Linux và README thiếu hướng dẫn dùng thử; đã sửa.
 
 ## 4. Kế hoạch tuần 4
 
-- Làm xong kiểm thủ công TC04, TC31, TC74, chụp màn hình cho báo cáo.
-- Đã sửa báo cáo theo góp ý tuần 2 (quy tắc gán nhãn, mẫu số ScheduleFit, link commit, kiểm trạng thái tài khoản mỗi request, mục 2.1); giữ công thức ScheduleFit chia cho min khi code tuần 4, so sánh với hai công thức khác ở tuần 5.
 - Viết ca kiểm thử tuần 4 từ tài liệu trước khi code.
-- Lõi matching (lọc cứng, chấm điểm, phân loại, xếp hạng) kèm unit test cho từng hàm tính điểm.
+- Lõi matching (lọc cứng, chấm điểm, phân loại, xếp hạng) kèm unit test cho từng hàm tính điểm; giữ công thức ScheduleFit chia cho min, so sánh với hai công thức khác ở tuần 5.
 - API `GET /api/matches`, `GET /api/users/{id}`, `GET /api/users/search`; màn hình S05, S06, S10.
