@@ -5,6 +5,7 @@ import { getToken } from './auth/token'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { SkillsPage } from './pages/SkillsPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 /** Bản đồ đường dẫn → màn hình (xem "Chốt ở bước này" của bước 10). */
@@ -20,6 +21,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route element={<Layout />}>
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/skills" element={<SkillsPage />} />
           </Route>
         </Route>
 

@@ -263,3 +263,39 @@ form {
   width: 18px;
   height: 18px;
 }
+
+/* ---------- Danh sách kỹ năng (S04) ---------- */
+
+.skill-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.skill-row select {
+  width: auto;
+}
+
+.skill-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.actions .grow {
+  flex: 1;
+  min-width: 180px;
+  width: auto;
+}
+
+.actions + .actions {
+  margin-top: 12px;
+}
