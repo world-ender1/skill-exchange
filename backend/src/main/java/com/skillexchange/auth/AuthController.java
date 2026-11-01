@@ -41,4 +41,10 @@ public class AuthController {
     public void resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
         authService.resendVerification(request.email());
     }
+
+    // 200 {accessToken}. Sai email/mật khẩu → 401, tài khoản bị khóa → 403 (D13).
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.login(request);
+    }
 }

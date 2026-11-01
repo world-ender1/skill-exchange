@@ -101,7 +101,15 @@ Tách 2–3 commit.
 
 - **Tạo:** `auth/JwtTokenService` (`JwtEncoder` HS256, claim `sub`, `role`, hạn 24 giờ tính từ `Clock`); `auth/LoginRequest`, `LoginResponse`, `AuthService.login` (email → mật khẩu → trạng thái); bộ lọc đọc lại user mỗi request (không tồn tại → 401, `LOCKED` → 403); `JwtAuthenticationConverter` đọc claim `role`.
 - **Test:** tiện ích tạo vé trong test (hợp lệ, sai chữ ký, hết hạn).
-- **Ca:** TC08, TC09, TC10, TC11, TC44, TC63, TC64, TC65, TC68, TC69, TC70, TC71, TC90; phần `login` của TC73.
+- **Ca:** TC08, TC09, TC10, TC11, TC44, TC63, TC64, TC65, TC68, TC69, TC70, TC71, TC90; phần `login` của TC73; phần "đăng nhập bằng mật khẩu cũ/mới" của TC77 (dời từ bước 5).
+- **Chốt ở bước này** (tài liệu trước chưa nói rõ):
+  - TC63, TC64, TC69, TC70 ghi `GET /api/me`, nhưng API này bước 8 mới có. Bước này kiểm trên `GET /api/skills` (cũng cần đăng nhập); bộ lọc vé chạy giống nhau cho mọi đường dẫn cần đăng nhập. Bước 8 chỉ thêm phần `/api/me` của TC62, TC73.
+  - Thông báo: email không tồn tại và sai mật khẩu (kể cả tài khoản `LOCKED` sai mật khẩu, TC90) cùng 401 `detail` "Email hoặc mật khẩu không đúng"; `LOCKED` đúng mật khẩu → 403 "Tài khoản đã bị khóa". Khi email không tồn tại vẫn chạy một lần so BCrypt với bản băm giả, để thời gian trả lời không lộ email nào đã đăng ký.
+  - Body `login`: `email` thiếu/rỗng hoặc `password` thiếu/rỗng → 400 kèm `errors` (D24). Không kiểm định dạng email hay độ dài mật khẩu: sai thì chỉ là không khớp → 401. Mật khẩu quá 72 byte cũng trả 401 (không so BCrypt, vì BCrypt ném lỗi với chuỗi quá 72 byte), không được thành 500.
+  - Hạn vé: `iat` lấy từ bean `Clock`, `exp = iat + 24 giờ`. Bộ giải mã vé kiểm `exp` theo **cùng** bean `Clock` (để test vặn giờ được) và không cho lệch giờ (clock skew = 0) vì một máy chủ vừa phát vừa kiểm vé. Vé dùng được tới hết thời điểm `exp`, quá `exp` là 401.
+  - Vai trò lấy từ claim `role` thành quyền `ROLE_STUDENT`/`ROLE_ADMIN`. Trạng thái tài khoản đọc lại từ DB mỗi request (D13); vai trò không có API đổi nên đọc từ vé.
+  - Đường dẫn `/api/auth/**` bỏ qua header `Authorization`: vé cũ hết hạn còn nằm trong `localStorage` không chặn được việc đăng nhập lại (bước 10).
+  - Quyền *Active* (`status = ACTIVE`, `role = STUDENT`) chưa có API nào dùng trong tuần 3, làm cùng API tuần 4.
 - **Tự kiểm:** dán vé vào jwt.io (chỉ có `sub`, `role`, `iat`, `exp`); sửa 1 ký tự → 401; sai mật khẩu và sai email cùng thông báo.
 - **Commit:** `feat(auth): add JWT login`
 

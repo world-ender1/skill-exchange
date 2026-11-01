@@ -80,6 +80,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // Đến từ tầng filter (qua ProblemAuthenticationEntryPoint / ProblemAccessDeniedHandler)
     // hoặc ném từ trong service. Phải bắt riêng, nếu không bộ bắt Exception cuối file biến chúng thành 500.
 
+    // Hai lỗi do code của ta ném, message đã là câu cho người dùng đọc.
+    // Spring chọn handler có kiểu khớp gần nhất, nên chúng không rơi xuống hai handler chung bên dưới.
+
+    @ExceptionHandler(UnauthorizedException.class)
+    ResponseEntity<ProblemDetail> handleUnauthorized(UnauthorizedException ex) {
+        return problem(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    ResponseEntity<ProblemDetail> handleForbidden(ForbiddenException ex) {
+        return problem(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    // Lỗi do Spring Security sinh ra: message là tiếng Anh nội bộ, thay bằng câu chung.
+
     @ExceptionHandler(AuthenticationException.class)
     ResponseEntity<ProblemDetail> handleAuthentication(AuthenticationException ex) {
         return problem(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập hoặc phiên đăng nhập đã hết hạn");

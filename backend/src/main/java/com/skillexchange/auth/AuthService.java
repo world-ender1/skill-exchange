@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.skillexchange.common.ConflictException;
 import com.skillexchange.common.FieldValidationException;
+import com.skillexchange.common.ForbiddenException;
 import com.skillexchange.common.InvalidRequestException;
+import com.skillexchange.common.UnauthorizedException;
 import com.skillexchange.user.User;
 import com.skillexchange.user.UserRepository;
 import com.skillexchange.user.UserStatus;
@@ -25,25 +27,38 @@ public class AuthService {
     /** D26: mọi kiểu link hỏng dùng chung một câu, người ngoài không phân biệt được lý do. */
     static final String INVALID_VERIFY_LINK = "Link xác thực không hợp lệ hoặc đã hết hạn";
 
+    /** D13: email không tồn tại và sai mật khẩu dùng chung một câu. */
+    static final String WRONG_CREDENTIALS = "Email hoặc mật khẩu không đúng";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailDomainProperties emailDomains;
     private final TokenService tokenService;
     private final ApplicationEventPublisher events;
+    private final JwtTokenService jwtTokenService;
     private final Clock clock;
+
+    /**
+     * Bản băm của một mật khẩu không ai dùng. Khi email không tồn tại vẫn so BCrypt với bản này,
+     * để đăng nhập sai email mất cùng thời gian như sai mật khẩu (~0,1 giây) (D13).
+     */
+    private final String dummyPasswordHash;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        EmailDomainProperties emailDomains,
                        TokenService tokenService,
                        ApplicationEventPublisher events,
+                       JwtTokenService jwtTokenService,
                        Clock clock) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailDomains = emailDomains;
         this.tokenService = tokenService;
         this.events = events;
+        this.jwtTokenService = jwtTokenService;
         this.clock = clock;
+        this.dummyPasswordHash = passwordEncoder.encode("mat-khau-gia-chi-de-can-bang-thoi-gian");
     }
 
     /**
@@ -114,6 +129,36 @@ public class AuthService {
     }
 
     /**
+     * Đăng nhập (D12, D13). Thứ tự: tìm email → so mật khẩu → xét trạng thái.
+     * Xét trạng thái SAU mật khẩu: nếu báo "bị khóa" trước khi so mật khẩu, người ngoài
+     * gõ bừa mật khẩu cũng biết được email đó có tài khoản.
+     * PENDING_VERIFICATION vẫn đăng nhập được (D12).
+     */
+    @Transactional(readOnly = true)
+    public LoginResponse login(LoginRequest request) {
+        Optional<User> found = userRepository.findByEmail(request.email());
+        if (!passwordMatches(request.password(), found)) {
+            throw new UnauthorizedException(WRONG_CREDENTIALS);
+        }
+
+        User user = found.get();
+        if (user.getStatus() == UserStatus.LOCKED) {
+            throw new ForbiddenException("Tài khoản đã bị khóa");
+        }
+        return new LoginResponse(jwtTokenService.issueAccessToken(user));
+    }
+
+    private boolean passwordMatches(String rawPassword, Optional<User> user) {
+        // BCrypt báo lỗi với chuỗi quá 72 byte; lúc đăng ký đã chặn (D10) nên chắc chắn không khớp.
+        if (exceedsBcryptLimit(rawPassword)) {
+            return false;
+        }
+        String hash = user.map(User::getPasswordHash).orElse(dummyPasswordHash);
+        boolean matches = passwordEncoder.matches(rawPassword, hash);
+        return user.isPresent() && matches;
+    }
+
+    /**
      * Tạo token mới và "đặt lịch" gửi thư. publishEvent chỉ ghi nhận sự kiện;
      * VerificationMailer thật sự gửi sau khi transaction này commit.
      */
@@ -131,9 +176,13 @@ public class AuthService {
 
     private static void checkPasswordByteLimit(String password) {
         // Chữ có dấu chiếm 2–3 byte UTF-8: 72 ký tự có thể vượt 72 byte (D10).
-        if (password.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_BYTES) {
+        if (exceedsBcryptLimit(password)) {
             throw new FieldValidationException("password",
                     "Mật khẩu quá dài: tối đa 72 byte (chữ có dấu tính 2–3 byte)");
         }
+    }
+
+    private static boolean exceedsBcryptLimit(String password) {
+        return password.getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_BYTES;
     }
 }
