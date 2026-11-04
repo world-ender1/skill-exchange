@@ -20,7 +20,24 @@ public class ScoreCalculator {
 
     /** Bước 2. Trung bình Sim tốt nhất cho từng kỹ năng muốn học; wants rỗng thì 0.0. */
     public double skillFit(List<LearnItem> wants, List<TeachItem> teaches) {
-        throw new UnsupportedOperationException("Bước 2");
+        // W_u rỗng: không có gì để trung bình. Trả 0 trước khi chia, vì 0.0 / 0 trong Java ra NaN chứ không ném lỗi.
+        if (wants.isEmpty()) {
+            return 0.0;
+        }
+        double total = 0.0;
+        for (LearnItem want : wants) {
+            total += bestSim(want, teaches);
+        }
+        return total / wants.size();
+    }
+
+    /** max_{t ∈ T_v} Sim(s, t); không dạy gì thì 0.0. */
+    private double bestSim(LearnItem want, List<TeachItem> teaches) {
+        double best = 0.0;
+        for (TeachItem teach : teaches) {
+            best = Math.max(best, similarity.sim(want.skillId(), teach.skillId()));
+        }
+        return best;
     }
 
     /**
