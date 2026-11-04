@@ -4,7 +4,7 @@ Chốt ngày 2026-10-29, từ đợt 2 của rà soát (`docs/ra_soat/Bao_cao_ra
 
 File này là tài liệu mới nhất cho phạm vi tuần 4. Nếu khác spec tuần 1, thiết kế tuần 2 hoặc quyết định tuần 3 thì file này đúng. Khi thêm hoặc đổi một quyết định ở đây, phải sửa luôn các tài liệu cũ nhắc tới điểm đó trong cùng commit. Mã quyết định đánh số tiếp theo tuần 3 (D31 trở đi) để không trùng. D39–D42 đã dùng cho tuần 3, nên quyết định tuần 4 thêm sau ngày chốt bắt đầu từ D43.
 
-*Cập nhật 2026-11-04:* thêm D43–D48 sau khi rà lại tài liệu tuần 4 trước lúc viết ca kiểm thử; sửa D31, D33, D34, D36, D37, D38 cho khớp.
+*Cập nhật 2026-11-04:* thêm D43–D48 sau khi rà lại tài liệu tuần 4 trước lúc viết ca kiểm thử; sửa D31, D33, D34, D36, D37, D38 cho khớp. Cùng ngày, thêm D49, D50 sau khi đọc lại tài liệu theo bước C1 của bài học.
 
 **Nơi ghi các quy tắc của tuần 4** (file này không chép lại, chỉ trỏ tới):
 
@@ -42,6 +42,8 @@ File này là tài liệu mới nhất cho phạm vi tuần 4. Nếu khác spec 
 | D46 | **Chọn kỹ năng và thứ tự các danh sách trong kết quả.** (a) LevelFit chọn $t \in T_v$ theo $Sim(s,t)$ cao nhất, bằng thì trình độ cao hơn, bằng nữa thì `skillId` nhỏ hơn. Điểm không đổi nhưng tên kỹ năng trong `youLearn`, `theyLearn` cố định. (b) `youLearn`, `theyLearn` có một dòng cho mỗi kỹ năng muốn học có $Sim > 0$, kèm kỹ năng dạy đã chọn ở (a), xếp theo tên kỹ năng muốn học rồi `skillId` như D41. `commonSlots` xếp như lịch rảnh ở D41. (c) Hồ sơ công khai `/api/users/{id}` và `teachSkills` của kết quả tìm kiếm dùng thứ tự D41; kỹ năng bị ẩn vẫn hiện. |
 | D47 | `MatchingWeights` kiểm **mỗi** trọng số nằm trong $[0, 1]$ **và** tổng bằng 1 (sai số $10^{-9}$), sai thì ném `IllegalArgumentException`. Lý do: trọng số âm vẫn có thể cho tổng bằng 1 nhưng làm $D$ ra ngoài $[0, 1]$ (NFR-04); thực nghiệm độ nhạy tuần 5 truyền nhiều bộ trọng số nên cần chặn ở đây. |
 | D48 | **Hạn chế đã biết của D36.** So "bằng nhau khi chênh dưới $10^{-9}$" không có tính bắc cầu ($a \approx b$, $b \approx c$ nhưng có thể $a \not\approx c$), trái hợp đồng của `Comparator`; về lý thuyết `List.sort` có thể ném `IllegalArgumentException: Comparison method violates its general contract`. Vẫn giữ D36 vì đúng với câu chữ của spec 4.4 và chỉ xảy ra khi ba điểm trở lên cách nhau dưới $10^{-9}$, rất hiếm với điểm thật. Không lượng tử hóa điểm (`Math.round(x * 1e9)`), vì sẽ coi hai điểm chênh $10^{-10}$ nằm hai bên ranh giới làm tròn là khác nhau. Ghi vào phần hạn chế của báo cáo tuần 4. |
+| D49 | Với kết quả `ONE_WAY`, response **không có key** `backward` và `theyLearn`, không phải key có giá trị `null` (chú thích `@JsonInclude(JsonInclude.Include.NON_NULL)` chỉ trên hai trường này). Các trường khác vẫn xuất hiện kể cả khi bằng `null`, ví dụ `ratingAverage: null` (TK 4.5). Lý do: frontend khai kiểu `backward?: ...` và kiểm sự có mặt của key; ghi rõ để test backend và kiểu TypeScript dựa trên cùng một quy tắc. |
+| D50 | Giao diện hiển thị "Mức phù hợp" bằng `score × 100`, giữ 1 chữ số thập phân và bỏ `.0` khi chẵn: `0.78` → "78%", `0.797` → "79.7%". `score` lấy nguyên từ API (đã làm tròn 3 chữ số), giao diện không làm tròn lại từ điểm gốc. Lý do: wireframe S05 (TK 6.3) chỉ có ví dụ số chẵn; giữ 1 chữ số thập phân để hai ứng viên có điểm gần nhau không hiện cùng một phần trăm. |
 
 ## 3. Việc cần xong trước khi code tuần 4
 

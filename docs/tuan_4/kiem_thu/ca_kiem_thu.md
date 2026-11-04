@@ -4,6 +4,8 @@ Mục đích: liệt kê trước các ca kiểm thử cho chức năng tuần 4
 
 Viết ngày 2026-11-04, sau khi chốt D43–D48. Mã ca bắt đầu từ TC101 để không trùng tuần 3 (TC01–TC93). TC75, TC76 của tuần 3 được hẹn làm ở tuần 4 và nằm trong nhóm E.
 
+*Cập nhật 2026-11-04:* thêm TC185 cho D49; TC179 ghi nguồn D50 cho cách hiển thị phần trăm.
+
 ## Nguồn
 
 Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 4 > quyết định tuần 3 > thiết kế tuần 2 > spec tuần 1.
@@ -17,7 +19,7 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 4
 | TK 4.1, 4.3, 4.5 | Thiết kế tuần 2: quy ước API, quyền *Active*, `/users/{id}`, `/users/search`, `/matches` |
 | TK 6.1, 6.3 | Thiết kế tuần 2: màn hình S05, S06, S10 |
 | D12, D13, D40, D41 | `docs/tuan_3/Quyet_dinh_tuan_3.md` |
-| D31–D38, D43–D48 | `docs/tuan_4/Quyet_dinh_tuan_4.md` |
+| D31–D38, D43–D50 | `docs/tuan_4/Quyet_dinh_tuan_4.md` |
 
 **Loại:**
 - **Unit**: JUnit thuần, không Spring, không DB, chạy trên lõi `matching` (D34, D43).
@@ -61,11 +63,11 @@ Hai chiều; `MutualScore` = `Math.sqrt(0.6875 * 0.925)` ≈ 0.797457.
 | --- | --- | --- |
 | A. Lõi tính điểm | 26 | Sim, SkillFit, LevelFit, ScheduleFit, ModeFit, Reputation, trọng số. Spec 7.1 nhóm 2. |
 | B. Lọc cứng, phân loại, xếp hạng | 18 | `HardFilter`, `MatchingEngine`, ví dụ tính tay, bằng điểm. Spec 7.1 nhóm 1 và 3. |
-| C. API `/api/matches` | 13 | Tham số, dữ liệu thật từ DB, riêng tư, Reputation từ dữ liệu thô (D43). |
+| C. API `/api/matches` | 14 | Tham số, dữ liệu thật từ DB, riêng tư, Reputation từ dữ liệu thô (D43). |
 | D. Hồ sơ công khai và tìm kiếm | 15 | `/api/users/{id}`, `/api/users/search` (TK 4.3, D37, D38, D45, D46). |
 | E. Phân quyền và riêng tư | 8 | Quyền *Active* (D44), thứ tự 403 trước 400, TC75, TC76. |
 | F. Giao diện | 6 | S05, S06, S10, thủ công. |
-| **Tổng** | **86** | |
+| **Tổng** | **87** | |
 
 ---
 
@@ -143,6 +145,7 @@ Các ca dùng An và Bình tạo qua API tuần 3 (đăng ký, xác thực, khai
 | TC154 | Spec 4.2 (2), D43 | Tạo thêm ba người khớp kỹ năng với An: một `PENDING_VERIFICATION`, một `LOCKED`, một admin | Không ai trong ba người xuất hiện ở cả hai nhóm | Tích hợp |
 | TC155 | D43 (c), TK 3.5 | Ứng viên $v$ khớp với An. Chèn: phiên `COMPLETED` từ yêu cầu $v$ gửi, phiên `CANCELLED` đã bắt đầu từ yêu cầu $v$ nhận, phiên `CANCELLED` chưa bắt đầu và phiên `IN_PROGRESS` cũng của $v$, một phiên `COMPLETED` của hai người khác; đánh giá 5 sao cho $v$ trên phiên `COMPLETED` | `reputation` của $v$ = 0.85 (RatingNorm 1.0, CompletionRate 1/2); `ratingAverage = 5`, `reviewCount = 1`. Phiên của người khác không bị tính | Tích hợp |
 | TC156 | NFR-02, TK 4.5 | Bình có `phone`, `contactInfo`; An gọi `/matches` | Không có key `email`, `phone`, `contactInfo` ở mọi mức của JSON | Tích hợp |
+| TC185 | D49, TK 4.5 | An gọi `type=ONE_WAY` có ít nhất một kết quả; Bình chưa có đánh giá, An gọi `type=TWO_WAY` | `ONE_WAY`: mỗi phần tử **không có key** `backward`, `theyLearn` (không phải `null`). `TWO_WAY`: có key `ratingAverage` với giá trị `null` | Tích hợp |
 | TC157 | TK 3.5 | Bật log SQL, gọi `/matches` với 20 rồi 40 ứng viên | Số câu SQL như nhau (không N+1) | Thủ công |
 
 ## D. Hồ sơ công khai và tìm kiếm (tích hợp)
@@ -182,7 +185,7 @@ Các ca dùng An và Bình tạo qua API tuần 3 (đăng ký, xác thực, khai
 
 | Mã | Nguồn | Đầu vào | Kết quả mong đợi | Loại |
 | --- | --- | --- | --- | --- |
-| TC179 | TK 6.1, 6.3, NFR-09 | An mở S05 | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn", có `total` trên tab. Thẻ Bình: mức phù hợp 79.7%, nhãn "Mới", "Java ← Kotlin (kỹ năng liên quan)", lịch trùng Tối T4, Tối T6, hình thức. "Xem chi tiết điểm" hiện 5 thành phần khớp bảng tính tay | Thủ công |
+| TC179 | TK 6.1, 6.3, NFR-09, D50 | An mở S05 | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn", có `total` trên tab. Thẻ Bình: mức phù hợp 79.7%, nhãn "Mới", "Java ← Kotlin (kỹ năng liên quan)", lịch trùng Tối T4, Tối T6, hình thức. "Xem chi tiết điểm" hiện 5 thành phần khớp bảng tính tay | Thủ công |
 | TC180 | D31 | S05 và S06 | Không có nút "Gửi yêu cầu"; S06 không có phần đánh giá | Thủ công |
 | TC181 | TK 4.5 | Tài khoản chưa khai kỹ năng muốn học mở S05 | Lời nhắc và nút sang S04, không trang trắng | Thủ công |
 | TC182 | TK 4.3, NFR-02 | Mở S06 hồ sơ Bình | Có kỹ năng, lịch rảnh, ghi "trình độ tự khai báo"; không có email, số điện thoại, liên hệ | Thủ công |

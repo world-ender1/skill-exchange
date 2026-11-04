@@ -484,12 +484,12 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
 }
 ```
 
-- Với `ONE_WAY` thì không có `backward` và `theyLearn`, còn `score` bằng $D(u,v)$.
+- Với `ONE_WAY` thì không có `backward` và `theyLearn` (không có key, không phải `null`; quyết định tuần 4, D49), còn `score` bằng $D(u,v)$.
 - `ratingAverage` là `null` và `reviewCount = 0` khi chưa có đánh giá; giao diện hiện nhãn "Mới".
 - `hasPendingRequest = true` khi người gọi đang có yêu cầu `PENDING` gửi tới ứng viên này; giao diện thay nút "Gửi yêu cầu" bằng "Đã gửi". Ứng viên vẫn nằm trong danh sách (lọc cứng không loại họ).
 - Người gọi chưa khai báo kỹ năng muốn học ($W_u$ rỗng): trả 200 với `needsLearnSkills = true`, `total = 0`, `items = []`; giao diện dẫn sang S04.
 - Kỹ năng ghi trong `youLearn`, `theyLearn` và thứ tự của chúng cùng `commonSlots`: quyết định tuần 4, D46.
-- Điểm trong response làm tròn 3 chữ số thập phân để hiển thị; thứ tự xếp hạng dùng điểm chưa làm tròn (spec mục 4.4).
+- Điểm trong response làm tròn 3 chữ số thập phân để hiển thị; giao diện đổi sang phần trăm theo quyết định tuần 4, D50 (`0.797` → "79.7%"); thứ tự xếp hạng dùng điểm chưa làm tròn (spec mục 4.4).
 - Response không bao giờ chứa `email`, `phone`, `contactInfo` (NFR-02).
 
 ### 4.6. Yêu cầu trao đổi – `exchange`
