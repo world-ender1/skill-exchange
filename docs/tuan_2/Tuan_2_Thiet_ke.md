@@ -349,9 +349,9 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | $ScheduleFit(u,v)$ | `user_availability` | Không có dòng = chưa khai báo → 0.5 |
 | $ModeFit(u,v)$ | `users.learning_mode` | NULL = chưa khai báo |
 | $RatingNorm(v)$ | `AVG(reviews.rating)` với `reviewee_id = v` | Chưa có đánh giá → 0.5 |
-| $CompletionRate(v)$ | `exchange_sessions` mà $v$ tham gia | Tử số: `status = COMPLETED`. Mẫu số: `started_at IS NOT NULL AND status IN ('COMPLETED', 'CANCELLED')`. Chưa có phiên nào đủ điều kiện thì truy vấn trả về NULL; service đổi thành **0.5** theo spec mục 4.3 |
+| $CompletionRate(v)$ | `exchange_sessions` JOIN `exchange_requests`, lấy phiên có $v$ là `sender_id` hoặc `receiver_id` (mỗi phiên một lần) | Tử số: `status = COMPLETED`. Mẫu số: `started_at IS NOT NULL AND status IN ('COMPLETED', 'CANCELLED')`. Truy vấn chỉ nạp dữ liệu thô (trạng thái, đã bắt đầu chưa); lớp thuần `ReputationCalculator` lọc mẫu số và đổi trường hợp chưa có phiên đủ điều kiện thành **0.5** theo spec mục 4.3 (quyết định tuần 4, D43) |
 
-**Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh và Reputation của các người dùng `ACTIVE` có `role = STUDENT` vào bộ nhớ bằng vài truy vấn gộp, sau đó lọc và chấm điểm bằng Java. Cách này tránh truy vấn lặp cho từng ứng viên. Reputation tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm. Phần lọc và chấm điểm là một lõi thuần Java nhận dữ liệu trong bộ nhớ, không gọi Repository (chi tiết ở quyết định tuần 4, D34).
+**Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh và dữ liệu thô để tính Reputation (D43) của các người dùng `ACTIVE` có `role = STUDENT` vào bộ nhớ bằng vài truy vấn gộp, sau đó lọc và chấm điểm bằng Java. Cách này tránh truy vấn lặp cho từng ứng viên. Reputation tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm. Phần lọc và chấm điểm là một lõi thuần Java nhận dữ liệu trong bộ nhớ, không gọi Repository (chi tiết ở quyết định tuần 4, D34).
 
 **Dữ liệu giả lập cho thực nghiệm** (tuần 5) được sinh và đánh giá trong bộ nhớ bởi module `evaluation`, không ghi vào các bảng nghiệp vụ. Module này gọi cùng lõi matching với API, nên kết quả thực nghiệm đo đúng thuật toán đang chạy trong hệ thống.
 
@@ -392,9 +392,9 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 | Mã HTTP | Khi nào |
 | --- | --- |
 | 200 / 201 / 204 | Thành công / đã tạo mới / thành công không có nội dung |
-| 400 | Dữ liệu không hợp lệ (thiếu trường, sai miền giá trị) |
+| 400 | Dữ liệu không hợp lệ (thiếu trường, sai miền giá trị, tham số đường dẫn hoặc truy vấn sai kiểu như `/api/users/abc`, quyết định tuần 4 D38) |
 | 401 | Chưa đăng nhập hoặc token hết hạn |
-| 403 | Đã đăng nhập nhưng không có quyền (sai vai trò, không phải người tham gia, tài khoản chưa xác thực) |
+| 403 | Đã đăng nhập nhưng không có quyền (sai vai trò, không phải người tham gia, tài khoản chưa xác thực). Với API quyền *Active*, 403 được kiểm trước mọi lỗi 400/404 (quyết định tuần 4, D44) |
 | 404 | Không tìm thấy tài nguyên |
 | 409 | Xung đột với dữ liệu đã có: chuyển trạng thái không hợp lệ, đánh giá lần hai, gửi trùng yêu cầu, email đã đăng ký. Trùng lặp ngay trong cùng một request (ví dụ một `skillId` xuất hiện hai lần) là dữ liệu không hợp lệ, trả 400 |
 
@@ -437,7 +437,7 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
 
 - **Ai được hiển thị:** chỉ người dùng `ACTIVE` có `role = STUDENT`. `GET /api/users/{id}` với người không thỏa điều kiện này (không tồn tại, chưa xác thực, bị khóa, admin) trả **404**, để không lộ trạng thái tài khoản. Xem hồ sơ của chính mình qua `/users/{id}` vẫn được (200).
 - **Hồ sơ công khai trả về:** `id`, `fullName`, `bio`, `learningMode`, `teachSkills[{skillId, skillName, categoryName, level}]`, `learnSkills[{skillId, skillName, categoryName, targetLevel}]`, `availability[{dayOfWeek, period}]`. Trình độ được ghi rõ trên giao diện là "tự khai báo". **Không** có `email`, `phone`, `contactInfo` (NFR-02). Điểm đánh giá trung bình và số lượt đánh giá được thêm ở tuần 7 cùng FR-07.
-- **Tìm kiếm `GET /api/users/search?skillId=&q=`:** cần ít nhất một tham số, thiếu cả hai trả 400. `skillId` khớp người có kỹ năng đó trong danh sách **dạy** (trùng chính xác, không tính kỹ năng liên quan). `q` tìm chuỗi con trong `full_name`, không phân biệt hoa thường. Có cả hai tham số thì phải thỏa cả hai. Kết quả không gồm chính người gọi, xếp theo `fullName` rồi `id`, tối đa 20 người. Mỗi kết quả gồm `id`, `fullName`, `learningMode` và danh sách kỹ năng dạy.
+- **Tìm kiếm `GET /api/users/search?skillId=&q=`:** cần ít nhất một tham số, thiếu cả hai trả 400. `skillId` khớp người có kỹ năng đó trong danh sách **dạy** (trùng chính xác, không tính kỹ năng liên quan). `q` tìm chuỗi con trong `full_name`, không phân biệt hoa thường nhưng phân biệt dấu; ký tự `\`, `%`, `_` trong `q` được hiểu theo nghĩa đen (quyết định tuần 4, D37). Có cả hai tham số thì phải thỏa cả hai. Kết quả không gồm chính người gọi, xếp theo `fullName` rồi `id`, tối đa 20 người. Mỗi kết quả gồm `id`, `fullName`, `learningMode` và danh sách kỹ năng dạy. Cách xử lý `q` rỗng, độ dài tối đa, `skillId` không tồn tại, dạng response và thứ tự các danh sách: quyết định tuần 4, D45, D46.
 
 **Thời điểm làm:** các API `/api/me*` làm ở tuần 3. `/api/users/{id}` và `/api/users/search` làm ở tuần 4 cùng màn hình S05, S06, S10. `/api/users/{id}/reviews` làm ở tuần 7 cùng chức năng đánh giá.
 
@@ -477,7 +477,7 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
       "reviewCount": 5,
       "hasPendingRequest": false,
       "youLearn":  [{ "want": "Java", "teach": "Java", "relation": "EXACT", "theirLevel": 3 }],
-      "theyLearn": [{ "want": "IELTS Writing", "teach": "Tiếng Anh", "relation": "RELATED", "yourLevel": 3 }],
+      "theyLearn": [{ "want": "Tiếng Hàn", "teach": "Tiếng Nhật", "relation": "RELATED", "yourLevel": 3 }],
       "commonSlots": [{ "dayOfWeek": 2, "period": "EVENING" }, { "dayOfWeek": 5, "period": "EVENING" }]
     }
   ]
@@ -488,6 +488,7 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
 - `ratingAverage` là `null` và `reviewCount = 0` khi chưa có đánh giá; giao diện hiện nhãn "Mới".
 - `hasPendingRequest = true` khi người gọi đang có yêu cầu `PENDING` gửi tới ứng viên này; giao diện thay nút "Gửi yêu cầu" bằng "Đã gửi". Ứng viên vẫn nằm trong danh sách (lọc cứng không loại họ).
 - Người gọi chưa khai báo kỹ năng muốn học ($W_u$ rỗng): trả 200 với `needsLearnSkills = true`, `total = 0`, `items = []`; giao diện dẫn sang S04.
+- Kỹ năng ghi trong `youLearn`, `theyLearn` và thứ tự của chúng cùng `commonSlots`: quyết định tuần 4, D46.
 - Điểm trong response làm tròn 3 chữ số thập phân để hiển thị; thứ tự xếp hạng dùng điểm chưa làm tròn (spec mục 4.4).
 - Response không bao giờ chứa `email`, `phone`, `contactInfo` (NFR-02).
 
@@ -682,7 +683,7 @@ Người dùng mới được dẫn qua S03 → S04 vì chưa có kỹ năng th�
 | +--------------------------------------------------------------+ |
 | | Trần B                           Mức phù hợp: 78%   ★ 4.2    | |
 | | Bạn học: Java (trùng, trình độ 3)                            | |
-| | Bạn dạy: Tiếng Anh → IELTS Writing (kỹ năng liên quan)       | |
+| | Bạn dạy: Tiếng Nhật → Tiếng Hàn (kỹ năng liên quan)          | |
 | | Lịch trùng: Tối T3, Tối T6     Hình thức: Online             | |
 | | [Xem chi tiết điểm]                [Xem hồ sơ] [Gửi yêu cầu] | |
 | +--------------------------------------------------------------+ |
@@ -744,7 +745,7 @@ Cột "Kiểm thử" trỏ tới nhóm unit test ở spec mục 7.1 (N1–N5) ho
 | FR-08 Quản trị danh mục kỹ năng | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 | chưa có | 5 |
 | FR-08 Khóa/mở khóa tài khoản | `users.status` | `/admin/users/{id}/status` | chưa có màn hình (rà soát R41) | chưa có | 7 |
 | FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports` (tuần 6), `/admin/reports*` (tuần 7) | S09, A02 | N5 | 6, 7 |
-| FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills`, `user_availability` | `/users/search`, `/users/{id}` | S06, S10 | N5 (riêng tư) | 4 |
+| FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills`, `user_availability` | `/users/search`, `/users/{id}` | S06, S10 | Ca riêng tư viết ở `tuan_4/kiem_thu` (quyết định tuần 4, D31) | 4 |
 | FR-11 Thực nghiệm | Không dùng bảng nghiệp vụ (chạy trong bộ nhớ) | – (module `evaluation`, chạy offline) | – | N4 | 5 |
 | FR-12 Lọc theo hình thức học (nên có) | – | Lọc phía giao diện trên kết quả `/matches` | S05 | chưa có | 8 nếu kịp |
 | FR-13, FR-15, FR-16 (nên có) | Chưa thiết kế | – | – | – | 8 nếu kịp |

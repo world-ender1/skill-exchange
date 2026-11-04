@@ -11,7 +11,7 @@ Tài liệu dự án (đọc trước khi làm tính năng):
 - Thiết kế DB, API, sơ đồ trạng thái, màn hình: `docs/tuan_2/Tuan_2_Thiet_ke.md`
 - Kế hoạch 9 tuần: `docs/Skill_Exchange_Proposal_9_Tuan.md`
 - Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng, cách chạy test; D1–D30, D39–D42): `docs/tuan_3/Quyet_dinh_tuan_3.md`
-- Quyết định triển khai tuần 4 (matching, hồ sơ công khai, tìm kiếm; D31–D38): `docs/tuan_4/Quyet_dinh_tuan_4.md`
+- Quyết định triển khai tuần 4 (matching, hồ sơ công khai, tìm kiếm; D31–D38, D43–D48): `docs/tuan_4/Quyet_dinh_tuan_4.md`
 - Ca kiểm thử viết trước từ tài liệu: `docs/tuan_<n>/kiem_thu/`
 - Rà soát toàn bộ tài liệu và các vấn đề còn chờ sửa theo đợt (R01–R56): `docs/ra_soat/Bao_cao_ra_soat.md`
 - `hoc_vibe_coding/` là tài liệu học, không phải code hay spec dự án.

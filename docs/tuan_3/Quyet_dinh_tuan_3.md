@@ -11,7 +11,7 @@ File này là tài liệu mới nhất cho phạm vi tuần 3. Nếu khác spec 
 **Vì sao số D không liền nhau trong từng mục.** Mã D là số cố định, cấp theo **thứ tự chốt**, không theo vị trí trong file:
 - D1–D24 chốt ngày 2026-10-24, khi đọc tài liệu lần đầu.
 - D25–D30 thêm ngày 2026-10-29 sau rà soát, được xếp vào mục phù hợp nhưng giữ số mới.
-- D31–D38 thuộc tuần 4 (`docs/tuan_4/Quyet_dinh_tuan_4.md`).
+- D31–D38 và D43 trở đi thuộc tuần 4 (`docs/tuan_4/Quyet_dinh_tuan_4.md`).
 - D39–D42 thêm ngày 2026-10-31, khi cho AI đọc tài liệu trước lúc code và phát hiện còn 4 chỗ chưa rõ. Vì D31–D38 đã dùng cho tuần 4 nên số nhảy lên D39.
 
 Không đánh số lại, vì các mã này đã được trích ở ca kiểm thử, thiết kế tuần 2, `CLAUDE.md` và báo cáo rà soát. Quyết định mới lấy số tiếp theo; quyết định bị bỏ thì ghi "bỏ" chứ không xóa số.

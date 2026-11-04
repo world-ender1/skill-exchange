@@ -520,7 +520,7 @@ Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và
 
 ### A.3. Ví dụ tính tay
 
-**Điểm D(u, v).** $u$ chỉ muốn học Java; $v$ dạy Java với mức đạt mục tiêu của $u$; $u$ có 4 khung giờ, $v$ có 3, trùng 2; cả hai chọn ONLINE; $v$ có điểm đánh giá trung bình 4.2 sao và hoàn thành 4/5 phiên đã bắt đầu.
+**Điểm D(u, v).** $u$ chỉ muốn học Java; $v$ dạy Java với mức đạt mục tiêu của $u$; $u$ có 4 khung giờ, $v$ có 3, trùng 2; cả hai chọn ONLINE; $v$ có điểm đánh giá trung bình 4.2 sao và hoàn thành 4/5 phiên đã bắt đầu và đã kết thúc.
 
 | Thành phần | Tính | Giá trị |
 | :--- | :--- | :---: |
