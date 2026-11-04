@@ -30,6 +30,12 @@ Quy ước chung:
 - **Chốt ở bước này:**
   - `LearnItem`, `TeachItem` mang `skillName` để lõi tự xếp `youLearn`, `theyLearn` theo D46(b); nhờ vậy TC144 là unit test.
   - Mục tiêu dùng `Integer` (được null, spec 4.6); trình độ dạy dùng `int` (`level` là `NOT NULL`).
+  - Các hàm điểm của `ScoreCalculator` nhận đúng phần dữ liệu cần (`List<LearnItem>`, `List<TeachItem>`, `Set<Slot>`, `LearningMode`), không nhận cả `MatchProfile`, để unit test bước 2–4 viết gọn. Riêng `breakdown(learner, teacher, weights)` nhận hồ sơ và tính $D$ (bước 7). Hàm chọn kỹ năng dạy là `bestTeachFor` (bước 3).
+  - `ReputationCalculator.compute` là phương thức `static` vì là hàm thuần, không giữ trạng thái.
+  - Cặp liên quan là record `SkillRelation(skillA, skillB)`; `SkillSimilarity` nhận danh sách cặp này.
+  - `MatchingEngine(similarity, weights)` tự tạo `ScoreCalculator` và `HardFilter` bên trong; `match(caller, candidates)` trả `MatchingResult`.
+  - `MatchProfile`, `MatchResult`, `MatchingResult` chép danh sách sang bản không sửa được (`List.copyOf`), để record bất biến thật sự.
+  - Tổng trọng số so với 1 bằng sai số $10^{-9}$ (D35, D47): bộ (0.1, 0.2, 0.3, 0.2, 0.2) hợp lệ dù tổng trong `double` không ra đúng 1.0.
 - **Tự kiểm:** `grep -r "org.springframework" backend/src/main/java/com/skillexchange/matching` không ra gì.
 - **Commit:** `feat(matching): add matching core skeleton`
 
