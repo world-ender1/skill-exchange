@@ -45,12 +45,58 @@ public class ScoreCalculator {
      * bằng thì trình độ cao hơn, bằng nữa thì skillId nhỏ hơn. Không có kỹ năng nào Sim > 0 thì rỗng.
      */
     public Optional<SkillMatch> bestTeachFor(LearnItem want, List<TeachItem> teaches) {
-        throw new UnsupportedOperationException("Bước 3");
+        SkillMatch best = null;
+        for (TeachItem teach : teaches) {
+            double sim = similarity.sim(want.skillId(), teach.skillId());
+            if (sim <= 0.0) {
+                continue;
+            }
+            SkillMatch candidate = new SkillMatch(want, teach, sim);
+            if (best == null || isBetter(candidate, best)) {
+                best = candidate;
+            }
+        }
+        return Optional.ofNullable(best);
+    }
+
+    /** Thứ tự chọn của D46(a): Sim cao hơn → trình độ cao hơn → skillId nhỏ hơn. */
+    private static boolean isBetter(SkillMatch a, SkillMatch b) {
+        // Sim chỉ nhận đúng 1.0, 0.5 hoặc 0.0 (không qua phép tính), nên so bằng == được, không cần dung sai.
+        if (a.sim() != b.sim()) {
+            return a.sim() > b.sim();
+        }
+        if (a.teach().level() != b.teach().level()) {
+            return a.teach().level() > b.teach().level();
+        }
+        return a.teach().skillId() < b.teach().skillId();
     }
 
     /** Bước 3. Trung bình LevelFit trên các kỹ năng muốn học có Sim > 0. */
     public double levelFit(List<LearnItem> wants, List<TeachItem> teaches) {
-        throw new UnsupportedOperationException("Bước 3");
+        double total = 0.0;
+        int counted = 0;
+        for (LearnItem want : wants) {
+            Optional<SkillMatch> match = bestTeachFor(want, teaches);
+            // Kỹ năng Sim = 0 bị bỏ khỏi cả tử lẫn mẫu (spec 4.3): nó đã bị phạt ở SkillFit rồi.
+            if (match.isPresent()) {
+                total += levelScore(want.targetLevel(), match.get().teach().level());
+                counted++;
+            }
+        }
+        // Không kỹ năng nào khớp (chỉ xảy ra trước lọc cứng): 0.0 thay vì 0.0 / 0 = NaN (kế hoạch bước 3).
+        return counted == 0 ? 0.0 : total / counted;
+    }
+
+    /** LevelFit của một cặp (spec 4.3, 4.6). gap = mục tiêu − trình độ = "thấp hơn gap bậc". */
+    private static double levelScore(Integer targetLevel, int teachLevel) {
+        if (targetLevel == null) {
+            return 0.5;
+        }
+        int gap = targetLevel - teachLevel;
+        if (gap <= 0) {
+            return 1.0;
+        }
+        return gap == 1 ? 0.5 : 0.0;
     }
 
     /** Bước 4. Số khung trùng / min(số khung hai bên); một bên chưa khai báo (tập rỗng) thì 0.5. */

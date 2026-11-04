@@ -52,6 +52,7 @@ Quy ước chung:
 - **Sửa:** `ScoreCalculator.levelFit` và hàm chọn kỹ năng dạy cho mỗi kỹ năng muốn học (Sim cao nhất → trình độ cao hơn → `skillId` nhỏ hơn). Hàm chọn này dùng lại ở bước 7 để dựng `youLearn`, `theyLearn`.
 - **Test:** `LevelFitTest` (`@ParameterizedTest` cho bảng mục tiêu/trình độ).
 - **Ca:** TC108–TC115.
+- **Chốt ở bước này:** không có kỹ năng muốn học nào có Sim > 0 (ứng viên chưa qua lọc cứng, hoặc $W_u$ rỗng) thì `levelFit` trả 0.0, không chia cho 0, cùng cách với SkillFit (TC107). Spec 4.6 chỉ nói trường hợp này không xảy ra sau lọc cứng; hàm vẫn phải an toàn vì TC141 gọi trên dữ liệu ngẫu nhiên.
 - **Tự kiểm:** TC110 ra 0.75 (ra 0.5 là đã chia cả Figma); TC113 cho thấy Sim đứng trước trình độ.
 - **Commit:** `feat(matching): add LevelFit`
 
