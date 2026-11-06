@@ -73,6 +73,10 @@ Quy ước chung:
 - **Sửa:** `ReputationCalculator.compute(List<Integer> ratings, List<SessionOutcome> sessions)`.
 - **Test:** `ReputationCalculatorTest`.
 - **Ca:** TC120–TC125.
+- **Chốt ở bước này:**
+  - Phiên `COMPLETED` luôn vào cả tử lẫn mẫu, không xét cờ `started`: CHECK của `exchange_sessions` trong `V1__init.sql` đã bắt `COMPLETED` phải có `started_at`. Chỉ `CANCELLED` mới xét `started`.
+  - Lõi không kiểm điểm đánh giá nằm trong 1–5: CHECK `rating BETWEEN 1 AND 5` của bảng `reviews` đã chặn ở DB.
+  - Mỗi trạng thái phiên có một test riêng (một phiên, không có đánh giá) để biết chính xác trạng thái nào bị tính sai (bài học C7).
 - **Tự kiểm:** tìm mọi phép chia có mẫu số có thể bằng 0; có `assertFalse(Double.isNaN(...))`; TC123 ra 0.7625 (quy tắc cũ ra 0.7125).
 - **Commit:** `feat(matching): add reputation calculator`
 
