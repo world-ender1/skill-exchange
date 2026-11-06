@@ -28,7 +28,7 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 4
 
 **Quy ước:**
 - Số thực so bằng dung sai $10^{-9}$ (D36). "≈" trong cột mong đợi chỉ để đọc; giá trị dùng trong test là biểu thức ghi kèm.
-- Điểm trong response API làm tròn 3 chữ số (TK 4.5). Các ca API chỉ so những điểm không rơi vào ranh giới làm tròn.
+- Điểm trong response API làm tròn 3 chữ số kiểu HALF_UP (TK 4.5, kế hoạch tuần 4 bước 8). Các ca API chỉ so những điểm không rơi vào ranh giới làm tròn.
 - Trọng số mặc định (0.55, 0.20, 0.15, 0.05, 0.05), trừ khi ca ghi khác.
 - "Java ← Kotlin" nghĩa là kỹ năng muốn học Java được đáp ứng bởi kỹ năng dạy Kotlin (cặp `want`, `teach` trong `youLearn`, `theyLearn`).
 - Khung giờ ghi tắt: "Tối T4" = `{dayOfWeek: 3, period: EVENING}` (1 = Thứ Hai, 7 = Chủ nhật).
@@ -205,5 +205,5 @@ Các ca dùng An và Bình tạo qua API tuần 3 (đăng ký, xác thực, khai
 
 | # | Chỗ chưa rõ | Ca liên quan | Cách xử lý trong bộ ca |
 | --- | --- | --- | --- |
-| ⚠1 | Chế độ làm tròn 3 chữ số của điểm trong API (HALF_UP hay HALF_EVEN) chưa quy định. Hai chế độ khác nhau ở các số như 0.7625 | TC149, TC155 | Các ca API chỉ so số không rơi vào ranh giới: 0.6875 → 0.688 và 0.797457 → 0.797 ở mọi chế độ. Nên chốt trước tuần 7, khi `ratingAverage` có dữ liệu thật |
+| ⚠1 | Chế độ làm tròn 3 chữ số của điểm trong API (HALF_UP hay HALF_EVEN) chưa quy định. Hai chế độ khác nhau ở các số như 0.7625 | TC149, TC155 | Các ca API chỉ so số không rơi vào ranh giới: 0.6875 → 0.688 và 0.797457 → 0.797 ở mọi chế độ. *Đã chốt:* HALF_UP cho mọi số thực trong response, kể cả `ratingAverage` (kế hoạch tuần 4, bước 8) |
 | ⚠2 | Tên kỹ năng tiếng Việt có dấu xếp theo collation của PostgreSQL (D41) | TC144, TC171 | TC144 so thứ tự "Java" < "Tiếng Anh"; TC171 dùng tên không dấu để so thứ tự, như D41 đã ghi |

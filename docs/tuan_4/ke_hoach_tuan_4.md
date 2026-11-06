@@ -119,7 +119,14 @@ Quy ước chung:
   - DTO `MatchListResponse`, `MatchItemResponse`, `ScoreResponse`, `SkillMatchResponse`; `@JsonInclude(NON_NULL)` chỉ trên `backward`, `theyLearn` (D49).
 - **Test:** `matching/MatchesApiTest`; `common/ActiveAccessTest` (phần `/matches`); helper trong test để tạo sinh viên đã xác thực kèm hồ sơ, kỹ năng, lịch.
 - **Ca:** TC145–TC156, TC185, TC176, TC177; phần `/matches` của TC75, TC173, TC174, TC175, TC178. TC157 thủ công.
-- **Chốt ở bước này:** dữ liệu thô đọc bằng `JdbcTemplate` thay vì Entity, vì `exchange_requests`, `exchange_sessions`, `reviews`, `skill_relations` chưa có Entity (tuần 6–7 mới tạo) và SQL thuần dễ đối chiếu với TK 3.5. Tuần 6 tạo Entity cho các bảng này thì xem lại có chuyển sang JPQL không.
+- **Chốt ở bước này:**
+  - Dữ liệu thô đọc bằng `JdbcTemplate` thay vì Entity, vì `exchange_requests`, `exchange_sessions`, `reviews`, `skill_relations` chưa có Entity (tuần 6–7 mới tạo) và SQL thuần dễ đối chiếu với TK 3.5. Tuần 6 tạo Entity cho các bảng này thì xem lại có chuyển sang JPQL không.
+  - Một lần gọi `/matches` chạy **8 câu SQL cố định**, không phụ thuộc số người: người dùng `ACTIVE` + `STUDENT`, kỹ năng dạy, kỹ năng muốn học, lịch rảnh (ba câu này JOIN `users` để chỉ lấy người `ACTIVE` + `STUDENT`), `skill_relations`, điểm đánh giá thô, phiên thô (`UNION ALL` theo `sender_id` và `receiver_id`), người nhận các yêu cầu `PENDING` của người gọi. Kỹ năng bị ẩn **không** bị lọc (spec 4.1, TC153).
+  - Làm tròn (giải quyết ⚠1 của bộ ca): mọi số thực trong response (`score`, các thành phần của `forward`/`backward`, `ratingAverage`) làm tròn 3 chữ số kiểu **HALF_UP** bằng `BigDecimal.valueOf(x).setScale(3, RoundingMode.HALF_UP)`. `ratingAverage` là trung bình các điểm nhận được, `null` khi chưa có đánh giá.
+  - `youLearn` mỗi dòng `{want, teach, relation, theirLevel}`, `theyLearn` mỗi dòng `{want, teach, relation, yourLevel}` như TK 4.5. Dùng một record `SkillMatchResponse` có cả hai trường trình độ; `@JsonInclude(NON_NULL)` chỉ trên hai trường này nên mỗi danh sách chỉ có key của mình. `relation` là `EXACT` khi cùng kỹ năng, ngược lại `RELATED`. `commonSlots` dùng lại `AvailabilitySlotResponse` (cùng dạng `{dayOfWeek, period}` với lịch rảnh).
+  - Lỗi tham số (D38): thiếu `type` → `detail` "Thiếu tham số bắt buộc: type"; sai kiểu (`type=FOO`, `limit=abc`) → "Tham số <tên> có giá trị không hợp lệ: <giá trị>". `limit` ngoài 1–50 kiểm bằng `@Min`/`@Max` trên tham số, trả 400 cùng dạng `errors[{field: "limit", message}]` như lỗi kiểm dữ liệu khác.
+  - `needsLearnSkills = true` (người gọi chưa có kỹ năng muốn học) thì trả `total = 0`, `items = []` cho cả hai `type`. `hasPendingRequest` chỉ xét yêu cầu `PENDING` người gọi **gửi** tới ứng viên (TC152).
+  - Quyền `ACTIVE_STUDENT`: `AccountStatusFilter` thay `Authentication` trong `SecurityContext` bằng một `JwtAuthenticationToken` mới có thêm quyền này; vai trò đọc từ claim `role` của vé (D44), trạng thái đọc từ DB (D13).
 - **Tự kiểm:** bật log SQL, số câu không đổi khi tăng từ 20 lên 40 người (TC157); admin gọi `/matches?type=FOO` ra 403; đăng nhập An, gọi API thấy Bình `score` 0.797.
 - **Commit:** `feat(matching): add matches API`
 

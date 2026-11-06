@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,12 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterErrors;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -110,6 +113,33 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                   HttpStatusCode status,
                                                                   WebRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Nội dung JSON không đọc được");
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    /** Thiếu tham số truy vấn bắt buộc, ví dụ /api/matches không có type (D38, TK 4.5). */
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
+                                                                          HttpHeaders headers,
+                                                                          HttpStatusCode status,
+                                                                          WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Thiếu tham số bắt buộc: " + ex.getParameterName());
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    /**
+     * Tham số đường dẫn hoặc truy vấn sai kiểu: /api/users/abc, limit=abc, type=FOO (D38).
+     * Spring đã trả 400 sẵn, nhưng detail là câu tiếng Anh; ở đây thay bằng câu tiếng Việt có tên tham số.
+     */
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex,
+                                                        HttpHeaders headers,
+                                                        HttpStatusCode status,
+                                                        WebRequest request) {
+        // Tham số của controller mang tên trong getName(); getPropertyName() dành cho lỗi gán thuộc tính bean.
+        String name = ex instanceof MethodArgumentTypeMismatchException argument ? argument.getName() : ex.getPropertyName();
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Tham số " + name + " có giá trị không hợp lệ: " + ex.getValue());
         return ResponseEntity.badRequest().body(problem);
     }
 
