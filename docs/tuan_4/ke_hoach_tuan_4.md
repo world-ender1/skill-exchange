@@ -85,6 +85,11 @@ Quy ước chung:
 - **Sửa:** `HardFilter`.
 - **Test:** `HardFilterTest`; mỗi ca có ứng viên đối chứng hợp lệ trong cùng danh sách.
 - **Ca:** TC127–TC133.
+- **Chốt ở bước này:**
+  - `HardFilter` chỉ xét ứng viên, không xét `status`, `role` của người gọi: người gọi không phải sinh viên `ACTIVE` đã bị chặn 403 ở vỏ (bước 8) trước khi tới lõi.
+  - Điều kiện (1) so bằng `userId`. Điều kiện (3) chỉ xét chiều $u$ học từ $v$ ($SkillFit(u,v) > 0$); $v$ không cần muốn học gì của $u$, vì gợi ý một chiều vẫn hợp lệ (spec 4.2, đoạn cuối).
+  - Kỹ năng bị ẩn: lõi không có cờ `is_active` (`TeachItem` không mang trường này) nên không thể lọc nhầm ở lõi. Quy tắc "kỹ năng bị ẩn vẫn dùng" (spec 4.1, R19) kiểm ở TC153, bước 8, nơi truy vấn có thể lọc nhầm.
+  - `filter` giữ thứ tự ban đầu của danh sách ứng viên, có một test.
 - **Tự kiểm:** cho hàm trả danh sách rỗng thì TC133 phải đỏ.
 - **Commit:** `feat(matching): add hard filter`
 
