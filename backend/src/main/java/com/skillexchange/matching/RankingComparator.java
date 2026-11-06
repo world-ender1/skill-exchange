@@ -13,6 +13,11 @@ public class RankingComparator implements Comparator<MatchResult> {
 
     @Override
     public int compare(MatchResult a, MatchResult b) {
-        throw new UnsupportedOperationException("Bước 7");
+        // Chênh từ 1e-9 trở lên: điểm cao đứng trước, nên so b với a (đảo chiều so với tăng dần).
+        if (Math.abs(a.score() - b.score()) >= EPSILON) {
+            return Double.compare(b.score(), a.score());
+        }
+        // Coi là bằng điểm (spec 4.4): userId tăng dần để kết quả ổn định, tái lập được.
+        return Long.compare(a.userId(), b.userId());
     }
 }

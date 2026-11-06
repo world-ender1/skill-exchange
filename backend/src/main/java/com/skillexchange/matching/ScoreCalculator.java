@@ -131,6 +131,19 @@ public class ScoreCalculator {
 
     /** Bước 7. Đủ năm thành phần và D theo hướng learner học từ teacher. */
     public ScoreBreakdown breakdown(MatchProfile learner, MatchProfile teacher, MatchingWeights weights) {
-        throw new UnsupportedOperationException("Bước 7");
+        double skill = skillFit(learner.learn(), teacher.teach());
+        double level = levelFit(learner.learn(), teacher.teach());
+        double schedule = scheduleFit(learner.slots(), teacher.slots());
+        double mode = modeFit(learner.mode(), teacher.mode());
+        // Reputation của người dạy: chiều ngược (ứng viên học từ người gọi) dùng Reputation của người gọi.
+        double reputation = teacher.reputation();
+
+        // Trọng số đọc từ weights, không ghi cứng 0.55...: tuần 5 truyền bộ khác vào cùng hàm này (D35).
+        double d = weights.skillFit() * skill
+                + weights.levelFit() * level
+                + weights.scheduleFit() * schedule
+                + weights.modeFit() * mode
+                + weights.reputation() * reputation;
+        return new ScoreBreakdown(skill, level, schedule, mode, reputation, d);
     }
 }

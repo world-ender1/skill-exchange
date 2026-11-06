@@ -98,6 +98,12 @@ Quy ước chung:
 - **Sửa:** `MatchingEngine` (tính $D$ hai chiều, phân loại, `youLearn`, `theyLearn`, `commonSlots`), `RankingComparator`.
 - **Test:** `MatchingEngineTest`, `RankingComparatorTest`.
 - **Ca:** TC134–TC144.
+- **Chốt ở bước này:**
+  - Hai chiều khi $SkillFit(v,u) > 0$ (ứng viên đã qua lọc cứng, nên chiều $u$ học từ $v$ đã > 0; spec 4.5). Chỉ tính `backward` cho cặp hai chiều; `ONE_WAY` có `backward`, `theyLearn` là `null`, `score` = $D(u,v)$.
+  - `breakdown(learner, teacher, weights)` lấy Reputation của `teacher`: chiều ngược dùng Reputation của người gọi.
+  - Tên kỹ năng trong `youLearn`, `theyLearn` so bằng `String.compareTo` (thứ tự mã Unicode), rồi `skillId`. Lõi không có collation của PostgreSQL nên tên có dấu có thể xếp khác `ORDER BY s.name` ở D41; ca kiểm thử chỉ so tên không dấu (⚠2). `commonSlots` xếp theo `dayOfWeek` rồi thứ tự khai báo của `Period` (D41).
+  - TC141 dùng `new Random(42)`, có cả tài khoản không `ACTIVE`, admin, hồ sơ thiếu lịch/hình thức/kỹ năng; kiểm 5 điều kiện bằng code độc lập trong test (không gọi `HardFilter`), và kiểm thêm chiều ngược: mọi ứng viên hợp lệ đều có mặt.
+  - `MatchingEngine` dùng **một** đối tượng `RankingComparator` cho cả hai nhóm.
 - **Tự kiểm:** MutualScore so với `Math.sqrt(0.6875 * 0.925)`; chỉ có **một** comparator dùng cho cả hai nhóm; không có `if` riêng cho dữ liệu mẫu; TC141 dùng seed cố định.
 - **Commit:** `feat(matching): add matching engine with ranking`
 
