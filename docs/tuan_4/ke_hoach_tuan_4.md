@@ -5,7 +5,7 @@ Lập ngày 2026-11-04. Áp dụng `docs/tuan_4/Quyet_dinh_tuan_4.md` (D31–D38
 Quy ước chung:
 - Lõi ở `backend/src/main/java/com/skillexchange/matching/`, test lõi ở `backend/src/test/java/com/skillexchange/matching/`.
 - **Bước 1–7 là lõi:** JUnit thuần, không `@SpringBootTest`, không import `org.springframework`, không gọi Repository (D34). Lõi được dùng các enum thuần Java có sẵn ở package `user` (`UserStatus`, `Role`, `LearningMode`, `Period`).
-- **Bước 2–7 làm TDD hai lượt:** lượt TEST viết test, chạy thấy đỏ, người học đọc từng số mong đợi; lượt CODE viết code cho xanh, không sửa test. Không dùng `/buoc-tuan` cho các bước này vì skill làm test và code liền một lần.
+- **Bước 2–7 làm TDD hai lượt:** lượt TEST viết test, chạy thấy đỏ, người học đọc từng số mong đợi; lượt CODE viết code cho xanh, không sửa test. Gọi `/buoc-tuan` cho các bước này thì skill dừng sau lượt TEST, chờ người học đọc test và nói "tiếp" (skill mục 3.4).
 - Test tích hợp (bước 8–9) kế thừa `IntegrationTestBase`. Mỗi test có `@DisplayName("TCxxx ...")`.
 - Sau mỗi bước: `git diff --stat -- backend/src/test` để chắc test đã duyệt không bị sửa; `.\mvnw.cmd test` xanh toàn bộ, kể cả test tuần 3.
 
@@ -61,7 +61,10 @@ Quy ước chung:
 - **Sửa:** `ScoreCalculator.scheduleFit`, `ScoreCalculator.modeFit`.
 - **Test:** `ScheduleAndModeFitTest`.
 - **Ca:** TC116–TC119.
-- **Chốt ở bước này:** `modeFit(ONLINE, OFFLINE)` (cặp đã bị loại ở lọc cứng) ném lỗi hay trả 0. Chọn một cách, có một test, ghi lý do trong commit message (bộ ca, mục "Không kiểm ở tuần 4").
+- **Chốt ở bước này:**
+  - `modeFit(ONLINE, OFFLINE)` (cặp đã bị loại ở lọc cứng) **ném `IllegalArgumentException`**, có một test, lý do ghi trong commit message (bộ ca, mục "Không kiểm ở tuần 4"). Lý do: spec không định nghĩa giá trị cho cặp này; ném lỗi để nếu lọc cứng (bước 6) có lỗi thì TC141 sập ngay, không bị che bằng một điểm thấp.
+  - `scheduleFit` khi cả hai đã khai báo mà không trùng khung nào trả 0.0 (công thức tự cho ra 0 / min, vẫn trong [0, 1]), không ném lỗi. Khác ModeFit vì ở đây công thức có giá trị xác định.
+  - "Chưa khai báo" lịch là tập rỗng; "chưa khai báo" hình thức là `null` (như Javadoc bước 1).
 - **Tự kiểm:** chia cho `min`, không phải `max`; "chưa khai báo" + `ANY` ra 0.5.
 - **Commit:** `feat(matching): add ScheduleFit and ModeFit`
 

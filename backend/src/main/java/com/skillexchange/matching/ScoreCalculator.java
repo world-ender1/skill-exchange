@@ -1,5 +1,6 @@
 package com.skillexchange.matching;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -101,12 +102,31 @@ public class ScoreCalculator {
 
     /** Bước 4. Số khung trùng / min(số khung hai bên); một bên chưa khai báo (tập rỗng) thì 0.5. */
     public double scheduleFit(Set<Slot> learnerSlots, Set<Slot> teacherSlots) {
-        throw new UnsupportedOperationException("Bước 4");
+        // Chưa khai báo thì trung tính 0.5 (spec 4.3). Kiểm trước khi chia, vì min(0, 0) = 0 sẽ cho NaN.
+        if (learnerSlots.isEmpty() || teacherSlots.isEmpty()) {
+            return 0.5;
+        }
+        // Chép ra tập mới rồi giao, vì retainAll sửa chính tập gọi nó (tập vào có thể là Set.of, không sửa được).
+        Set<Slot> common = new HashSet<>(learnerSlots);
+        common.retainAll(teacherSlots);
+        // Chia cho min: đo phần lịch của bên bận hơn được phủ (spec 4.3). Không trùng thì ra 0.0, lọc cứng đã loại.
+        int smaller = Math.min(learnerSlots.size(), teacherSlots.size());
+        return (double) common.size() / smaller;
     }
 
-    /** Bước 4. null = chưa khai báo. */
+    /** Bước 4. null = chưa khai báo. ONLINE + OFFLINE ném IllegalArgumentException (kế hoạch bước 4). */
     public double modeFit(LearningMode learnerMode, LearningMode teacherMode) {
-        throw new UnsupportedOperationException("Bước 4");
+        // Thiếu một bên thì 0.5, kể cả bên kia là ANY (spec 4.3). Phải kiểm trước ANY.
+        if (learnerMode == null || teacherMode == null) {
+            return 0.5;
+        }
+        if (learnerMode == LearningMode.ANY || teacherMode == LearningMode.ANY || learnerMode == teacherMode) {
+            return 1.0;
+        }
+        // Còn lại chỉ là ONLINE + OFFLINE: lọc cứng lẽ ra đã loại. Spec không có điểm cho cặp này,
+        // nên báo lỗi ngay để lỗi lọc cứng lộ ra trong test, không bị che bằng một điểm thấp.
+        throw new IllegalArgumentException(
+                "ModeFit không xác định cho " + learnerMode + " + " + teacherMode + ": cặp này phải bị loại ở lọc cứng");
     }
 
     /** Bước 7. Đủ năm thành phần và D theo hướng learner học từ teacher. */
