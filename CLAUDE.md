@@ -33,6 +33,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Backend: `cd backend; .\mvnw.cmd spring-boot:run` (phải chạy từ `backend/` vì `application.yml` đọc `../.env`)
 - Test backend: `cd backend; .\mvnw.cmd test`
 - Một test: `.\mvnw.cmd test -Dtest=TenClassTest#tenPhuongThuc`
+- Chỉ test lõi matching (~20 giây, không cần DB): `.\mvnw.cmd -q -o test "-Dtest=com.skillexchange.matching.*Test,!MatchesApiTest"`
 - Test `@SpringBootTest` chạy trên DB riêng `skillexchange_test` (D39), cần PostgreSQL đang chạy; tạo DB một lần: `docker compose exec db createdb -U skillexchange skillexchange_test`
 - Frontend: `cd frontend; npm run dev` (http://localhost:5173)
 - Build / lint frontend: `npm run build` (gồm `tsc -b`), `npm run lint`
@@ -45,6 +46,11 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Ràng buộc nghiệp vụ quan trọng đã nằm trong DB (CHECK, unique index một phần). Đọc `V1__init.sql` trước khi viết Entity/Service
 - Mã xác thực email/đặt lại mật khẩu chỉ lưu bản băm (`user_tokens.token_hash`)
 - Mốc thời gian của token và xác thực (`user_tokens.*_at`, `users.email_verified_at`) lấy từ bean `Clock`, không dùng `Instant.now()` hay `@CreationTimestamp` (D18), để test giả được thời gian
+
+## Lõi matching (tuần 4)
+- Phần lõi của `matching/` là Java thuần: không import `org.springframework`, không gọi Repository (D34). `MatchingService`, `MatchingController`, `MatchingDataRepository` là lớp vỏ nối lõi với Spring
+- Test lõi là JUnit thuần, không `@SpringBootTest`; so số thực bằng dung sai 1e-9 (D36), ghi số mong đợi bằng biểu thức chứ không chép số đã làm tròn
+- Hook `.claude/hooks/run-matching-tests.mjs` tự chạy test lõi sau mỗi lần sửa file trong `matching/`. Hook báo đỏ thì đọc lỗi và sửa code trước khi làm tiếp; không sửa test cho xanh
 
 ## Quy ước API (thiết kế tuần 2, mục 4.1)
 - REST JSON, tiền tố `/api`, xác thực `Authorization: Bearer <JWT>` (hạn 24 giờ, chưa có refresh token)
