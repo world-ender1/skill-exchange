@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage'
 import { MatchesPage } from './pages/MatchesPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SkillsPage } from './pages/SkillsPage'
+import { UserProfilePage } from './pages/UserProfilePage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 /** Bản đồ đường dẫn → màn hình (xem "Chốt ở bước này" của bước 10). */
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/skills" element={<SkillsPage />} />
             <Route path="/matches" element={<MatchesPage />} />
+            <Route path="/users/:id" element={<UserProfilePage />} />
           </Route>
         </Route>
 
