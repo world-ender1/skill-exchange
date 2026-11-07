@@ -4,6 +4,7 @@ import { RequireAuth } from './auth/RequireAuth'
 import { getToken } from './auth/token'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
+import { MatchesPage } from './pages/MatchesPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SkillsPage } from './pages/SkillsPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
@@ -22,6 +23,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/skills" element={<SkillsPage />} />
+            <Route path="/matches" element={<MatchesPage />} />
           </Route>
         </Route>
 

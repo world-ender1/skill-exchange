@@ -299,3 +299,91 @@ form {
 .actions + .actions {
   margin-top: 12px;
 }
+
+/* ---------- Gợi ý ghép cặp (S05), hồ sơ người khác (S06), tìm kiếm (S10) ---------- */
+
+/* Menu có 4 mục từ tuần 4: màn hình 360 px thì xuống dòng thay vì cuộn ngang (NFR-08, TC184). */
+.topbar {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.topbar nav {
+  flex-wrap: wrap;
+}
+
+.match-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin-bottom: 8px;
+}
+
+.match-name {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 20px;
+  overflow-wrap: anywhere; /* tên dài không đẩy thẻ rộng ra */
+}
+
+.badge {
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--info-bg);
+}
+
+.match-line {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.match-sep {
+  margin: 0 8px;
+  color: var(--muted);
+}
+
+.match-card .actions {
+  margin-top: 12px;
+}
+
+.score-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.score-table {
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.score-table caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.score-table th, .score-table td {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  text-align: left;
+}
+
+.score-table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.plain-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}

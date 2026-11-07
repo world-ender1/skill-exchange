@@ -152,6 +152,14 @@ Quy ước chung:
 - **Sửa:** `src/api/types.ts` (kiểu kết quả matching với `backward?`, `theyLearn?` theo D49; hồ sơ công khai; kết quả tìm kiếm), `src/App.tsx` (route `/matches`, `/users/:id`, `/search`), `src/components/Layout.tsx` (menu).
 - **Tạo:** `src/pages/MatchesPage.tsx` (S05), `src/pages/UserProfilePage.tsx` (S06), `src/pages/SearchPage.tsx` (S10), `src/components/MatchCard.tsx`, `src/format.ts` (`formatPercent` theo D50, nhãn khung giờ).
 - **Ca:** TC179–TC184 (thủ công).
+- **Chốt ở bước này:**
+  - Đường dẫn `/matches` (S05), `/users/:id` (S06), `/search` (S10), cùng nằm sau `RequireAuth`. Menu: Hồ sơ, Kỹ năng, Gợi ý, Tìm kiếm. Sau đăng nhập vẫn vào `/profile` như tuần 3.
+  - S05 gọi **cả hai** `type` khi mở trang (`limit` mặc định 10, chưa có "xem thêm"), để hai tab hiện `total` ngay. Lỗi của API (ví dụ 403 khi tài khoản chưa xác thực) hiện bằng `Notice` với `detail` của backend.
+  - Dòng kỹ năng trên thẻ, mũi tên luôn đi từ kỹ năng **được dạy** tới kỹ năng **muốn học** như wireframe: "Bạn học: Java (trùng, trình độ 3)" khi `EXACT`; "Bạn học: Java ← Kotlin (kỹ năng liên quan, trình độ 2)" khi `RELATED` (trình độ là `theirLevel`). "Bạn dạy: Python (trùng, trình độ 4)" / "Bạn dạy: Tiếng Nhật → Tiếng Hàn (kỹ năng liên quan, trình độ 3)" (trình độ là `yourLevel`). Nhiều dòng thì mỗi kỹ năng một dòng.
+  - `reviewCount = 0` → nhãn "Mới"; ngược lại "★ 4.2 (5)". `hasPendingRequest = true` → nhãn "Đã gửi yêu cầu" (chưa có nút gửi, D31). "Xem chi tiết điểm" bật/tắt bảng D và 5 thành phần của từng chiều, số in nguyên như API trả (3 chữ số), không đổi sang phần trăm, để so trực tiếp với bảng tính tay.
+  - Nhãn dùng chung ở `src/format.ts`: ngày ngắn "T2"…"T7", "CN" (dayOfWeek 1…7); buổi "Sáng", "Chiều", "Tối"; hình thức như S03 ("Trực tuyến", "Gặp trực tiếp", "Cách nào cũng được", `null` → "Chưa khai báo"); trình độ 1–4 như S04.
+  - S06: `targetLevel = null` → "chưa đặt mục tiêu"; ghi "Trình độ do người dùng tự khai báo" cạnh danh sách dạy; 404 hiện `detail` của backend.
+  - S10: một ô tên và một ô chọn kỹ năng (lấy từ `/api/skills`, vốn chỉ có kỹ năng đang hoạt động, D40), bấm "Tìm" mới gọi API. Bỏ trống cả hai thì vẫn gọi và hiện `detail` 400 của backend, không kiểm lặp ở giao diện. Kết quả rỗng → "Không tìm thấy ai". Tên trong kết quả dẫn sang S06.
 - **Tự kiểm:** `npm run build`, `npm run lint` không lỗi; màn hình rộng 360 px; không có nút "Gửi yêu cầu"; frontend chưa có công cụ test nên `formatPercent` kiểm bằng tay với 0.78 và 0.797.
 - **Commit:** mỗi màn hình một commit, ví dụ `feat(frontend): add matches page`
 

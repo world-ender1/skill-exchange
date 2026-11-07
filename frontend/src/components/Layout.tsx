@@ -20,6 +20,7 @@ export function Layout() {
         <nav>
           <NavLink to="/profile">Hồ sơ</NavLink>
           <NavLink to="/skills">Kỹ năng</NavLink>
+          <NavLink to="/matches">Gợi ý</NavLink>
         </nav>
         <button type="button" className="link-button" onClick={logout}>Đăng xuất</button>
       </header>
