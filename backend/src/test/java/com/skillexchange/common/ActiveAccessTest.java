@@ -22,7 +22,7 @@ import com.skillexchange.user.UserStatus;
 
 /**
  * Quyền Active (D33, D44): chỉ sinh viên ACTIVE dùng được matching, kiểm ở tầng filter nên 403 đứng trước 400.
- * Bước 8 chỉ có phần /api/matches của TC75, TC173, TC174, TC175, TC178; phần /api/users thêm ở bước 9.
+ * Bước 8 viết phần /api/matches; bước 9 thêm phần /api/users của TC75, TC173, TC174, TC175, TC178.
  */
 class ActiveAccessTest extends IntegrationTestBase {
 
@@ -64,21 +64,32 @@ class ActiveAccessTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("TC75 tài khoản PENDING_VERIFICATION gọi /matches?type=TWO_WAY: 403")
+    @DisplayName("TC75 tài khoản PENDING_VERIFICATION gọi /users/{id}, /users/search?q=a, /matches?type=TWO_WAY: 403")
     void tc75_pendingAccountCannotUseMatches() throws Exception {
-        expectForbidden(call(pendingToken(), "/api/matches?type=TWO_WAY"));
+        String token = pendingToken();
+        long target = accounts.activeStudent(STUDENT, "Sinh viên");
+        expectForbidden(call(token, "/api/users/" + target));
+        expectForbidden(call(token, "/api/users/search?q=a"));
+        expectForbidden(call(token, "/api/matches?type=TWO_WAY"));
     }
 
     @Test
-    @DisplayName("TC173 admin gọi /matches?type=TWO_WAY: 403")
+    @DisplayName("TC173 admin gọi /users/{id}, /users/search?q=a, /matches?type=TWO_WAY: 403")
     void tc173_adminCannotUseMatches() throws Exception {
-        expectForbidden(call(adminToken(), "/api/matches?type=TWO_WAY"));
+        String token = adminToken();
+        long target = accounts.activeStudent(STUDENT, "Sinh viên");
+        expectForbidden(call(token, "/api/users/" + target));
+        expectForbidden(call(token, "/api/users/search?q=a"));
+        expectForbidden(call(token, "/api/matches?type=TWO_WAY"));
     }
 
     @Test
-    @DisplayName("TC174 tài khoản PENDING gọi /matches?type=FOO: 403, không phải 400")
+    @DisplayName("TC174 admin gọi /users/abc; PENDING gọi /matches?type=FOO; admin gọi /users/search không tham số: 403, không phải 400")
     void tc174_forbiddenBeforeBadRequest() throws Exception {
+        String admin = adminToken();
+        expectForbidden(call(admin, "/api/users/abc"));
         expectForbidden(call(pendingToken(), "/api/matches?type=FOO"));
+        expectForbidden(call(admin, "/api/users/search"));
     }
 
     @Test
@@ -90,11 +101,13 @@ class ActiveAccessTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("TC175 không có token gọi /matches: 401")
+    @DisplayName("TC175 không có token gọi /users/{id}, /users/search, /matches: 401")
     void tc175_noTokenIs401() throws Exception {
-        mockMvc.perform(get("/api/matches?type=TWO_WAY"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        for (String path : new String[] {"/api/users/1", "/api/users/search?q=a", "/api/matches?type=TWO_WAY"}) {
+            mockMvc.perform(get(path))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        }
     }
 
     @Test
@@ -116,9 +129,12 @@ class ActiveAccessTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("TC178 sinh viên ACTIVE gọi /matches?type=TWO_WAY: 200")
+    @DisplayName("TC178 sinh viên ACTIVE gọi /users/{id}, /users/search?q=a, /matches?type=TWO_WAY: 200")
     void tc178_activeStudentAllowed() throws Exception {
-        accounts.activeStudent(STUDENT, "Sinh viên");
-        call(accounts.login(STUDENT), "/api/matches?type=TWO_WAY").andExpect(status().isOk());
+        long id = accounts.activeStudent(STUDENT, "Sinh viên");
+        String token = accounts.login(STUDENT);
+        call(token, "/api/users/" + id).andExpect(status().isOk());
+        call(token, "/api/users/search?q=a").andExpect(status().isOk());
+        call(token, "/api/matches?type=TWO_WAY").andExpect(status().isOk());
     }
 }

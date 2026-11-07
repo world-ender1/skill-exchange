@@ -172,6 +172,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problem(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này");
     }
 
+    // ---------- 404: không tìm thấy ----------
+
+    @ExceptionHandler(NotFoundException.class)
+    ResponseEntity<ProblemDetail> handleNotFound(NotFoundException ex) {
+        return problem(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     // ---------- 409: xung đột ----------
 
     /** Service đã kiểm và biết rõ lý do xung đột: dùng thông báo của nó. */

@@ -136,9 +136,14 @@ Quy ước chung:
   - `user/PublicUserController.java` (`GET /api/users/{id}`, `GET /api/users/search`), `user/PublicUserService.java`.
   - DTO `PublicProfileResponse`, `UserSearchResultResponse`, `PublicSkillResponse` (không có `isActive`).
   - `common/LikePatterns.java`: escape `\`, `%`, `_` cho `ILIKE ... ESCAPE '\'`.
-- **Sửa:** `user/UserRepository.java` (truy vấn tìm kiếm: lọc `ACTIVE` + `STUDENT`, bỏ người gọi, xếp theo `full_name` rồi `id`, tối đa 20).
+- **Sửa:** `user/UserRepository.java` (truy vấn tìm kiếm: lọc `ACTIVE` + `STUDENT`, bỏ người gọi, xếp theo `full_name` rồi `id`, tối đa 20); `user/UserTeachSkillRepository.java` (kỹ năng dạy của nhiều người trong một câu, record `TeachSkillRow`); `common/GlobalExceptionHandler.java` (404 cho `NotFoundException` mới).
 - **Test:** `user/PublicProfileTest`, `user/UserSearchTest`; phần `/users` của `ActiveAccessTest`.
 - **Ca:** TC158–TC172, TC76; phần `/users` của TC75, TC173, TC174, TC175, TC178.
+- **Chốt ở bước này:**
+  - 404 của `/users/{id}` (bốn trường hợp ở TC160) dùng một `detail` chung "Không tìm thấy người dùng", qua exception mới `common/NotFoundException`. `id` ≤ 0 cũng là "không tồn tại" (404); `id` không phải số hoặc vượt `Long` là 400 theo D38 với `detail` "Tham số id có giá trị không hợp lệ: …".
+  - Kỹ năng trong hồ sơ công khai và kết quả tìm kiếm: `PublicSkillResponse(skillId, skillName, categoryName, level)` cho `teachSkills`, `PublicLearnSkillResponse(skillId, skillName, categoryName, targetLevel)` cho `learnSkills` (`targetLevel` in `null` khi không đặt mục tiêu). Hai record riêng, không gộp một record với `@JsonInclude(NON_NULL)` như `SkillMatchResponse`, vì `targetLevel = null` có nghĩa và phải giữ key. `availability` dùng lại `AvailabilitySlotResponse`.
+  - Tìm kiếm thiếu cả hai tham số (sau khi cắt `q`): 400, `detail` "Cần ít nhất một tham số: q hoặc skillId", không có `errors`. `q` cắt bằng `strip()` như `fullName` ở D15; độ dài đếm **sau khi cắt**, quá 100 ký tự thì 400 dạng `errors[{field: "q", message: "q dài tối đa 100 ký tự"}]` như lỗi `limit` ở bước 8.
+  - Truy vấn tìm người là **một** câu SQL native trong `UserRepository` (`ILIKE` không có trong JPQL); kỹ năng dạy của 20 người tìm được nạp bằng **một** câu nữa (`user_id IN (…)`), không N+1. Kết quả liệt kê **mọi** kỹ năng dạy của người đó, không chỉ kỹ năng khớp `skillId`.
 - **Tự kiểm:** `q=%` không trả về tất cả; bốn trường hợp ở TC160 cùng `detail`; ghi lệnh thử vào `hoc_vibe_coding/http/tuan_4.http`.
 - **Commit:** `feat(user): add public profile and user search`
 
