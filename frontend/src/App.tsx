@@ -6,6 +6,7 @@ import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { MatchesPage } from './pages/MatchesPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { SearchPage } from './pages/SearchPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { UserProfilePage } from './pages/UserProfilePage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/skills" element={<SkillsPage />} />
             <Route path="/matches" element={<MatchesPage />} />
             <Route path="/users/:id" element={<UserProfilePage />} />
+            <Route path="/search" element={<SearchPage />} />
           </Route>
         </Route>
 
