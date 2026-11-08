@@ -141,7 +141,7 @@ Tuần 4 không thêm thư viện. Truy vấn nạp dữ liệu matching dùng `
 
 | Tuần | Nội dung chính | Link |
 | --- | --- | --- |
-| 4 | Lõi matching và unit test, API gợi ý, hồ sơ công khai, tìm kiếm, giao diện S05, S06, S10 | https://github.com/world-ender1/skill-exchange/compare/7ff6730...[CẦN BỔ SUNG: hash commit báo cáo tuần 4] |
+| 4 | Lõi matching và unit test, API gợi ý, hồ sơ công khai, tìm kiếm, giao diện S05, S06, S10 | https://github.com/world-ender1/skill-exchange/compare/7ff6730...64f13e5 |
 
 Dòng tuần 3 đang kết thúc ở `ab89627`, nhưng các commit ảnh, README và báo cáo `.docx` của tuần 3 nằm sau đó (tới `7ff6730`). Nên đổi điểm cuối dòng tuần 3 thành `7ff6730` để hai khoảng nối liền.
 

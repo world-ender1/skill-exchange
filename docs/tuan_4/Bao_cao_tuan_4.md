@@ -15,7 +15,7 @@ Repo: https://github.com/world-ender1/skill-exchange
 | Hook tự chạy test lõi sau mỗi lần sửa code matching | [474d0b5](https://github.com/world-ender1/skill-exchange/commit/474d0b5) |
 | Đối chiếu code với quyết định: sửa 2 lỗi (trọng số `NaN` không bị chặn, ô tìm kiếm giới hạn độ dài sai chỗ), thêm D51, sửa ngược tài liệu | [34a88f9](https://github.com/world-ender1/skill-exchange/commit/34a88f9), [e8b835c](https://github.com/world-ender1/skill-exchange/commit/e8b835c), [4066b85](https://github.com/world-ender1/skill-exchange/commit/4066b85) |
 | Kiểm tra cả tuần: 288/288 test đạt; 47 lần làm hỏng code, mỗi lần đều có test đỏ (trừ 2 trường hợp có giải thích); 7 ca thủ công đạt | [2b807e9](https://github.com/world-ender1/skill-exchange/commit/2b807e9) |
-| Báo cáo tuần 4 | [CẦN BỔ SUNG: hash commit báo cáo] |
+| Báo cáo tuần 4 | [64f13e5](https://github.com/world-ender1/skill-exchange/commit/64f13e5) |
 
 ## 2. Trạng thái chức năng bắt buộc
 
