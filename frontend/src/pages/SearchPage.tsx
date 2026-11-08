@@ -54,7 +54,7 @@ export function SearchPage() {
       <h1>Tìm kiếm</h1>
       <form className="card" onSubmit={search}>
         <Field label="Tên" error={error?.q} hint="Có phân biệt dấu: “an” không tìm ra “Ân”">
-          <input type="search" maxLength={100} value={q} onChange={(e) => setQ(e.target.value)} />
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} />
         </Field>
         <Field label="Kỹ năng người đó dạy">
           <select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
