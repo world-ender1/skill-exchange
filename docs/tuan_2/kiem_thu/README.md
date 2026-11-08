@@ -33,7 +33,7 @@ docker compose exec -T db psql -U skillexchange -d postgres -c "DROP DATABASE de
 
 ## Kết quả
 
-**73/73 PASS** (lần chạy 2026-10-24, PostgreSQL 17).
+**73/73 PASS** (lần chạy đầu 2026-10-24, PostgreSQL 17). Chạy lại 2026-10-29 sau khi sửa truy vấn CompletionRate (C05, C06) và 2026-11-08 ở tuần 4 (lược đồ không đổi, vẫn chỉ có `V1__init.sql` và `V2__seed_skills.sql`): vẫn 73/73, `ket_qua.txt` giống hệt từng dòng.
 
 Lần chạy đầu có **1 ca FAIL (B42)**: báo cáo sự cố đang `OPEN` nhưng vẫn ghi được `resolution`. Nguyên nhân là ràng buộc viết dạng `(status = 'RESOLVED') = (đủ 3 cột)`: khi chỉ điền 1 trong 3 cột thì hai vế cùng sai nên vẫn "bằng nhau". Đã sửa thành hai ràng buộc riêng: `RESOLVED` ⇒ đủ 3 cột; `OPEN` ⇒ cả 3 cột trống. Đây là ví dụ kiểm thử bắt được lỗi mà đọc bằng mắt khó thấy.
 
