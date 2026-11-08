@@ -16,7 +16,8 @@ import com.skillexchange.user.AvailabilitySlotResponse;
 /**
  * Vỏ của lõi matching (D34 phần 3): nạp dữ liệu thô → tính Reputation → dựng MatchProfile
  * → gọi MatchingEngine → đổi sang DTO và thêm ratingAverage, reviewCount, hasPendingRequest.
- * Quyền Active đã kiểm ở tầng filter (D44), không kiểm lại ở đây.
+ * Quyền Active kiểm ở tầng filter (D44). Nhánh 403 trong findMatches chỉ phòng khi tài khoản bị khóa
+ * đúng lúc đang gọi, không phải chỗ kiểm quyền.
  */
 @Service
 public class MatchingService {

@@ -348,7 +348,7 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | $LevelFit(u,v)$ | `target_level` của $u$, `level` của $v$ | Trung bình trên các kỹ năng có $Sim > 0$ |
 | $ScheduleFit(u,v)$ | `user_availability` | Không có dòng = chưa khai báo → 0.5 |
 | $ModeFit(u,v)$ | `users.learning_mode` | NULL = chưa khai báo |
-| $RatingNorm(v)$ | `AVG(reviews.rating)` với `reviewee_id = v` | Chưa có đánh giá → 0.5 |
+| $RatingNorm(v)$ | `reviews.rating` với `reviewee_id = v`: truy vấn nạp điểm thô, `ReputationCalculator` lấy trung bình (quyết định tuần 4, D43) | Chưa có đánh giá → 0.5 |
 | $CompletionRate(v)$ | `exchange_sessions` JOIN `exchange_requests`, lấy phiên có $v$ là `sender_id` hoặc `receiver_id` (mỗi phiên một lần) | Tử số: `status = COMPLETED`. Mẫu số: `started_at IS NOT NULL AND status IN ('COMPLETED', 'CANCELLED')`. Truy vấn chỉ nạp dữ liệu thô (trạng thái, đã bắt đầu chưa); lớp thuần `ReputationCalculator` lọc mẫu số và đổi trường hợp chưa có phiên đủ điều kiện thành **0.5** theo spec mục 4.3 (quyết định tuần 4, D43) |
 
 **Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh và dữ liệu thô để tính Reputation (D43) của các người dùng `ACTIVE` có `role = STUDENT` vào bộ nhớ bằng vài truy vấn gộp, sau đó lọc và chấm điểm bằng Java. Cách này tránh truy vấn lặp cho từng ứng viên. Reputation tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm. Phần lọc và chấm điểm là một lõi thuần Java nhận dữ liệu trong bộ nhớ, không gọi Repository (chi tiết ở quyết định tuần 4, D34).
@@ -486,7 +486,7 @@ Quy tắc dữ liệu của nhóm API này (trường bỏ trống, giới hạn
 
 - Với `ONE_WAY` thì không có `backward` và `theyLearn` (không có key, không phải `null`; quyết định tuần 4, D49), còn `score` bằng $D(u,v)$.
 - `ratingAverage` là `null` và `reviewCount = 0` khi chưa có đánh giá; giao diện hiện nhãn "Mới".
-- `hasPendingRequest = true` khi người gọi đang có yêu cầu `PENDING` gửi tới ứng viên này; giao diện thay nút "Gửi yêu cầu" bằng "Đã gửi". Ứng viên vẫn nằm trong danh sách (lọc cứng không loại họ).
+- `hasPendingRequest = true` khi người gọi đang có yêu cầu `PENDING` gửi tới ứng viên này; giao diện hiện nhãn "Đã gửi yêu cầu" ở chỗ nút "Gửi yêu cầu" (tuần 4 chưa có nút này, D31). Ứng viên vẫn nằm trong danh sách (lọc cứng không loại họ).
 - Người gọi chưa khai báo kỹ năng muốn học ($W_u$ rỗng): trả 200 với `needsLearnSkills = true`, `total = 0`, `items = []`; giao diện dẫn sang S04.
 - Kỹ năng ghi trong `youLearn`, `theyLearn` và thứ tự của chúng cùng `commonSlots`: quyết định tuần 4, D46.
 - Điểm trong response (kể cả các thành phần và `ratingAverage`) làm tròn 3 chữ số thập phân kiểu HALF_UP để hiển thị (kế hoạch tuần 4, bước 8); giao diện đổi sang phần trăm theo quyết định tuần 4, D50 (`0.797` → "79.7%"); thứ tự xếp hạng dùng điểm chưa làm tròn (spec mục 4.4).
@@ -643,7 +643,7 @@ stateDiagram-v2
 | S03 | Hồ sơ của tôi | Thông tin cá nhân, liên hệ riêng tư, hình thức học, lưới lịch rảnh 7×3 | `/me`, `/me/availability` |
 | S04 | Kỹ năng của tôi | Hai danh sách: kỹ năng dạy (có trình độ 1–4) và kỹ năng muốn học (mục tiêu tùy chọn) | `/skills`, `/me/teach-skills`, `/me/learn-skills` |
 | S05 | Gợi ý ghép cặp | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn"; thẻ ứng viên có điểm và lý do | `/matches` |
-| S06 | Hồ sơ người khác | Thông tin công khai, kỹ năng, lịch rảnh; nút "Gửi yêu cầu". Phần đánh giá thêm ở tuần 7 | `/users/{id}`, `/users/{id}/reviews` |
+| S06 | Hồ sơ người khác | Thông tin công khai, kỹ năng, lịch rảnh; nút "Gửi yêu cầu" (tuần 6, D31). Phần đánh giá thêm ở tuần 7 | `/users/{id}`, `/users/{id}/reviews` |
 | S07 | Gửi yêu cầu | Chọn kỹ năng từng chiều, thời điểm (gợi ý khung trùng), thời lượng, hình thức, địa điểm/link | `POST /requests` |
 | S08 | Hộp yêu cầu | Tab Đã nhận / Đã gửi; nút Chấp nhận, Từ chối, Hủy | `/requests` |
 | S09 | Phiên của tôi và chi tiết phiên | Trạng thái, liên hệ bên kia, nút Bắt đầu / Hoàn thành / Hủy / Báo cáo / Đánh giá | `/sessions`, `/sessions/{id}/*` |

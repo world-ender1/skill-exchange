@@ -6,6 +6,8 @@ Viết ngày 2026-11-04, sau khi chốt D43–D48. Mã ca bắt đầu từ TC10
 
 *Cập nhật 2026-11-04:* thêm TC185 cho D49; TC179 ghi nguồn D50 cho cách hiển thị phần trăm.
 
+*Cập nhật 2026-11-08:* sửa ngược theo kế hoạch tuần 4 và D51 sau lượt đối chiếu code với quyết định: cách tạo tài khoản cho ca tích hợp, câu mong đợi của TC179 (thêm trình độ, kế hoạch bước 10), TC181 (liên kết, TK 4.5), ghi "Đã chốt" cho ModeFit(ONLINE, OFFLINE) và ⚠2.
+
 ## Nguồn
 
 Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 4 > quyết định tuần 3 > thiết kế tuần 2 > spec tuần 1.
@@ -19,7 +21,7 @@ Khi các nguồn khác nhau, nguồn mới hơn đúng: quyết định tuần 4
 | TK 4.1, 4.3, 4.5 | Thiết kế tuần 2: quy ước API, quyền *Active*, `/users/{id}`, `/users/search`, `/matches` |
 | TK 6.1, 6.3 | Thiết kế tuần 2: màn hình S05, S06, S10 |
 | D12, D13, D40, D41 | `docs/tuan_3/Quyet_dinh_tuan_3.md` |
-| D31–D38, D43–D50 | `docs/tuan_4/Quyet_dinh_tuan_4.md` |
+| D31–D38, D43–D51 | `docs/tuan_4/Quyet_dinh_tuan_4.md` |
 
 **Loại:**
 - **Unit**: JUnit thuần, không Spring, không DB, chạy trên lõi `matching` (D34, D43).
@@ -129,7 +131,7 @@ Mỗi ca lọc cứng có ứng viên đối chứng hợp lệ trong cùng danh
 
 ## C. API `/api/matches` (tích hợp)
 
-Các ca dùng An và Bình tạo qua API tuần 3 (đăng ký, xác thực, khai hồ sơ, lịch, kỹ năng), trừ khi ca ghi khác.
+Các ca dùng An và Bình: tài khoản tạo thẳng trong DB với trạng thái và vai trò cho trước (bỏ qua đăng ký và xác thực email, đã kiểm ở tuần 3); hồ sơ, lịch, kỹ năng khai qua API tuần 3. Trừ khi ca ghi khác.
 
 | Mã | Nguồn | Đầu vào | Kết quả mong đợi | Loại |
 | --- | --- | --- | --- | --- |
@@ -185,9 +187,9 @@ Các ca dùng An và Bình tạo qua API tuần 3 (đăng ký, xác thực, khai
 
 | Mã | Nguồn | Đầu vào | Kết quả mong đợi | Loại |
 | --- | --- | --- | --- | --- |
-| TC179 | TK 6.1, 6.3, NFR-09, D50 | An mở S05 | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn", có `total` trên tab. Thẻ Bình: mức phù hợp 79.7%, nhãn "Mới", "Java ← Kotlin (kỹ năng liên quan)", lịch trùng Tối T4, Tối T6, hình thức. "Xem chi tiết điểm" hiện 5 thành phần khớp bảng tính tay | Thủ công |
+| TC179 | TK 6.1, 6.3, NFR-09, D50 | An mở S05 | Hai tab "Trao đổi hai chiều" và "Tìm người hướng dẫn", có `total` trên tab. Thẻ Bình: mức phù hợp 79.7%, nhãn "Mới", "Java ← Kotlin (kỹ năng liên quan, trình độ 2)", lịch trùng Tối T4, Tối T6, hình thức. "Xem chi tiết điểm" hiện 5 thành phần khớp bảng tính tay | Thủ công |
 | TC180 | D31 | S05 và S06 | Không có nút "Gửi yêu cầu"; S06 không có phần đánh giá | Thủ công |
-| TC181 | TK 4.5 | Tài khoản chưa khai kỹ năng muốn học mở S05 | Lời nhắc và nút sang S04, không trang trắng | Thủ công |
+| TC181 | TK 4.5 | Tài khoản chưa khai kỹ năng muốn học mở S05 | Lời nhắc và liên kết sang S04, không trang trắng | Thủ công |
 | TC182 | TK 4.3, NFR-02 | Mở S06 hồ sơ Bình | Có kỹ năng, lịch rảnh, ghi "trình độ tự khai báo"; không có email, số điện thoại, liên hệ | Thủ công |
 | TC183 | TK 6.1, D45 | S10: tìm "bình"; tìm theo kỹ năng Python; ô chọn kỹ năng | Ra đúng người; ô chọn chỉ có kỹ năng đang hoạt động | Thủ công |
 | TC184 | NFR-08 | S05, S06, S10 ở màn hình rộng 360 px | Đọc được, không cuộn ngang | Thủ công |
@@ -199,11 +201,11 @@ Các ca dùng An và Bình tạo qua API tuần 3 (đăng ký, xác thực, khai
 - Hiệu năng ≤ 2 giây trên 1.000 hồ sơ (NFR-03): đo ở tuần 5 cùng thực nghiệm (Latency, spec A.2).
 - Lọc theo hình thức học ở S05 (FR-12): không làm ở tuần 4 (D31).
 - `/api/users/{id}/reviews` và phần đánh giá của S06: tuần 7 (D31).
-- `ModeFit(ONLINE, OFFLINE)` ở mức hàm: cặp này đã bị loại ở lọc cứng (TC132) nên không đi tới hàm điểm. Cách xử lý trong hàm (ném lỗi hay trả 0) để lúc code chọn, ghi lý do trong commit và có một test, nhưng không phải quy tắc nghiệp vụ.
+- `ModeFit(ONLINE, OFFLINE)` ở mức hàm: cặp này đã bị loại ở lọc cứng (TC132) nên không đi tới hàm điểm. Cách xử lý trong hàm (ném lỗi hay trả 0) để lúc code chọn, ghi lý do trong commit và có một test, nhưng không phải quy tắc nghiệp vụ. *Đã chốt:* ném `IllegalArgumentException` (kế hoạch tuần 4 bước 4, commit `fd62529`).
 
 ## Những điểm tài liệu chưa quy định rõ (phát hiện khi viết ca)
 
 | # | Chỗ chưa rõ | Ca liên quan | Cách xử lý trong bộ ca |
 | --- | --- | --- | --- |
 | ⚠1 | Chế độ làm tròn 3 chữ số của điểm trong API (HALF_UP hay HALF_EVEN) chưa quy định. Hai chế độ khác nhau ở các số như 0.7625 | TC149, TC155 | Các ca API chỉ so số không rơi vào ranh giới: 0.6875 → 0.688 và 0.797457 → 0.797 ở mọi chế độ. *Đã chốt:* HALF_UP cho mọi số thực trong response, kể cả `ratingAverage` (kế hoạch tuần 4, bước 8) |
-| ⚠2 | Tên kỹ năng tiếng Việt có dấu xếp theo collation của PostgreSQL (D41) | TC144, TC171 | TC144 so thứ tự "Java" < "Tiếng Anh"; TC171 dùng tên không dấu để so thứ tự, như D41 đã ghi |
+| ⚠2 | Tên kỹ năng tiếng Việt có dấu xếp theo collation của PostgreSQL (D41) | TC144, TC171 | TC144 so thứ tự "Java" < "Tiếng Anh"; TC171 dùng tên không dấu để so thứ tự, như D41 đã ghi. *Đã chốt:* `youLearn`, `theyLearn` do lõi xếp bằng `String.compareTo`, có thể khác collation với tên có dấu hoặc bắt đầu bằng chữ thường; với 26 kỹ năng hiện có thì không khác (D51) |
