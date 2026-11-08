@@ -35,7 +35,10 @@ public record MatchingWeights(
     }
 
     private static void requireUnitInterval(String name, double value) {
-        if (value < 0.0 || value > 1.0) {
+        // Viết "phải nằm trong [0, 1]" rồi phủ định, không viết "value < 0 || value > 1":
+        // mọi phép so sánh với NaN đều ra false, nên chỉ cách này chặn được NaN.
+        boolean inUnitInterval = value >= 0.0 && value <= 1.0;
+        if (!inUnitInterval) {
             throw new IllegalArgumentException("Trọng số " + name + " phải trong [0, 1], đang là " + value);
         }
     }

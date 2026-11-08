@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.within;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit test thuần Java cho MatchingWeights (D35, D47). Không Spring, không DB. */
 class MatchingWeightsTest {
@@ -60,5 +62,19 @@ class MatchingWeightsTest {
         MatchingWeights w = new MatchingWeights(0.1, 0.2, 0.3, 0.2, 0.2);
 
         assertThat(w.reputation()).isEqualTo(0.2);
+    }
+
+    @ParameterizedTest(name = "NaN ở trọng số thứ {0} (đếm từ 0)")
+    @ValueSource(ints = {0, 1, 2, 3, 4})
+    @DisplayName("D47 trọng số NaN bị từ chối, ở vị trí nào cũng vậy")
+    void d47_nanWeightIsRejected(int position) {
+        // NaN so với số nào cũng ra false, nên "value < 0 || value > 1" không bắt được NaN.
+        // Tuần 5 tính trọng số bằng phép chia, mà 0.0 / 0 trong Java ra NaN chứ không ném lỗi.
+        double[] w = {0.55, 0.20, 0.15, 0.05, 0.05};
+        w[position] = Double.NaN;
+
+        assertThatThrownBy(() -> new MatchingWeights(w[0], w[1], w[2], w[3], w[4]))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("phải trong [0, 1]");
     }
 }
