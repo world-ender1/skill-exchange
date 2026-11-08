@@ -44,7 +44,7 @@ Thay "Số phiên đã hoàn thành chia cho số phiên đã bắt đầu; phi�
 
 ## 4.3 – đoạn "Cách chạy matching"
 
-> **Cách chạy matching.** Với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh, hình thức học và dữ liệu thô để tính Reputation (điểm đánh giá nhận được, trạng thái các phiên đã tham gia) của mọi sinh viên `ACTIVE` vào bộ nhớ bằng 8 truy vấn gộp, rồi lọc và chấm điểm bằng Java. Số truy vấn không phụ thuộc số người dùng. Phần lọc, chấm điểm và xếp hạng là một lõi Java thuần, không gọi CSDL, để kiểm thử đơn vị không cần CSDL và để thực nghiệm ở tuần 5 gọi đúng lõi này (mục 5.3).
+> **Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh, hình thức học và dữ liệu thô để tính Reputation (điểm đánh giá nhận được, trạng thái các phiên đã tham gia) của mọi sinh viên `ACTIVE` vào bộ nhớ bằng 8 truy vấn gộp, rồi lọc và chấm điểm bằng Java. Số truy vấn không phụ thuộc số người dùng, nên tránh được truy vấn lặp cho từng ứng viên. Reputation được tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm. Phần lọc, chấm điểm và xếp hạng là một lõi Java thuần, không gọi CSDL (mục 5.3); dữ liệu giả lập cho thực nghiệm được sinh trong bộ nhớ bởi module `evaluation`, gọi đúng lõi này và không ghi vào các bảng nghiệp vụ.
 
 ## 4.3 – Hình 4.3, dòng 1 của mã giả
 
@@ -72,11 +72,11 @@ Thay "Active – tài khoản đã xác thực" bằng:
 
 ## 4.4 – Hình 4.4
 
-Thay ví dụ cũ bằng response thật của `GET /api/matches?type=TWO_WAY` khi An (dữ liệu demo) xem gợi ý Bình. Ví dụ cũ thiếu các trường `learningMode`, `ratingAverage`, `reviewCount`, `hasPendingRequest`, và `score = 0.78` chưa đúng quy tắc làm tròn đã chốt ($\sqrt{0.94 \times 0.65} = 0.7817 \to 0.782$). Các số dưới đây khớp TC149 và test D46; `userId` thay bằng id thật khi chụp response [CẦN BỔ SUNG].
+Thay ví dụ cũ bằng response thật của `GET /api/matches?type=TWO_WAY` khi An (dữ liệu demo) xem gợi ý Bình. Ví dụ cũ thiếu các trường `learningMode`, `ratingAverage`, `reviewCount`, `hasPendingRequest`, và `score = 0.78` chưa đúng quy tắc làm tròn đã chốt ($\sqrt{0.94 \times 0.65} = 0.7817 \to 0.782$). Các số dưới đây khớp TC149, test D46 và màn hình ở Hình 5.6; `userId` 15 là id của Bình trong CSDL phát triển.
 
 ```json
 {
-  "userId": …,
+  "userId": 15,
   "fullName": "Bình",
   "type": "TWO_WAY",
   "score": 0.797,
@@ -264,9 +264,11 @@ Hai phát hiện đáng chú ý:
 - **Hai lớp kiểm quyền che nhau.** Lần đầu bỏ luật quyền *Active* (khi mới có API gợi ý), TC75 và TC173 vẫn xanh, vì service gợi ý cũng trả 403 khi người gọi không phải sinh viên `ACTIVE`. Chỉ ca gọi với tham số sai bắt được (thiếu luật thì ra 400 thay vì 403). Sau khi thêm API hồ sơ công khai và tìm kiếm, chạy lại thì cả hai ca đã đỏ. Bảng làm hỏng code vì vậy phải chạy lại mỗi khi bộ test thay đổi.
 - **Trọng số `NaN` lọt qua phần kiểm trọng số.** Mọi phép so sánh với `NaN` đều cho kết quả sai, nên điều kiện "nhỏ hơn 0 hoặc lớn hơn 1" không chặn được nó, và khi đó điểm $D$ cũng thành `NaN` mà không báo lỗi. Lượt đối chiếu code với quyết định phát hiện lỗi này; đã thêm test (đặt `NaN` ở từng trọng số), thấy đỏ, rồi sửa điều kiện thành "phải nằm trong [0, 1]".
 
-[CẦN BỔ SUNG: chụp màn hình kết quả `.\mvnw.cmd test` (dòng `Tests run: 288, Failures: 0, Errors: 0, Skipped: 0` và `BUILD SUCCESS`) như Hình 6.2, lưu vào `docs/hinh/h6_3_test_tuan_4.png`.]
+Hình 6.3 là kết quả chạy toàn bộ kiểm thử backend ngày 08/11/2026: 27 lớp test, 288 test đều đạt. Ảnh vẽ lại từ log của lần chạy đó, giữ nguyên chữ, chỉ trích dòng kết quả của từng lớp và phần tổng kết.
 
-*Hình 6.3: Kết quả chạy kiểm thử backend ngày 08/11/2026 (27 lớp test, 288 test đều đạt)*
+![](../hinh/h6_3_test_tuan_4.png)
+
+*Hình 6.3: Kết quả chạy kiểm thử backend (trích phần kết quả của lệnh `mvnw test`)*
 
 ---
 

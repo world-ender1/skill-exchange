@@ -156,7 +156,7 @@ Commit `4066b85` cũng sửa ngược các tài liệu cũ: spec 4.3 (LevelFit c
 | TC183 – S10 tìm theo tên, theo kỹ năng | Đạt (08/11/2026). 5 ảnh `tc183_s10_*.png`: tìm "bình" có dấu và không dấu, tìm theo kỹ năng Python, tìm "%", bỏ trống cả hai ô |
 | TC184 – S05, S06, S10 ở màn hình rộng 360 px | Đạt (08/11/2026): không cuộn ngang; menu xếp dọc, chiếm khoảng 170 px. 3 ảnh `tc184_360px_*.png` |
 
-Bản sửa `maxLength` của S10 (`e8b835c`) làm sau lần kiểm thủ công này. Backend đã có test cho độ dài `q` (D45), nhưng giao diện **chưa thử lại trên trình duyệt**.
+Bản sửa `maxLength` của S10 (`e8b835c`) làm sau lần kiểm thủ công này. Backend đã có test cho độ dài `q` (D45). Phía giao diện đã kiểm bằng đọc code (2026-11-08): lỗi `errors[{field: "q"}]` đi qua `fieldErrors.q` trong `api/client.ts` tới ô "Tên" của `SearchPage`, nên hiện ngay dưới ô. Chưa bấm thử trên trình duyệt.
 
 ## Giới hạn
 
