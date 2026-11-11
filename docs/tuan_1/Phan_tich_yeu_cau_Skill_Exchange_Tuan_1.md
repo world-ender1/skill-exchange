@@ -10,6 +10,8 @@ Dự án cá nhân | Thời gian thực hiện: 9 tuần
 
 *Cập nhật 2026-11-01:* sửa theo góp ý của giảng viên sau báo cáo tuần 2: nhãn tính trên giá trị thật, thuật toán chỉ thấy giá trị tự khai có nhiễu (5.1, 5.4); thêm mốc ngẫu nhiên, thí nghiệm bỏ từng thành phần và lập luận về lợi thế của P (5.2); lý do chọn mẫu số của ScheduleFit và so sánh với hai công thức khác trong phân tích độ nhạy (4.3, 5.4); đóng điểm mở C5 (5.5). Bổ sung cùng ngày: tách seed chọn cấu hình với seed báo cáo, đổi trọng tâm câu hỏi RQ2 sang mức đóng góp của từng tiêu chí (5.2, 5.4).
 
+*Cập nhật 2026-11-11:* đóng các điểm mở ở 5.5 theo quyết định tuần 5 (D52–D77): nhãn tính trên trình độ và lịch thật, nhãn 2 và nhãn 0 xét từng cặp kỹ năng, "chưa khai báo" giống nhau ở hai lớp dữ liệu (5.1); danh sách của P dùng để đo và ba bộ trọng số khi bỏ thành phần (5.2); Precision@5 nghiêm ngặt, IDCG trên tập lý tưởng, hai bản trung bình, chỉ số bao phủ mới (5.3); bảng tham số sinh dữ liệu, ba mức nhiễu, kiểm định (5.4); ví dụ tính tay nhãn (A.3); ca nhóm 4 (7.1).
+
 ## 1. Bối cảnh và mục tiêu
 
 Sinh viên có thể sở hữu các kỹ năng khác nhau và có nhu cầu học hỏi lẫn nhau, nhưng thường phải tìm người phù hợp thủ công qua bài đăng hoặc mạng xã hội. Skill Exchange cho phép người dùng khai báo kỹ năng có thể hướng dẫn, kỹ năng muốn học, lịch rảnh và hình thức học; hệ thống tạo danh sách ứng viên và xếp hạng mức độ phù hợp.
@@ -183,37 +185,42 @@ Kỹ năng có thể dạy bắt buộc có trình độ. Kỹ năng muốn họ
 
 Phương pháp chính là dữ liệu giả lập có nhãn phù hợp "đáp án đúng" (Ground Truth) được xác định trước bằng quy tắc nghiệp vụ độc lập, hoàn toàn không sử dụng hàm điểm tổng $D(u,v)$ hay $MutualScore$ để tạo nhãn nhằm tránh việc tự chấm điểm bằng chính hàm tối ưu.
 
+Chi tiết hiện thực (cách chạy, cách lưu kết quả, cách dựng B0, B1 và các biến thể của P từ lõi matching, kiểm định) ở quyết định tuần 5 (`docs/tuan_5/Quyet_dinh_tuan_5.md`, D52–D77).
+
 ### 5.1. Quy tắc gán nhãn Ground Truth (Hướng $u$ học từ $v$)
 
 Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy nhãn được gán riêng biệt cho từng hướng trao đổi ($u$ học từ $v$). Để khắc phục triệt để tình trạng chồng chéo điều kiện, nhãn được áp dụng theo **thứ tự thác nước (Waterfall logic)**:
 
-**Giá trị thật và giá trị tự khai.** Mỗi người dùng giả lập có hai lớp dữ liệu: *giá trị thật* (trình độ thật của từng kỹ năng dạy, lịch rảnh thật) và *giá trị tự khai* (những gì người đó nhập vào hệ thống). Nhãn dưới đây tính trên **giá trị thật**; P, B0, B1 chỉ thấy **giá trị tự khai**, giống ngoài đời, nơi trình độ và lịch rảnh không được xác minh (mục 4.3, *Giới hạn*). Kỹ năng và hình thức học không có nhiễu: người dùng biết rõ mình dạy, học gì và muốn học theo hình thức nào. Cách sinh nhiễu ở mục 5.4.
+**Giá trị thật và giá trị tự khai.** Mỗi người dùng giả lập có hai lớp dữ liệu: *giá trị thật* (trình độ thật của từng kỹ năng dạy, lịch rảnh thật) và *giá trị tự khai* (những gì người đó nhập vào hệ thống). Nhãn dưới đây tính trên **giá trị thật**; P, B0, B1 chỉ thấy **giá trị tự khai**, giống ngoài đời, nơi trình độ và lịch rảnh không được xác minh (mục 4.3, *Giới hạn*). Kỹ năng, mục tiêu và hình thức học không có nhiễu: người dùng biết rõ mình dạy, học gì và muốn học theo hình thức nào. Việc **có khai hay không** lịch rảnh, hình thức học cũng không có nhiễu: người chưa khai thì phần đó để trống ở **cả hai lớp** (D53). Cách sinh nhiễu ở mục 5.4.
 
 1. **Bước 1 - Kiểm tra điều kiện loại trừ cứng (Hard Filtering):**
    - Nếu $v = u$, hoặc tài khoản chưa xác thực/bị khóa $\rightarrow$ Loại.
    - Nếu không có bất kỳ kỹ năng nào trùng hoặc liên quan ($Sim = 0$) $\rightarrow$ Loại.
-   - Nếu cả hai đã khai báo lịch nhưng không có khung giờ trùng $\rightarrow$ Loại.
+   - Nếu cả hai đã khai báo lịch nhưng lịch **thật** không có khung giờ trùng $\rightarrow$ Loại.
    - Nếu cả hai đã khai báo hình thức học nhưng xung đột hoàn toàn (Offline vs Online) $\rightarrow$ Loại.
-   *(Các ứng viên vi phạm điều kiện cứng bị loại bỏ hoàn toàn, không đưa vào danh sách xếp hạng).*
+   *(Các ứng viên vi phạm điều kiện cứng bị loại bỏ hoàn toàn, không có nhãn và không vào tập lý tưởng dùng tính IDCG (5.3). Nếu thuật toán vẫn đưa ứng viên đó vào danh sách vì dữ liệu tự khai sai lệch, ứng viên nhận $rel = 0$, xem cuối mục này).*
 
-2. **Bước 2 - Gán Nhãn 2 (Phù hợp cao - Highly Relevant):**
+2. **Bước 2 - Gán Nhãn 2 (Phù hợp cao - Highly Relevant):** thỏa **tất cả**:
    - Vượt qua Bước 1;
-   - Có ít nhất một kỹ năng trùng chính xác ($Sim = 1.0$);
-   - Trùng ít nhất $\ge 2$ khung giờ rảnh trong tuần;
-   - Hình thức học tương thích hoàn toàn (⚠ chưa chốt `ANY` + `ONLINE` có tính là "hoàn toàn" không, và trường hợp chưa khai báo lịch/hình thức xử lý thế nào ở nhãn 2; xem mục 5.5);
-   - Trình độ tự khai của người dạy đạt hoặc vượt mục tiêu người học ($LevelFit = 1.0$).
+   - Có ít nhất một kỹ năng $s \in W_u$ mà $v$ dạy đúng kỹ năng đó ($Sim = 1.0$) với trình độ **thật** đạt hoặc vượt mục tiêu của $u$ cho $s$. Kỹ năng bỏ trống mục tiêu không tính là đạt (D54);
+   - Cả hai đã khai báo lịch và lịch **thật** trùng ít nhất 2 khung;
+   - Hình thức học tương thích hoàn toàn: cả hai đã khai báo và cùng hình thức, hoặc ít nhất một bên chọn `ANY` (đúng điều kiện $ModeFit = 1.0$ ở 4.3). `ANY` + `ONLINE` đạt; bên chưa khai báo thì không đạt (D53).
 
 3. **Bước 3 - Gán Nhãn 0 (Không phù hợp về chất lượng - Quality Irrelevant):**
    - Vượt qua Bước 1 nhưng không thỏa mãn Nhãn 2;
-   - Kỹ năng chỉ thuộc nhóm liên quan ($Sim = 0.5$, không trùng chính xác), ĐỒNG THỜI trình độ tự khai của người dạy thấp hơn mục tiêu của người học từ 2 bậc trở lên ($LevelFit = 0.0$).
+   - Không có cặp kỹ năng nào trùng chính xác, ĐỒNG THỜI **mọi** cặp $(s, t)$ với $s \in W_u$, $t \in T_v$, $Sim(s, t) = 0.5$ đều có trình độ **thật** của $t$ thấp hơn mục tiêu của $s$ từ 2 bậc trở lên. Kỹ năng bỏ trống mục tiêu không tính là thấp hơn, nên chỉ cần một cặp như vậy là không bị nhãn 0 (D54).
 
 4. **Bước 4 - Gán Nhãn 1 (Phù hợp một phần - Partially Relevant):**
    - Tất cả các trường hợp hợp lệ còn lại sau khi đã kiểm tra các bước trên.
 
+Nhãn xét từng cặp kỹ năng, không dùng LevelFit hay thành phần điểm nào. *Vì sao nhãn 2 chỉ cần **một** kỹ năng đạt:* nếu đòi "LevelFit = 1.0" (mọi kỹ năng khớp đều đạt mục tiêu) thì người dạy Java (đạt) cộng MySQL (thiếu 1 bậc) bị nhãn 1, thấp hơn người chỉ dạy Java, dù dạy được nhiều hơn (rà soát R25). Ví dụ tính tay ở Phụ lục A.3.
+
+**Ứng viên có trong danh sách nhưng trượt Bước 1 thật.** Thuật toán lọc trên dữ liệu tự khai, nên một ứng viên có thể qua lọc (ví dụ nhiễu thêm khung giả) trong khi lịch thật không trùng. Ứng viên này có mặt trong danh sách và nhận $rel = 0$ (D55). Ngược lại, ứng viên tốt bị lọc nhầm trên dữ liệu tự khai không có trong danh sách nhưng vẫn nằm trong tập lý tưởng dùng để tính IDCG (5.3).
+
 *Tiêu chí hoàn thành:* Mỗi cặp ứng viên hợp lệ chỉ nhận duy nhất một nhãn; quy tắc gán nhãn hoàn toàn không phụ thuộc vào điểm tổng của thuật toán.
 
 *Lưu ý khi gán nhãn:*
-- Không đưa ứng viên vi phạm điều kiện loại trừ cứng vào danh sách được xếp hạng.
+- Không đưa ứng viên vi phạm điều kiện loại trừ cứng (tính trên giá trị thật) vào tập lý tưởng. Ứng viên như vậy chỉ xuất hiện trong danh sách của thuật toán khi dữ liệu tự khai sai lệch, và nhận $rel = 0$.
 - Phân biệt dữ liệu **chưa khai báo** với dữ liệu **đã khai báo nhưng không phù hợp**: dữ liệu chưa khai báo không làm ứng viên bị loại ở Bước 1.
 - Dữ liệu giả lập phải được sinh theo quy tắc cố định, có thể tái tạo bằng random seed.
 - Nhãn chỉ phản ánh kịch bản mô phỏng, không chứng minh mức độ phù hợp thực tế của người dùng.
@@ -229,8 +236,10 @@ Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy
 - So sánh $B0$ với $B1$ để đánh giá thay đổi về độ bao phủ (Recommendation Coverage) khi mở rộng tập ứng viên.
 - So sánh $B1$ với $P$ trên cùng tập ứng viên để đánh giá sự cải thiện về chất lượng xếp hạng (Precision@5, NDCG@5).
 - Không khẳng định công thức $P$ làm tăng Coverage nếu tập ứng viên không thay đổi.
+- **Lọc chung:** B0, B1, P và mốc R dùng chung bước lọc lịch rảnh và hình thức học (4.2, điều 4–5) trên dữ liệu tự khai; B0 chỉ khác ở điều kiện kỹ năng (trùng chính xác). Cách dựng B0, B1 từ lõi matching: D65.
+- **Danh sách của P dùng để đo** (D56): đúng như lõi trả về, nhóm hai chiều (xếp theo $MutualScore$) rồi nhóm một chiều (xếp theo $D(u,v)$), lấy 5 vị trí đầu. Mọi biến thể của P dùng cùng cấu trúc. B0, B1, R mỗi phương án một danh sách. *Hạn chế:* nhãn chỉ xét hướng $u$ học từ $v$, nên không thưởng tính hai chiều; P có thể bị điểm thấp khi đặt một cặp hai chiều nhãn 1 lên trên một ứng viên một chiều nhãn 2. Câu hỏi RQ2 (bỏ từng thành phần) không bị ảnh hưởng, vì các biến thể của P có cùng cấu trúc hai nhóm.
 - **Mốc ngẫu nhiên (R):** cùng tập ứng viên như B1, xếp ngẫu nhiên (theo seed). Cho biết một con số Precision@5/NDCG@5 là cao hay thấp so với việc không xếp gì. Mốc trên không cần thêm phương án, vì NDCG@5 đã chia cho xếp hạng lý tưởng (bằng 1 khi xếp đúng hoàn toàn).
-- **Bỏ từng thành phần (ablation):** chạy P bỏ lần lượt LevelFit, ScheduleFit, ModeFit (trọng số của thành phần bị bỏ chia đều cho các thành phần còn lại) để biết thành phần nào thật sự đóng góp.
+- **Bỏ từng thành phần (ablation):** chạy P bỏ lần lượt LevelFit, ScheduleFit, ModeFit (trọng số của thành phần bị bỏ chia đều cho 4 thành phần còn lại, kể cả Reputation) để biết thành phần nào thật sự đóng góp. Ba bộ trọng số (SkillFit, LevelFit, ScheduleFit, ModeFit, Reputation): bỏ LevelFit (0.60, 0, 0.20, 0.10, 0.10); bỏ ScheduleFit (0.5875, 0.2375, 0, 0.0875, 0.0875); bỏ ModeFit (0.5625, 0.2125, 0.1625, 0, 0.0625). *Hạn chế:* chia đều làm tỷ lệ giữa các thành phần còn lại cũng đổi (ví dụ bỏ LevelFit thì ModeFit tăng gấp đôi), nên kết quả lẫn hai thay đổi (D66).
 
 **P có "thắng sẵn" theo thiết kế không?** Có một phần, và các biện pháp dưới đây chỉ **giảm** chứ không loại bỏ được lợi thế này. Nhãn và P dùng cùng loại thuộc tính (kỹ năng, trình độ, lịch, hình thức), còn B1 chỉ dùng SkillFit. Nếu nhãn tính trên đúng dữ liệu P thấy, P gần như chắc chắn thắng B1. Thêm nhiễu vào dữ liệu tự khai không đổi được điều đó: dùng một tín hiệu có nhiễu nhưng liên quan tới nhãn gần như luôn tốt hơn bỏ qua nó, nên kết quả "P tốt hơn B1" vẫn đoán trước được. Lý do sâu hơn là cùng một người quyết định cả quy tắc nhãn lẫn công thức P; chỉ nguồn đánh giá do người khác tạo (ví dụ người dùng thật chấm kết quả) mới kiểm chứng được quy tắc đó, và đề tài không có nguồn như vậy trong phạm vi 9 tuần. Vì vậy thiết kế không tuyên bố đã loại bỏ lợi thế, mà xử lý như sau:
 1. **Nhãn tính trên giá trị thật, P chỉ thấy giá trị tự khai có nhiễu** (5.1, 5.4). Cách này giảm sự phụ thuộc trực tiếp giữa nhãn và dữ liệu P dùng, và đo được P còn tốt hơn bao nhiêu khi dữ liệu tự khai sai lệch.
@@ -241,40 +250,62 @@ Hệ thống gợi ý Top-k cá nhân hóa theo từng người dùng, vì vậy
 ### 5.3. Chỉ số đo lường
 
 - **Precision@5:** Số ứng viên có nhãn 1 hoặc 2 trong 5 vị trí đầu chia cho 5. Nếu có ít hơn 5 ứng viên sau bước lọc cứng, các vị trí thiếu được mặc định tính là không có ứng viên phù hợp.
+- **Precision@5 nghiêm ngặt:** như trên nhưng chỉ đếm nhãn 2. Báo cáo cả hai bản; phân tích và kiểm định dựa vào bản nghiêm ngặt và NDCG@5, vì nhãn 1 là "mọi trường hợp hợp lệ còn lại" nên Precision@5 dễ gần 1 với mọi phương án (D58).
 - **NDCG@5:**
   $$DCG@k = \sum_{i=1}^k \frac{2^{rel_i} - 1}{\log_2(i + 1)}, \quad NDCG@k = \frac{DCG@k}{IDCG@k}$$
-  Nhãn $rel \in \{0, 1, 2\}$. Nếu $IDCG@5 = 0$ (người dùng không có bất kỳ ứng viên phù hợp nào trong tập dữ liệu), quy ước $NDCG@5 = 0$ và ghi nhận báo cáo số trường hợp này.
-- **Recommendation Coverage:** Tỷ lệ người dùng đủ điều kiện có ít nhất một ứng viên hợp lệ sau bước lọc cứng chia cho tổng số người dùng đủ điều kiện tìm kiếm.
-- **Thời gian xử lý (Latency):** Thời gian trung bình để tạo và xếp hạng tối đa 5 gợi ý cho một người dùng (tính bằng mili giây). Ghi rõ cấu hình máy kiểm thử và cách đo.
+  Nhãn $rel \in \{0, 1, 2\}$; ứng viên trong danh sách mà trượt Bước 1 thật có $rel = 0$ (5.1). Nếu $IDCG@5 = 0$ (người dùng không có bất kỳ ứng viên phù hợp nào trong tập dữ liệu), quy ước $NDCG@5 = 0$ và ghi nhận báo cáo số trường hợp này.
+- **IDCG@5** tính trên **tập lý tưởng** của $u$: mọi $v \neq u$ qua Bước 1 của nhãn (trên giá trị thật), xếp theo nhãn giảm dần, lấy 5 đầu. Tập này chung cho mọi phương án và không phụ thuộc dữ liệu tự khai, nên ứng viên tốt bị lọc nhầm vì nhiễu vẫn làm giảm NDCG (D57).
+- **Lấy trung bình** (D59): báo cáo hai bản. (1) Mọi người dùng đủ điều kiện, theo quy ước $IDCG@5 = 0$ ở trên. (2) Chỉ người có tập lý tưởng chứa ít nhất 2 mức nhãn khác nhau, vì người chỉ có một mức nhãn thì thứ tự nào cũng "lý tưởng" (rà soát R24); ghi số người bị loại. Chọn cấu hình và kiểm định (5.4) dùng bản (2).
+- **Recommendation Coverage:** Tỷ lệ người dùng đủ điều kiện có ít nhất một ứng viên hợp lệ sau bước lọc cứng chia cho tổng số người dùng đủ điều kiện tìm kiếm. Người dùng đủ điều kiện: `ACTIVE`, `STUDENT` và có ít nhất một kỹ năng muốn học (D60).
+- **Hai chỉ số bao phủ bổ sung** (D60), vì Coverage dễ bằng 1 với cả B0 và B1 (rà soát R27): tỷ lệ người có ít nhất 5 ứng viên trong danh sách; tỷ lệ người có ít nhất một ứng viên nhãn 2 trong danh sách (cả danh sách, không chỉ 5 đầu).
+- **Thời gian xử lý (Latency):** Thời gian trung bình để tạo và xếp hạng tối đa 5 gợi ý cho một người dùng (tính bằng mili giây). Ghi rõ cấu hình máy kiểm thử và cách đo. Đo trong bộ nhớ ở N = 1.000, có một lượt làm nóng, ghi trung bình và p95, gồm lọc, chấm điểm, xếp hạng (D61). Thời gian end-to-end của `GET /api/matches` trên DB đo ở tuần 8 (NFR-03).
 
 *(Bỏ hoàn toàn chỉ số "Điểm tương thích trung bình" vì chỉ số này được đo bằng chính hàm tối ưu nên không có ý nghĩa chứng minh khoa học).*
 
 ### 5.4. Dữ liệu giả lập và phân tích thực nghiệm
 
-- **Quy mô dữ liệu giả lập:** Sinh các bộ dữ liệu với quy mô 100, 500 và 1.000 người dùng; mỗi người có 2–5 kỹ năng dạy, 1–3 kỹ năng muốn học, mức tự khai, lịch rảnh và hình thức học.
-- **Sinh giá trị tự khai từ giá trị thật (cho 5.1):** trình độ tự khai = trình độ thật cộng hoặc trừ 1 (giữ trong 1–4) với xác suất $p_{level}$; lịch tự khai bỏ sót mỗi khung thật với xác suất $p_{miss}$ và thêm khung không thật với xác suất $p_{extra}$. Chạy ít nhất hai mức: không nhiễu (đối chứng) và nhiễu mặc định (ví dụ $p_{level} = 0.3$, $p_{miss} = 0.2$, $p_{extra} = 0.05$; con số chốt trước tuần 5). Ứng viên bị lọc cứng trên dữ liệu tự khai loại nhầm thì không xuất hiện trong danh sách của P, B0, B1; đây là hành vi đúng, giống ngoài đời.
-- **Tính tái lập (Reproducibility):** Chạy thực nghiệm với 5 random seed cố định; báo cáo kết quả trung bình và độ lệch chuẩn.
-- **Tách seed chọn cấu hình và seed báo cáo:** 2 seed dùng để so sánh và chọn cấu hình (bộ trọng số, công thức ScheduleFit); 3 seed còn lại chỉ dùng để báo cáo kết quả của cấu hình mặc định và cấu hình đã chọn. Tham số nhiễu, trọng số mặc định và cách tính chỉ số chốt trước khi chạy seed báo cáo.
+- **Quy mô dữ liệu giả lập:** Sinh các bộ dữ liệu với quy mô 100, 500 và 1.000 người dùng, cộng kịch bản thưa 50 người để Coverage có cơ hội khác 1 (rà soát R27); mỗi người có 2–5 kỹ năng dạy, 1–3 kỹ năng muốn học, mức tự khai, lịch rảnh và hình thức học.
+- **Bảng tham số sinh dữ liệu** (D63, rà soát R29). Mọi lựa chọn "chọn đều" và xác suất dưới đây dùng luồng số ngẫu nhiên theo seed (D64):
+
+  | Tham số | Giá trị |
+  | --- | --- |
+  | Danh mục kỹ năng | 6 nhóm, 26 kỹ năng, 9 cặp liên quan, chép từ `V2__seed_skills.sql` |
+  | Kỹ năng dạy | Số kỹ năng chọn đều 2–5. Chọn không lặp, xác suất tỷ lệ với $1/r$, $r$ là thứ hạng của kỹ năng trong một hoán vị ngẫu nhiên của 26 kỹ năng (một hoán vị cho cả bộ dữ liệu; phân bố Zipf $s = 1$): vài kỹ năng rất nhiều người dạy, nhiều kỹ năng ít người dạy |
+  | Kỹ năng muốn học | Số kỹ năng chọn đều 1–3. Chọn đều, không lặp, trong các kỹ năng người đó không dạy (quyết định tuần 3, D19) |
+  | Trình độ thật | Mỗi kỹ năng dạy chọn đều 1–4 |
+  | Mục tiêu | Mỗi kỹ năng muốn học: bỏ trống với xác suất 0.3, còn lại chọn đều 1–4 |
+  | Khai lịch rảnh | Xác suất 0.85; người không khai có lịch rỗng ở cả hai lớp (5.1) |
+  | Lịch thật | Người có khai: số khung chọn đều 3–9, các khung chọn đều, không lặp trong 21 khung |
+  | Khai hình thức học | Xác suất 0.85, độc lập với việc khai lịch; người không khai để trống ở cả hai lớp |
+  | Hình thức học | Người có khai: `ONLINE` 0.35, `OFFLINE` 0.25, `ANY` 0.40 |
+  | Trạng thái, Reputation | Mọi người `ACTIVE` + `STUDENT`, Reputation = 0.5 (không có lịch sử) |
+  | Mã người dùng | Sinh xong thì xáo thứ tự, gán mã 1..N theo thứ tự đã xáo, để quy tắc bằng điểm (theo mã) không gắn với thứ tự sinh |
+
+- **Sinh giá trị tự khai từ giá trị thật (cho 5.1):** trình độ tự khai = trình độ thật cộng hoặc trừ 1 (giữ trong 1–4) với xác suất $p_{level}$; lịch tự khai bỏ sót mỗi khung thật với xác suất $p_{miss}$ và thêm khung không thật với xác suất $p_{extra}$. Mỗi kỹ năng dạy, mỗi khung thật, mỗi khung không thật xét độc lập. Trình độ thật 1 chỉ lệch lên, 4 chỉ lệch xuống. Nhiễu xóa hết lịch của người có khai thì giữ lại một khung thật chọn ngẫu nhiên, để người đó không thành "chưa khai báo". Ba mức nhiễu ($p_{level}$, $p_{miss}$, $p_{extra}$): không nhiễu (0, 0, 0) làm đối chứng; mặc định (0.3, 0.2, 0.05); cao (0.5, 0.4, 0.1). Ứng viên bị lọc cứng trên dữ liệu tự khai loại nhầm thì không xuất hiện trong danh sách của P, B0, B1; đây là hành vi đúng, giống ngoài đời.
+- **Tính tái lập (Reproducibility):** Chạy thực nghiệm với 5 random seed cố định (seed 1–5); báo cáo kết quả trung bình và độ lệch chuẩn trên các seed báo cáo. Cùng seed thì dữ liệu thật giống nhau ở mọi mức nhiễu (D64).
+- **Tách seed chọn cấu hình và seed báo cáo:** 2 seed (seed 1–2) dùng để so sánh và chọn cấu hình (bộ trọng số, công thức ScheduleFit); 3 seed còn lại (seed 3–5) chỉ dùng để báo cáo kết quả của cấu hình mặc định và cấu hình đã chọn. Tham số nhiễu, trọng số mặc định và cách tính chỉ số chốt trước khi chạy seed báo cáo.
 - **Phân tích độ nhạy của bộ trọng số (Sensitivity Analysis):** So sánh hiệu năng của 4 cấu hình trọng số:
   1. *Mặc định:* (0.55 Skill, 0.20 Level, 0.15 Schedule, 0.05 Mode, 0.05 Reputation)
   2. *Ưu tiên kỹ năng:* (0.65, 0.15, 0.10, 0.05, 0.05)
   3. *Ưu tiên lịch rảnh:* (0.50, 0.15, 0.25, 0.05, 0.05)
-  4. *Ưu tiên uy tín:* (0.45, 0.15, 0.15, 0.05, 0.20)
-- **So sánh công thức ScheduleFit** (với bộ trọng số mặc định): chia cho min (mặc định, 4.3), Jaccard (chia cho số khung của hợp hai lịch), và số khung trùng có trần $\min(\text{số khung trùng}, 3)/3$. Báo cáo thêm Precision@5, NDCG@5 riêng cho nhóm người khai ít khung (ví dụ ≤ 3 khung) để thấy họ có được lợi không công bằng không.
+  4. *Ưu tiên uy tín:* (0.45, 0.15, 0.15, 0.05, 0.20). Dữ liệu giả lập có Reputation = 0.5 cho mọi người, nên cấu hình này thực chất chỉ giảm tỷ trọng của các thành phần khác; Reputation không đánh giá được bằng nhãn trên dữ liệu giả lập (D67, rà soát R28). Ghi vào phần hạn chế.
+- **So sánh công thức ScheduleFit** (với bộ trọng số mặc định): chia cho min (mặc định, 4.3), Jaccard (chia cho số khung của hợp hai lịch), và số khung trùng có trần $\min(\text{số khung trùng}, 3)/3$. Hai công thức sau được tính lại trong module `evaluation` từ các thành phần điểm của lõi; lõi matching không đổi (D68). Báo cáo thêm Precision@5, NDCG@5 riêng cho nhóm người dùng có lịch tự khai từ 1 đến 3 khung, và tỷ lệ vị trí trong top 5 do ứng viên khai 1–3 khung chiếm, để thấy họ có được lợi không công bằng không (D70).
+- **Chọn cấu hình** (D69): theo NDCG@5 bản (2) của 5.3, trung bình trên seed 1–2, N = 500, nhiễu mặc định; chọn riêng bộ trọng số và công thức ScheduleFit; chênh dưới $10^{-9}$ thì giữ mặc định. Cấu hình đã chọn chỉ là kết quả báo cáo: trọng số và công thức mặc định của hệ thống không đổi trong tuần 5.
+- **Kiểm định** (D62): trên N = 500, nhiễu mặc định, seed 3–5, so P với B1 và với từng phương án bỏ thành phần, theo NDCG@5 và Precision@5 nghiêm ngặt của từng người: khoảng tin cậy 95% bằng bootstrap ghép cặp theo người dùng và p-value bằng kiểm định Wilcoxon theo cặp.
 - **Khảo sát người dùng thật:** Khảo sát 15–20 sinh viên chỉ là phần bổ trợ định tính nếu còn thời gian ở tuần 8–9; không phải điều kiện bắt buộc để hoàn thành MVP.
 
-### 5.5. Điểm còn mở (quyết định trước tuần 5)
+### 5.5. Các điểm từng mở (đã chốt hết)
 
-Các điểm dưới đây chưa ảnh hưởng tới tuần 3–4, nhưng phải chốt trước khi chạy thực nghiệm. Mã tham chiếu theo `de_xuat_sua_spec.md`.
+Các điểm dưới đây phải chốt trước khi chạy thực nghiệm; tất cả đã chốt ngày 2026-11-11 trong quyết định tuần 5 (lý do chọn ở `docs/tuan_5/Can_chot_truoc_tuan_5.md`). Mã tham chiếu theo `de_xuat_sua_spec.md`.
 
-| Mã | Câu hỏi cần trả lời |
-| --- | --- |
-| N6 | P có hai danh sách (hai chiều theo $MutualScore$, một chiều theo $D$), nhãn lại gán theo hướng "$u$ học từ $v$". Chỉ số đo trên danh sách nào, hay trộn hai danh sách thành một Top-5? |
-| C4 | IDCG@5 tính trên tập ứng viên nào (của từng phương án, hay tập chung của B1/P)? B0 và B1 có áp dụng lọc lịch rảnh và hình thức học không? |
-| C5 | **Đã chốt 2026-11-01:** lợi thế của P chỉ giảm được, không loại bỏ được. Nhãn tính trên giá trị thật, thuật toán thấy giá trị tự khai có nhiễu; chạy thêm mức không nhiễu, mốc ngẫu nhiên và bỏ từng thành phần; tách seed chọn cấu hình với seed báo cáo; RQ2 đổi sang mức đóng góp của từng tiêu chí; ghi giới hạn vào phần hạn chế (5.1, 5.2, 5.4). |
-| T3 | Nhãn 2 "hình thức học tương thích hoàn toàn": `ANY` + `ONLINE` có tính không; bên chưa khai báo xử lý thế nào? |
-| T5 | Precision@5 tính cả nhãn 1 nên dễ gần 1.0 với mọi phương án. Có nên chỉ tính nhãn 2, hoặc báo cáo thêm Precision@5 nghiêm ngặt? |
-| T6 | Dữ liệu giả lập có nên để một tỷ lệ người dùng chưa khai báo lịch/hình thức học, để đánh giá được nhánh giá trị trung tính 0.5? |
+| Mã | Câu hỏi | Đã chốt |
+| --- | --- | --- |
+| N6 | P có hai danh sách (hai chiều theo $MutualScore$, một chiều theo $D$), nhãn lại gán theo hướng "$u$ học từ $v$". Chỉ số đo trên danh sách nào? | Danh sách đúng như lõi trả về: nhóm hai chiều rồi nhóm một chiều, lấy 5 đầu (5.2, D56) |
+| C4 | IDCG@5 tính trên tập ứng viên nào? B0 và B1 có áp dụng lọc lịch rảnh và hình thức học không? | Tập lý tưởng trên giá trị thật, chung cho mọi phương án (5.3, D57). Mọi phương án dùng chung lọc lịch và hình thức (5.2) |
+| C5 | Nhãn và P dùng cùng loại thuộc tính, P có "thắng sẵn" không? | Chốt 2026-11-01: lợi thế của P chỉ giảm được, không loại bỏ được. Nhãn tính trên giá trị thật, thuật toán thấy giá trị tự khai có nhiễu; chạy thêm mức không nhiễu, mốc ngẫu nhiên và bỏ từng thành phần; tách seed chọn cấu hình với seed báo cáo; RQ2 đổi sang mức đóng góp của từng tiêu chí; ghi giới hạn vào phần hạn chế (5.1, 5.2, 5.4) |
+| T3 | Nhãn 2 "hình thức học tương thích hoàn toàn": `ANY` + `ONLINE` có tính không; bên chưa khai báo xử lý thế nào? | Bằng điều kiện $ModeFit = 1.0$ ở 4.3: `ANY` + `ONLINE` có tính; bên chưa khai báo thì không đạt (5.1, D53) |
+| T5 | Precision@5 tính cả nhãn 1 nên dễ gần 1.0 với mọi phương án | Giữ Precision@5 như cũ, thêm Precision@5 nghiêm ngặt; phân tích dựa vào bản nghiêm ngặt (5.3, D58) |
+| T6 | Dữ liệu giả lập có nên để một tỷ lệ người dùng chưa khai báo lịch/hình thức học? | Có: 15% không khai lịch, 15% không khai hình thức, để trống ở cả hai lớp (5.4, D53, D63) |
 
 ## 6. Quy tắc nghiệp vụ, trạng thái và phân quyền
 
@@ -424,9 +455,10 @@ Unit test được viết cùng lúc với phần code tương ứng, không ch�
    - Hai ứng viên bằng điểm (chênh lệch nhỏ hơn $10^{-9}$) được xếp theo mã người dùng tăng dần.
 
 4. **Kiểm thử Gán nhãn và Chỉ số đánh giá:**
-   - Mỗi cặp hợp lệ nhận đúng một nhãn theo thứ tự thác nước (5.1); có ca cho từng nhãn 0, 1, 2 và ca bị loại ở Bước 1.
-   - Precision@5 và NDCG@5 khớp ví dụ tính tay ở Phụ lục A.3; có ca ít hơn 5 ứng viên và ca $IDCG@5 = 0$.
-   - Cùng seed sinh ra cùng bộ dữ liệu (NFR-06).
+   - Mỗi cặp hợp lệ nhận đúng một nhãn theo thứ tự thác nước (5.1); có ca cho từng nhãn 0, 1, 2 và ca bị loại ở Bước 1; các ví dụ nhãn ở Phụ lục A.3.
+   - Nhãn tính trên giá trị thật: đổi giá trị tự khai mà giữ giá trị thật thì nhãn không đổi. Có ca mục tiêu bỏ trống, ca bên chưa khai báo lịch hoặc hình thức học, ca ứng viên có trong danh sách nhưng trượt Bước 1 thật ($rel = 0$).
+   - Precision@5 (cả bản nghiêm ngặt) và NDCG@5 khớp ví dụ tính tay ở Phụ lục A.3; có ca ít hơn 5 ứng viên, ca $IDCG@5 = 0$, ca tập lý tưởng lớn hơn danh sách và hai bản trung bình (5.3).
+   - Cùng seed sinh ra cùng bộ dữ liệu (NFR-06); không nhiễu thì giá trị tự khai bằng giá trị thật.
 
 5. **Kiểm thử Vòng đời phiên, Chuyển trạng thái bị cấm và Quyền truy cập** (các ca bị cấm trả về lỗi, không đổi dữ liệu):
    - Một bên bấm hoàn thành thì phiên chuyển sang `WAITING_CONFIRMATION`, bên kia xác nhận mới chuyển sang `COMPLETED`. Không tự động chuyển `CANCELLED` khi phát sinh bất đồng.
@@ -463,7 +495,7 @@ Kế hoạch này thống nhất với mục 7 của proposal; proposal ghi ở 
 | 2 | Thiết kế cơ sở dữ liệu, API, sơ đồ trạng thái và prototype giao diện. |
 | 3 | Đăng ký, xác thực email trường, đăng nhập (FR-01); hồ sơ gồm lịch rảnh và hình thức học (FR-02); khai báo kỹ năng (FR-03). Danh mục kỹ năng mẫu được nạp sẵn bằng migration để tuần 3–4 có dữ liệu trước khi làm màn hình quản trị. |
 | 4 | Hàm matching (lọc cứng, chấm điểm, phân loại hai chiều/một chiều) và **unit test nhóm 1–3** (FR-04); hồ sơ công khai và tìm kiếm (FR-10). |
-| 5 | Dữ liệu giả lập có nhãn, baseline B0/B1, đo Precision@5/NDCG@5/Coverage/latency, phân tích độ nhạy (FR-11). Chốt các điểm còn mở ở mục 5.5 trước khi chạy. Quản trị danh mục kỹ năng và quan hệ liên quan (FR-08, màn hình A01). |
+| 5 | Dữ liệu giả lập có nhãn, baseline B0/B1, đo Precision@5/NDCG@5/Coverage/latency, phân tích độ nhạy (FR-11). Các điểm mở ở mục 5.5 đã chốt ngày 2026-11-11 (quyết định tuần 5). Quản trị danh mục kỹ năng và quan hệ liên quan (FR-08, màn hình A01). |
 | 6 | Yêu cầu trao đổi kèm lịch đề xuất, vòng đời phiên, xác nhận hoàn thành, quyền xem liên hệ và địa điểm/link, gửi báo cáo sự cố (FR-05, FR-06, FR-09 phần người dùng). |
 | 7 | Đánh giá sau phiên và Reputation từ dữ liệu thật (FR-07); admin xử lý báo cáo sự cố (FR-09); khóa/mở khóa tài khoản (FR-08). Nếu kịp: lịch sử trao đổi (FR-14). |
 | 8 | Tích hợp, kiểm thử phân quyền/bảo mật, sửa lỗi và đo hiệu năng; khảo sát 15–20 sinh viên nếu còn thời gian. |
@@ -485,7 +517,7 @@ Lưu ý: Trọng số và ngưỡng trong tài liệu là cấu hình ban đầu
 
 ## Phụ lục A. Bảng tổng hợp các đại lượng và chỉ số
 
-Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và mục 5 để tra cứu nhanh. Nếu có khác biệt, nội dung ở mục 4 và mục 5 là chuẩn. Các ô đánh dấu ⚠ là chỗ spec **chưa định nghĩa đầy đủ**, xem mục 5.5 và [de_xuat_sua_spec.md](de_xuat_sua_spec.md).
+Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và mục 5 để tra cứu nhanh. Nếu có khác biệt, nội dung ở mục 4 và mục 5 là chuẩn. Các ô từng đánh dấu ⚠ (spec chưa định nghĩa đầy đủ) đã được chốt ngày 2026-11-11, xem mục 5.5.
 
 **Ký hiệu:** $u$ là người đang tìm (người học), $v$ là ứng viên (người dạy). $W_u$ là tập kỹ năng $u$ muốn học, $T_v$ là tập kỹ năng $v$ có thể dạy.
 
@@ -510,12 +542,14 @@ Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và
 
 | Chỉ số | Ý nghĩa | Cách tính | Miền giá trị | Lưu ý | Mục |
 | :--- | :--- | :--- | :---: | :--- | :---: |
-| **rel** (nhãn Ground Truth) | Đáp án đúng do quy tắc độc lập gán cho từng cặp ($u$ học từ $v$) | Theo thứ tự thác nước: loại cứng → nhãn 2 → nhãn 0 → nhãn 1, tính trên giá trị thật (thuật toán chỉ thấy giá trị tự khai) | {0, 1, 2} | Không dùng $D$ hay $MutualScore$ để gán nhãn. ⚠ Điều kiện "hình thức học tương thích hoàn toàn" của nhãn 2 chưa chốt (T3) | 5.1 |
-| **Precision@5** | Trong 5 gợi ý đầu, bao nhiêu phần là phù hợp | Số ứng viên có nhãn 1 hoặc 2 trong top 5, chia cho 5 | [0, 1] | Thiếu ứng viên thì vị trí trống tính là không phù hợp. ⚠ Đo trên danh sách nào (N6); có tính nhãn 1 không (T5) | 5.3 |
+| **rel** (nhãn Ground Truth) | Đáp án đúng do quy tắc độc lập gán cho từng cặp ($u$ học từ $v$) | Theo thứ tự thác nước: loại cứng → nhãn 2 → nhãn 0 → nhãn 1, tính trên giá trị thật (thuật toán chỉ thấy giá trị tự khai) | {0, 1, 2} | Không dùng $D$, $MutualScore$ hay thành phần điểm nào để gán nhãn. Ứng viên trong danh sách mà trượt Bước 1 thật có rel = 0 | 5.1 |
+| **Precision@5** | Trong 5 gợi ý đầu, bao nhiêu phần là phù hợp | Số ứng viên có nhãn 1 hoặc 2 trong top 5, chia cho 5 | [0, 1] | Thiếu ứng viên thì vị trí trống tính là không phù hợp. Danh sách của P: nhóm hai chiều rồi nhóm một chiều (5.2) | 5.3 |
+| **Precision@5 nghiêm ngặt** | Trong 5 gợi ý đầu, bao nhiêu phần là phù hợp cao | Số ứng viên có nhãn 2 trong top 5, chia cho 5 | [0, 1] | Chỉ số chính khi phân tích, vì nhãn 1 dễ làm Precision@5 gần 1 | 5.3 |
 | **DCG@5** | Tổng "giá trị" của top 5, ứng viên càng tốt và càng đứng đầu thì đóng góp càng nhiều | $\sum_{i=1}^{5} \dfrac{2^{rel_i} - 1}{\log_2(i+1)}$ | ≥ 0 | Nhãn 2 đóng góp gấp 3 lần nhãn 1 ở cùng vị trí | 5.3 |
-| **IDCG@5** | DCG lớn nhất có thể đạt được | DCG của danh sách đã sắp xếp lý tưởng theo nhãn giảm dần | ≥ 0 | ⚠ Chưa nói rõ sắp xếp lý tưởng trên tập ứng viên nào (C4) | 5.3 |
-| **NDCG@5** | Thứ tự xếp hạng gần với thứ tự lý tưởng tới mức nào | $DCG@5 / IDCG@5$ | [0, 1] | Nếu $IDCG@5 = 0$ thì quy ước bằng 0 và báo cáo số trường hợp | 5.3 |
+| **IDCG@5** | DCG lớn nhất có thể đạt được | DCG của danh sách đã sắp xếp lý tưởng theo nhãn giảm dần | ≥ 0 | Tập lý tưởng: mọi ứng viên qua Bước 1 của nhãn trên giá trị thật, chung cho mọi phương án | 5.3 |
+| **NDCG@5** | Thứ tự xếp hạng gần với thứ tự lý tưởng tới mức nào | $DCG@5 / IDCG@5$ | [0, 1] | Nếu $IDCG@5 = 0$ thì quy ước bằng 0 và báo cáo số trường hợp. Trung bình báo cáo hai bản: mọi người dùng, và chỉ người có ít nhất 2 mức nhãn | 5.3 |
 | **Coverage** | Bao nhiêu phần người dùng nhận được ít nhất một gợi ý | Số người dùng có ít nhất 1 ứng viên hợp lệ sau lọc cứng, chia cho tổng số người dùng đủ điều kiện | [0, 1] | Dùng để so sánh B0 với B1. P có cùng tập ứng viên với B1 nên không làm thay đổi Coverage | 5.2, 5.3 |
+| **Chỉ số bao phủ bổ sung** | Bao nhiêu phần người dùng có đủ lựa chọn | Tỷ lệ người có ≥ 5 ứng viên; tỷ lệ người có ≥ 1 ứng viên nhãn 2 trong danh sách | [0, 1] | Thêm vì Coverage dễ bằng 1 với cả B0 và B1 | 5.3 |
 | **Latency** | Tốc độ tạo gợi ý | Thời gian trung bình (ms) để tạo và xếp hạng tối đa 5 gợi ý cho một người dùng | ms | Ghi cấu hình máy và cách đo. Mục tiêu ≤ 2 giây trên 1.000 hồ sơ (NFR-03) | 5.3, 7 |
 
 ### A.3. Ví dụ tính tay
@@ -539,5 +573,23 @@ Phụ lục này tổng hợp lại các định nghĩa đã có ở mục 4 và
 - Thứ tự lý tưởng [2, 1, 0, 0, 0]: $IDCG@5 = 3 + \frac{1}{\log_2 3} \approx 3.631$
 - $NDCG@5 = 3.5 / 3.631 \approx 0.964$
 - $Precision@5 = 2 / 5 = 0.4$
+- Precision@5 nghiêm ngặt $= 1 / 5 = 0.2$ (chỉ ứng viên nhãn 2)
+- Ví dụ này giả định tập lý tưởng của $u$ chỉ gồm đúng 5 ứng viên trên. Nếu tập lý tưởng còn ứng viên nhãn 1 hoặc 2 khác (ví dụ bị lọc nhầm vì nhiễu), IDCG@5 lớn hơn và NDCG@5 nhỏ hơn (5.3).
+
+**Nhãn khi muốn học nhiều kỹ năng** (5.1). $u$ muốn học Java (mục tiêu 3) và SQL (mục tiêu 2), đã khai lịch, hình thức `ONLINE`. Trừ khi ghi khác, mỗi $v$ đã khai lịch, lịch thật trùng với $u$ đúng 2 khung, hình thức `ANY`. Cặp liên quan theo `V2__seed_skills.sql`: Java–Kotlin, SQL–MySQL.
+
+| Ứng viên | Dạy (trình độ thật) | Nhãn | Lý do |
+| :--- | :--- | :---: | :--- |
+| $v_1$ | Java (3) | 2 | Java trùng chính xác, đạt mục tiêu 3; lịch trùng 2 khung; `ONLINE` + `ANY` |
+| $v_2$ | Java (3), MySQL (1) | 2 | Java đủ điều kiện. MySQL thiếu 1 bậc không làm mất nhãn 2 (nếu đòi LevelFit = (1 + 0.5) / 2 = 0.75 bằng 1 thì chỉ được nhãn 1) |
+| $v_3$ | Kotlin (1), MySQL (3) | 1 | Chỉ có kỹ năng liên quan. Kotlin thấp hơn mục tiêu Java 2 bậc, nhưng MySQL đạt mục tiêu SQL, nên không phải mọi cặp đều thấp hơn từ 2 bậc |
+| $v_4$ | Kotlin (1) | 0 | Chỉ liên quan, và cặp duy nhất (Java–Kotlin) thấp hơn mục tiêu 2 bậc |
+| $v_5$ | Java (3), **chưa khai lịch** | 1 | Bước 1 không loại vì một bên chưa khai báo; nhãn 2 cần cả hai đã khai lịch |
+| $v_6$ | Java (tự khai 3, **thật 2**) | 1 | Nhãn dùng trình độ thật: 2 < 3. Thuật toán thấy trình độ 3 |
+| $v_7$ | Java (3), lịch thật trùng **1 khung** | 1 | Nhãn 2 cần ít nhất 2 khung trùng |
+| $v_8$ | Java (3), **chưa khai hình thức** | 1 | "Tương thích hoàn toàn" cần cả hai đã khai báo |
+| $v_9$ | Java (3), hình thức `OFFLINE` | Loại | Cả hai đã khai, `ONLINE` gặp `OFFLINE` |
+
+Nếu $u$ bỏ trống mục tiêu Java (giữ mục tiêu SQL), $v_1$ chỉ được nhãn 1: mục tiêu bỏ trống không tính là đạt.
 
 Các ví dụ này dùng được làm dữ liệu cho unit test ở tuần 4–5: kết quả tính tay phải khớp với kết quả code.

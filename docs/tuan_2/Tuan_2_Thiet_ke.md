@@ -353,7 +353,7 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 
 **Cách chạy matching:** với quy mô mục tiêu 1.000 hồ sơ (NFR-03), backend nạp kỹ năng, lịch rảnh và dữ liệu thô để tính Reputation (D43) của các người dùng `ACTIVE` có `role = STUDENT` vào bộ nhớ bằng vài truy vấn gộp, sau đó lọc và chấm điểm bằng Java. Cách này tránh truy vấn lặp cho từng ứng viên. Reputation tính trực tiếp từ dữ liệu, chưa cần bảng lưu đệm. Phần lọc và chấm điểm là một lõi thuần Java nhận dữ liệu trong bộ nhớ, không gọi Repository (chi tiết ở quyết định tuần 4, D34).
 
-**Dữ liệu giả lập cho thực nghiệm** (tuần 5) được sinh và đánh giá trong bộ nhớ bởi module `evaluation`, không ghi vào các bảng nghiệp vụ. Module này gọi cùng lõi matching với API, nên kết quả thực nghiệm đo đúng thuật toán đang chạy trong hệ thống.
+**Dữ liệu giả lập cho thực nghiệm** (tuần 5) được sinh và đánh giá trong bộ nhớ bởi module `evaluation`, không ghi vào các bảng nghiệp vụ. Module này gọi cùng lõi matching với API, nên kết quả thực nghiệm đo đúng thuật toán đang chạy trong hệ thống. Thực nghiệm không sửa lõi: B0, B1 và các công thức ScheduleFit khác được dựng từ đầu ra của lõi (quyết định tuần 5, D65, D68).
 
 **Dữ liệu khởi tạo:** danh mục 20–30 kỹ năng, các nhóm và quan hệ liên quan được nạp sẵn bằng migration Flyway (`V2__seed_skills.sql`), để tuần 3–4 có dữ liệu trước khi làm màn hình quản trị.
 
@@ -549,13 +549,18 @@ Backend kiểm tra khi tạo yêu cầu:
 | Phương thức | Đường dẫn | Quyền | Mô tả | FR |
 | --- | --- | --- | --- | --- |
 | POST | `/api/admin/skill-categories` | Admin | Thêm nhóm kỹ năng | FR-08 |
+| PUT | `/api/admin/skill-categories/{id}` | Admin | Đổi tên nhóm kỹ năng (rà soát R41) | FR-08 |
+| GET | `/api/admin/skills` | Admin | Mọi kỹ năng, kể cả bị ẩn, để hiện lại được (rà soát R41) | FR-08 |
 | POST | `/api/admin/skills` | Admin | Thêm kỹ năng | FR-08 |
 | PUT | `/api/admin/skills/{id}` | Admin | Sửa tên, nhóm, ẩn/hiện (`isActive`) | FR-08 |
+| GET | `/api/admin/skill-relations` | Admin | Danh sách cặp kỹ năng liên quan (rà soát R41) | FR-08 |
 | POST | `/api/admin/skill-relations` | Admin | Đánh dấu hai kỹ năng cùng nhóm là liên quan | FR-08 |
 | DELETE | `/api/admin/skill-relations/{aId}/{bId}` | Admin | Bỏ quan hệ liên quan | FR-08 |
 | GET | `/api/admin/reports?status=OPEN` | Admin | Hàng đợi báo cáo sự cố | FR-09 |
 | POST | `/api/admin/reports/{id}/resolve` | Admin | `{resolution: SESSION_COMPLETED \| SESSION_CANCELLED, note}`; chốt phiên tương ứng | FR-09 |
 | PUT | `/api/admin/users/{id}/status` | Admin | Khóa/mở khóa tài khoản (`ACTIVE` ↔ `LOCKED`) | FR-08 |
+
+Dạng body và response, cách kiểm tra trùng tên (không phân biệt hoa thường), mã lỗi và quy tắc "đổi nhóm khi kỹ năng còn quan hệ thì 409" của các API danh mục kỹ năng: quyết định tuần 5, D73–D75. Không có API xóa kỹ năng hay nhóm: kỹ năng chỉ bị ẩn.
 
 ### 4.10. Ma trận phân quyền rút gọn
 
@@ -670,6 +675,8 @@ flowchart TD
 
 Người dùng mới được dẫn qua S03 → S04 vì chưa có kỹ năng thì không có gợi ý.
 
+Luồng của admin không vẽ trong sơ đồ: admin đăng nhập xong vào thẳng A01; menu của admin chỉ có A01 (A02 thêm ở tuần 7). Sinh viên mở đường dẫn của admin thì bị chuyển về S03 (quyết định tuần 5, D76).
+
 ### 6.3. Bản phác thảo (wireframe) các màn hình chính
 
 **S05 – Gợi ý ghép cặp**
@@ -742,21 +749,21 @@ Cột "Kiểm thử" trỏ tới nhóm unit test ở spec mục 7.1 (N1–N5) ho
 | FR-05 Yêu cầu trao đổi | `exchange_requests` | `/requests*` | S06, S07, S08 | N5 | 6 |
 | FR-06 Phiên và xác nhận hoàn thành | `exchange_sessions` | `/sessions*` | S09 | N5 | 6 |
 | FR-07 Đánh giá | `reviews` | `/sessions/{id}/reviews`, `/users/{id}/reviews` | S09, S06 | N5 | 7 |
-| FR-08 Quản trị danh mục kỹ năng | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 | chưa có | 5 |
+| FR-08 Quản trị danh mục kỹ năng | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 | `tuan_5/kiem_thu` | 5 |
 | FR-08 Khóa/mở khóa tài khoản | `users.status` | `/admin/users/{id}/status` | chưa có màn hình (rà soát R41) | chưa có | 7 |
 | FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports` (tuần 6), `/admin/reports*` (tuần 7) | S09, A02 | N5 | 6, 7 |
 | FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills`, `user_availability` | `/users/search`, `/users/{id}` | S06, S10 | Ca riêng tư viết ở `tuan_4/kiem_thu` (quyết định tuần 4, D31) | 4 |
-| FR-11 Thực nghiệm | Không dùng bảng nghiệp vụ (chạy trong bộ nhớ) | – (module `evaluation`, chạy offline) | – | N4 | 5 |
+| FR-11 Thực nghiệm | Không dùng bảng nghiệp vụ (chạy trong bộ nhớ) | – (module `evaluation`, chạy offline) | – | N4, `tuan_5/kiem_thu` | 5 |
 | FR-12 Lọc theo hình thức học (nên có) | – | Lọc phía giao diện trên kết quả `/matches` | S05 | chưa có | 8 nếu kịp |
 | FR-13, FR-15, FR-16 (nên có) | Chưa thiết kế | – | – | – | 8 nếu kịp |
 | FR-14 Lịch sử trao đổi (nên có) | `exchange_requests`, `exchange_sessions` | Dùng lại `/requests`, `/sessions` | S08, S09 | chưa có | 7 nếu kịp |
 | FR-23 Quên mật khẩu (nên có) | `user_tokens` (`RESET_PASSWORD`) | Chưa thiết kế | – | – | 8 nếu kịp |
 | NFR-01 Bảo mật | `password_hash`, `user_tokens.token_hash` | JWT, kiểm tra quyền mọi API | – | `tuan_3/kiem_thu` nhóm C, N5 | 3 trở đi; kiểm thử tổng ở 8 |
 | NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ và địa điểm/link chỉ trả về trong `/me`, `/sessions/{id}`; email trường không có trong `/users/{id}` | S06, S09 | N5 | 4, 6 |
-| NFR-03 Hiệu năng | – | `/matches`, module `evaluation` | – | Đo thời gian (cách đo chốt ở rà soát R30) | 5, 8 |
+| NFR-03 Hiệu năng | – | `/matches`, module `evaluation` | – | Đo trong bộ nhớ ở tuần 5 (quyết định tuần 5, D61); end-to-end `/matches` ở tuần 8 (rà soát R30) | 5, 8 |
 | NFR-04 Tính đúng | – | Lõi matching | – | N2 | 4 |
 | NFR-05 Bảo trì | – | Tách lọc cứng và chấm điểm, trọng số tập trung | – | Xem xét code | 4 |
-| NFR-06 Tái lập thực nghiệm | – | Module `evaluation` | – | N4 | 5 |
+| NFR-06 Tái lập thực nghiệm | – | Module `evaluation` | – | N4, `tuan_5/kiem_thu` (quyết định tuần 5, D64) | 5 |
 | NFR-07 Khả năng triển khai | `docker-compose.yml` | – | – | Dựng lại từ repo theo README | 9 |
 | NFR-08 Tương thích nền tảng | – | – | Mọi màn hình | Kiểm tra thủ công 3 trình duyệt, rộng 360 px | 8 |
 | NFR-09 Khả năng sử dụng | – | Trường lý do trong `/matches` | S05 | chưa có | 4 |

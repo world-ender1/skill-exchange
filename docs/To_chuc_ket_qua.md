@@ -71,7 +71,11 @@ Mỗi thư mục trong `thuc_nghiem/ket_qua/` có:
 |---|---|
 | `README.md` | Lệnh đã chạy, seed, commit code, cấu hình máy (CPU, RAM; NFR-03 yêu cầu), thời gian chạy |
 | `metrics.csv` | Kết quả thô từng chỉ số |
+| `per_user.csv` | Chỉ số của từng người dùng, dùng cho kiểm định theo cặp |
+| `kiem_dinh.csv` | Khoảng tin cậy bootstrap và p-value Wilcoxon |
 | `log.txt` | Log lượt chạy |
+
+Cột của từng file, tên phương án, tên chỉ số và cách chạy: quyết định tuần 5, D71, D72.
 
 Lượt chạy hỏng vẫn giữ thư mục và ghi lý do hỏng trong `README.md`.
 

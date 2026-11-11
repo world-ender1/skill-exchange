@@ -12,6 +12,7 @@ Tài liệu dự án (đọc trước khi làm tính năng):
 - Kế hoạch 9 tuần: `docs/Skill_Exchange_Proposal_9_Tuan.md`
 - Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng, cách chạy test; D1–D30, D39–D42): `docs/tuan_3/Quyet_dinh_tuan_3.md`
 - Quyết định triển khai tuần 4 (matching, hồ sơ công khai, tìm kiếm; D31–D38, D43–D51): `docs/tuan_4/Quyet_dinh_tuan_4.md`
+- Quyết định triển khai tuần 5 (thực nghiệm, quản trị danh mục kỹ năng A01; D52–D77): `docs/tuan_5/Quyet_dinh_tuan_5.md`. Lý do chọn từng quyết định: `docs/tuan_5/Can_chot_truoc_tuan_5.md`
 - Ca kiểm thử viết trước từ tài liệu: `docs/tuan_<n>/kiem_thu/`
 - Rà soát toàn bộ tài liệu và các vấn đề còn chờ sửa theo đợt (R01–R56): `docs/ra_soat/Bao_cao_ra_soat.md`
 - `hoc_vibe_coding/` là tài liệu học, không phải code hay spec dự án.
@@ -22,6 +23,9 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 ## Quy tắc sửa tài liệu
 - Sửa ngược: khi thêm hoặc đổi một quy tắc ở tài liệu mới, grep mọi tài liệu cũ nhắc tới quy tắc đó và sửa trong cùng commit.
 - Trước khi code một tuần: viết ca kiểm thử từ tài liệu (như `docs/tuan_3/kiem_thu/ca_kiem_thu.md`). Chỗ nào chưa quy định rõ thì chốt vào tài liệu trước, rồi mới code.
+- Một quyết định chỉ coi là đã chốt khi nó cho ra đúng một cách làm. Gợi ý còn chữ "hoặc", còn nhiều phương án, hay dùng từ chưa định nghĩa (ví dụ "tương thích hoàn toàn", "chia đều") thì vẫn là câu hỏi mở. Khi tôi chốt hàng loạt "theo gợi ý", liệt kê riêng các mục loại này để hỏi lại, không ghi là đã chốt.
+- Thêm hoặc đổi một khái niệm (ví dụ "giá trị thật / giá trị tự khai"): grep cả các câu **trong cùng mục, cùng tài liệu** còn dùng cách hiểu cũ, không chỉ grep tài liệu cũ hơn.
+- Dời một việc sang tuần khác: dời luôn các mục phụ thuộc vào nó (quy tắc, API, mục rà soát liên quan) và sửa mọi chỗ ghi lịch của chúng trong cùng commit.
 
 ## Công nghệ
 - Backend: Java 21, Spring Boot 4.1, Maven wrapper, Spring Security, Spring Data JPA, Flyway, PostgreSQL 17
@@ -34,6 +38,8 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Test backend: `cd backend; .\mvnw.cmd test`
 - Một test: `.\mvnw.cmd test -Dtest=TenClassTest#tenPhuongThuc`
 - Chỉ test lõi matching (~20 giây, không cần DB): `.\mvnw.cmd -q -o test "-Dtest=com.skillexchange.matching.*Test,!MatchesApiTest"`
+- Chỉ test thực nghiệm (không cần DB): `.\mvnw.cmd -q -o test "-Dtest=com.skillexchange.evaluation.*Test"`
+- Chạy thực nghiệm (D71): `cd backend; .\mvnw.cmd -q compile; java -cp target/classes com.skillexchange.evaluation.EvaluationMain --giai-doan chon --ten <tên>`
 - Test `@SpringBootTest` chạy trên DB riêng `skillexchange_test` (D39), cần PostgreSQL đang chạy; tạo DB một lần: `docker compose exec db createdb -U skillexchange skillexchange_test`
 - Frontend: `cd frontend; npm run dev` (http://localhost:5173)
 - Build / lint frontend: `npm run build` (gồm `tsc -b`), `npm run lint`
@@ -51,6 +57,11 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Phần lõi của `matching/` là Java thuần: không import `org.springframework`, không gọi Repository (D34). `MatchingService`, `MatchingController`, `MatchingDataRepository` là lớp vỏ nối lõi với Spring
 - Test lõi là JUnit thuần, không `@SpringBootTest`; so số thực bằng dung sai 1e-9 (D36), ghi số mong đợi bằng biểu thức chứ không chép số đã làm tròn
 - Hook `.claude/hooks/run-matching-tests.mjs` tự chạy test lõi sau mỗi lần sửa file trong `matching/`. Hook báo đỏ thì đọc lỗi và sửa code trước khi làm tiếp; không sửa test cho xanh
+
+## Thực nghiệm (tuần 5)
+- `evaluation/` là Java thuần như lõi matching: không import `org.springframework`, không dùng DB (D71). Gọi lõi matching, **không sửa lõi** cho thực nghiệm: B0, B1 và công thức ScheduleFit khác dựng từ đầu ra của lõi (D65, D68)
+- Tái lập theo seed (D64): chỉ dùng `java.util.Random(seed)` theo các luồng đã chốt; không rút số ngẫu nhiên trong lúc duyệt `Set`/`Map` (thứ tự của `Set.copyOf` đổi giữa các lần chạy JVM)
+- Kết quả ở `thuc_nghiem/ket_qua/<ngày>_<tên>/`, mỗi lượt chạy một thư mục mới, không sửa hay xóa thư mục đã có (D72, `docs/To_chuc_ket_qua.md`). Mọi con số đưa vào báo cáo lấy từ `docs/ket_qua.md`
 
 ## Quy ước API (thiết kế tuần 2, mục 4.1)
 - REST JSON, tiền tố `/api`, xác thực `Authorization: Bearer <JWT>` (hạn 24 giờ, chưa có refresh token)

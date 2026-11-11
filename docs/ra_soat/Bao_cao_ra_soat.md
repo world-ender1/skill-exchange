@@ -603,7 +603,7 @@ Các mục còn lại (cột "Chốt: Duyệt") sẽ làm theo đề xuất nế
 1. **Đợt 1, ngay (chặn tuần 3):** R01–R17, R56. Sửa QĐ tuần 3 (thêm D25 trở đi), TK §4.2–4.3, §6.1, TC3, CLAUDE.md.
 2. **Đợt 2, trước tuần 4:** R18–R23, R46, R51, R55.
 3. **Đợt 3, trước tuần 5:** R24–R32. Đóng toàn bộ Spec §5.5.
-4. **Đợt 4, trước tuần 6:** R33–R45, R52–R54. Có thể gom vào "Quyết định tuần 6".
+4. **Đợt 4, trước tuần 6:** R33–R45, R52–R54. Có thể gom vào "Quyết định tuần 6". Phần danh mục kỹ năng của R41, R42 đã làm ở đợt 3 vì A01 dời lên tuần 5 (R46).
 5. **Đợt 5, trước tuần 8:** R47–R50.
 
 Mỗi mục được chốt: sửa tài liệu mới nhất, grep và sửa ngược mọi tài liệu cũ nhắc tới nó trong cùng commit.
@@ -612,9 +612,10 @@ Mỗi mục được chốt: sửa tài liệu mới nhất, grep và sửa ngư
 
 | Đợt | Trạng thái | Ghi chú |
 | --- | --- | --- |
-| 1 | Đã sửa 2026-10-29 | Quyết định tuần 3 (sửa D3, D4, D5, D7–D10, D13, D15, D16, D18, D19, D21, D24; thêm D25–D30), TK §4.1–4.4, §6.1 (S01, S02), §8 (G8, G9), ca kiểm thử tuần 3 (90 ca), CLAUDE.md, `.env.example`. **Còn mở:** ~~danh sách seed kỹ năng của D3 chưa duyệt~~ (đã duyệt ở `docs/tuan_3/ke_hoach_tuan_3.md`, nạp bằng `V2__seed_skills.sql`); thêm Mailpit vào `docker-compose.yml` làm khi code (R15). Phần R13 về tên kỹ năng trùng hoa thường dời sang tuần 7 (admin). Bổ sung sau: D18 thêm ngoại lệ `Clock` cho mốc thời gian của token (D7 cần đồng hồ giả lập khi test); 2026-10-31 thêm D39–D42 (DB test riêng, dạng và thứ tự danh sách trả về, `resend-verification` với email sai định dạng) và TC91–TC93 |
+| 1 | Đã sửa 2026-10-29 | Quyết định tuần 3 (sửa D3, D4, D5, D7–D10, D13, D15, D16, D18, D19, D21, D24; thêm D25–D30), TK §4.1–4.4, §6.1 (S01, S02), §8 (G8, G9), ca kiểm thử tuần 3 (90 ca), CLAUDE.md, `.env.example`. **Còn mở:** ~~danh sách seed kỹ năng của D3 chưa duyệt~~ (đã duyệt ở `docs/tuan_3/ke_hoach_tuan_3.md`, nạp bằng `V2__seed_skills.sql`); thêm Mailpit vào `docker-compose.yml` làm khi code (R15). Phần R13 về tên kỹ năng trùng hoa thường dời sang tuần 7 (admin), sau đó lên tuần 5 cùng A01 (quyết định tuần 5, D74). Bổ sung sau: D18 thêm ngoại lệ `Clock` cho mốc thời gian của token (D7 cần đồng hồ giả lập khi test); 2026-10-31 thêm D39–D42 (DB test riêng, dạng và thứ tự danh sách trả về, `resend-verification` với email sai định dạng) và TC91–TC93 |
 | 2 | Đã sửa 2026-10-29 | R18–R23, R46, R51, R55, cộng thêm R32 và R43 (unit test tuần 4 cần). Spec 4.1–4.4, 6.3, 7.1, 9 và phụ lục A.1; TK §2, 3.3, 3.5, 4.1, 4.3, 4.5, 4.6, 5.2, 6.1, 7, 8; tạo `docs/tuan_4/Quyet_dinh_tuan_4.md` (D31–D38); TC2 truy vấn C05/C06 (chạy lại 2026-10-29: 73/73 PASS); CLAUDE.md. **Không sửa** Proposal §7: đây là tài liệu đã nộp, phần điều chỉnh kế hoạch được ghi ở spec mục 9 |
-| 3–5 | Chưa sửa | R47 (deploy cloud) chưa có gợi ý, cần người dùng chọn |
+| 3 | Đã sửa 2026-11-11 | R24–R32 và các điểm mở ở Spec 5.5 (N6, C4, T3, T5, T6): tạo `docs/tuan_5/Quyet_dinh_tuan_5.md` (D52–D77); Spec 5.1–5.5, A.2, A.3, 7.1, 9; TK 3.5, 7; TCKQ §3.2; CLAUDE.md. Gợi ý ở §9 được viết từ 2026-10-29, trước quyết định C5 (2026-11-01); khi chốt, người dùng giao tiêu chí "ít ảnh hưởng nhất tới việc đã làm" (`docs/tuan_5/Can_chot_truoc_tuan_5.md`), nên vài mục khác bảng §9: **R24, R26** báo cáo hai bản (cách tính của spec giữ nguyên, thêm bản theo gợi ý; D58, D59); **R28** giữ cấu hình "Ưu tiên uy tín" và ghi rõ nó đo gì (nhánh thứ hai của gợi ý chi tiết; D67); **R31** chọn bootstrap + Wilcoxon + trung bình ± độ lệch chuẩn, giữ nguyên TCKQ:29 (D62); **R27** không sửa Prop:49, vì proposal là tài liệu đã nộp (D77). R25 giữ như gợi ý (D54). R13 (phần trùng tên kỹ năng), R41 (phần API danh mục kỹ năng) và R42 làm ở tuần 5 cùng A01 (D73–D75; TK 4.9, 6.2) |
+| 4–5 | Chưa sửa | R47 (deploy cloud) chưa có gợi ý, cần người dùng chọn. Phần kỹ năng của R13, R41, R42 đã làm ở đợt 3 |
 
 ---
 
