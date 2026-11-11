@@ -26,11 +26,15 @@ Quy ước chung:
 - **Tạo** trong `evaluation/`:
   - `SkillCatalog`: 6 nhóm, 26 kỹ năng, 9 cặp liên quan chép từ `V2__seed_skills.sql`; trả `List<SkillRelation>` để dựng `SkillSimilarity` của lõi.
   - Record `SimTeach(skillId, trueLevel, declaredLevel)`, `SimLearn(skillId, Integer target)`, `SimUser(id, teach, learn, trueSlots, declaredSlots, mode)`; `SimUser.toMatchProfile(catalog)` dựng `MatchProfile` từ giá trị **tự khai**, `ACTIVE`, `STUDENT`, Reputation 0.5.
-  - Enum `NoiseLevel` (`KHONG`, `MAC_DINH`, `CAO`) mang ba xác suất của spec 5.4.
+  - Record `NoiseLevel(ten, pLevel, pMiss, pExtra)` với ba hằng `KHONG`, `MAC_DINH`, `CAO` mang ba bộ xác suất của spec 5.4.
 - **Sửa:** `.claude/hooks/run-matching-tests.mjs` chạy thêm test `evaluation` khi sửa file trong `evaluation/`.
-- **Test:** `SkillCatalogTest`, `SimUserTest`.
+- **Test:** `SkillCatalogTest`, `SimUserTest`, `NoiseLevelTest`.
 - **Ca:** TC203, TC210.
 - **Chốt ở bước này:**
+  - `NoiseLevel` là record có ba hằng, không phải enum: TC206, TC207 cần mức (1, 0, 0) và (0, 1, 0) ngoài ba mức chuẩn. `ten` của ba hằng là giá trị cột `muc_nhieu` ở D72 (`khong`, `mac_dinh`, `cao`). Xác suất ngoài [0, 1] bị từ chối.
+  - `SkillCatalog.V2` là danh mục duy nhất, có `categories()`, `skills()` (mã, tên, nhóm), `relations()`, `nameOf(id)`, `idOf(tên)`; mã hoặc tên không có thì báo lỗi.
+  - TC203 so tên nhóm, tên kỹ năng và các cặp với chính file `V2__seed_skills.sql` (test đọc file từ classpath), không chỉ với danh sách chép tay, để bản chép trong `evaluation` không lệch V2 mà không ai biết.
+  - `SimUser` từ chối người có lịch ở một lớp mà lớp kia rỗng (D53: việc có khai lịch không có nhiễu); `SimTeach`, `SimLearn` từ chối trình độ, mục tiêu ngoài 1–4.
   - Mã kỹ năng trong dữ liệu giả lập là 1..26 theo thứ tự trong V2. Không cần khớp `id` của DB, vì `evaluation` không đọc DB.
   - Hình thức học chỉ có một trường (`null` = chưa khai), vì không có nhiễu và giống nhau ở hai lớp (D53). Chưa khai lịch thì `trueSlots`, `declaredSlots` đều rỗng; người có khai luôn có ít nhất 1 khung thật.
   - Các danh sách trong record là `List` có thứ tự cố định (D64); chỉ `toMatchProfile` mới đổi lịch sang `Set` cho lõi.

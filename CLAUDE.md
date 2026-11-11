@@ -56,7 +56,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 ## Lõi matching (tuần 4)
 - Phần lõi của `matching/` là Java thuần: không import `org.springframework`, không gọi Repository (D34). `MatchingService`, `MatchingController`, `MatchingDataRepository` là lớp vỏ nối lõi với Spring
 - Test lõi là JUnit thuần, không `@SpringBootTest`; so số thực bằng dung sai 1e-9 (D36), ghi số mong đợi bằng biểu thức chứ không chép số đã làm tròn
-- Hook `.claude/hooks/run-matching-tests.mjs` tự chạy test lõi sau mỗi lần sửa file trong `matching/`. Hook báo đỏ thì đọc lỗi và sửa code trước khi làm tiếp; không sửa test cho xanh
+- Hook `.claude/hooks/run-matching-tests.mjs` tự chạy test lõi sau mỗi lần sửa file trong `matching/`, và test `evaluation` sau mỗi lần sửa file trong `evaluation/` (từ tuần 5). Hook báo đỏ thì đọc lỗi và sửa code trước khi làm tiếp; không sửa test cho xanh
 
 ## Thực nghiệm (tuần 5)
 - `evaluation/` là Java thuần như lõi matching: không import `org.springframework`, không dùng DB (D71). Gọi lõi matching, **không sửa lõi** cho thực nghiệm: B0, B1 và công thức ScheduleFit khác dựng từ đầu ra của lõi (D65, D68)
