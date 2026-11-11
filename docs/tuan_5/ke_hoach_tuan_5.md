@@ -50,6 +50,21 @@ Quy ước chung:
   - Thứ tự rút số của luồng dữ liệu thật (`new Random(seed)`): hoán vị Zipf của 26 kỹ năng trước; sau đó từng người theo thứ tự sinh: số kỹ năng dạy, các kỹ năng dạy, trình độ thật từng kỹ năng, số kỹ năng học, các kỹ năng học, mục tiêu từng kỹ năng, có khai lịch không, số khung, các khung, có khai hình thức không, hình thức; cuối cùng xáo thứ tự để gán mã.
   - Luồng nhiễu (`new Random(seed + 1_000_000)`) duyệt người theo mã tăng dần; mỗi kỹ năng dạy rút **hai** số (có lệch không, lệch lên hay xuống), mỗi khung trong 21 khung theo thứ tự ngày rồi buổi rút **một** số, và mỗi người có khai lịch rút thêm **một** số để chọn khung giữ lại. Số được rút kể cả khi xác suất bằng 0 hoặc khi không cần dùng (giải quyết ⚠1 của bộ ca), để ba mức nhiễu dùng chung một dãy số.
   - Ở biên (trình độ 1 hoặc 4), số "lên hay xuống" vẫn được rút nhưng bị bỏ qua, hướng lệch là hướng duy nhất có thể.
+  - Cách rút từng loại trong luồng dữ liệu thật:
+    - Hoán vị Zipf: `Collections.shuffle(mã 1..26, random)`, hạng $r$ = vị trí + 1.
+    - Kỹ năng dạy: mỗi lần chọn rút một `nextDouble()` nhân tổng $1/r$ của các kỹ năng còn lại, duyệt các kỹ năng còn lại theo thứ tự hạng, lấy kỹ năng đầu tiên mà tổng cộng dồn vượt số đó.
+    - Chọn đều không lặp (kỹ năng học, khung giờ): `nextInt(số còn lại)` trên danh sách còn lại, xếp theo mã (kỹ năng) hoặc theo ngày rồi buổi (khung), rồi bỏ phần tử đã chọn.
+    - Số lượng: kỹ năng dạy `2 + nextInt(4)`, kỹ năng học `1 + nextInt(3)`, khung `3 + nextInt(7)`. Trình độ thật và mục tiêu: `1 + nextInt(4)`.
+    - Mục tiêu: `nextDouble() < 0.3` thì bỏ trống; chỉ rút trình độ mục tiêu khi không bỏ trống.
+    - Khai lịch, khai hình thức: `nextDouble() < 0.85`. Hình thức: `nextDouble()` < 0.35 là `ONLINE`, < 0.60 là `OFFLINE`, còn lại `ANY`. Người không khai thì không rút số khung, khung, hình thức.
+    - Xáo cuối: `Collections.shuffle(danh sách người, random)`, mã = vị trí + 1.
+  - Thứ tự trong danh sách của `SimUser`: kỹ năng dạy và học theo thứ tự đã rút; khung thật và khung tự khai xếp theo ngày rồi buổi.
+  - Chi tiết luồng nhiễu, với từng người:
+    - Từng kỹ năng dạy theo thứ tự trong danh sách: số thứ nhất `nextDouble() < pLevel` thì lệch; số thứ hai `nextDouble() < 0.5` thì lệch lên.
+    - Sau đó 21 số cho 21 khung. Số này rút cho **mọi** người; người không khai lịch bỏ qua kết quả (D53). Khung thật bị bỏ sót khi số < `pMiss`; khung không thật được thêm khi số < `pExtra`.
+    - Cuối cùng, người có khai lịch rút `nextInt(số khung thật)` để chọn khung giữ lại. Số này chỉ dùng khi lịch tự khai rỗng.
+  - So sánh dùng dấu `<`. Nhờ vậy mức nhiễu cao hơn chỉ thêm thay đổi: lệch hoặc sót ở mức mặc định thì cũng lệch hoặc sót ở mức cao (TC202).
+  - `n < 1` bị từ chối (`IllegalArgumentException`).
   - Không rút số ngẫu nhiên trong lúc duyệt `Set` (D64).
 - **Tự kiểm:** chạy `SyntheticDataGeneratorTest` hai lần bằng hai lệnh `mvnw` riêng (hai lần khởi động JVM), so dấu vân tay của bộ N = 100, seed 1 mà test in ra log: phải giống nhau. TC201 chạy trong một JVM nên không tự bắt được lỗi thứ tự của `Set.copyOf`.
 - **Commit:** `feat(evaluation): add synthetic data generator`
