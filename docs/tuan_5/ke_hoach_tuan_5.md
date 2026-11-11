@@ -77,6 +77,14 @@ Quy ước chung:
 - **Chốt ở bước này:**
   - Labeler chỉ đọc giá trị thật (trình độ thật, lịch thật) cùng kỹ năng, mục tiêu, hình thức. Không gọi `ScoreCalculator`, `HardFilter`, LevelFit hay bất kỳ hàm điểm nào (spec 5.1). Được dùng `SkillSimilarity` của lõi, vì đây là tra danh mục, không phải hàm điểm.
   - TC223 kiểm Bước 1 bằng code độc lập viết trong test, như TC141 của tuần 4.
+  - `GroundTruthLabeler` nhận `SkillSimilarity` qua constructor (dựng từ `SkillCatalog.V2.relations()`), giống `MatchingEngine`; `label(u, v)` là phương thức của đối tượng.
+  - Bước 1:
+    - "$v = u$" so theo mã.
+    - Không xét "chưa xác thực / bị khóa", vì mọi người giả lập là `ACTIVE`, `STUDENT` (spec 5.4).
+    - Chỉ ghép $W_u$ với $T_v$ (hướng $u$ học từ $v$), giống lọc cứng (3) của lõi.
+    - "Đã khai lịch" là lịch thật khác rỗng (theo D53, hai lớp cùng rỗng hoặc cùng có khung). "Đã khai hình thức" là `mode` khác `null`.
+  - `Relevance.LOAI.rel()` ném `IllegalStateException`: ứng viên bị loại không vào tập lý tưởng. Bước 4 tự đổi thành rel = 0 khi ứng viên có trong danh sách (D55).
+  - Thêm ca biên: Kotlin (2) với mục tiêu Java 3 (thấp hơn 1 bậc) là nhãn 1, không phải nhãn 0; $u$ chưa khai lịch thì không bị loại, nhãn tối đa 1.
 - **Tự kiểm:** đổi điều kiện nhãn 2 thành "mọi kỹ năng khớp đều đạt mục tiêu" thì TC212 phải đỏ; đọc trình độ tự khai thay vì thật thì TC216, TC222 phải đỏ.
 - **Commit:** `feat(evaluation): add ground-truth labeler`
 
