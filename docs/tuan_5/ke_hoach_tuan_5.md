@@ -90,10 +90,17 @@ Quy ước chung:
 
 ### Bước 4 – Chỉ số (TDD hai lượt; D57–D60; spec 5.3)
 
-- **Tạo:** `RankingMetrics` (hàm thuần trên danh sách rel và tập rel lý tưởng: `precisionAt5`, `strictPrecisionAt5`, `dcgAt5`, `idcgAt5`, `ndcgAt5`); `MetricSummary` gộp theo người dùng: hai bản trung bình (D59), số ca IDCG = 0, số người bị loại, Coverage và hai chỉ số bao phủ (D60).
+- **Tạo:** `RankingMetrics` (hàm thuần trên danh sách rel và tập rel lý tưởng: `relsInList`, `precisionAt5`, `strictPrecisionAt5`, `dcgAt5`, `idcgAt5`, `ndcgAt5`); `UserMetrics` (chỉ số của một người, một dòng `per_user.csv`); `MetricSummary` gộp theo người dùng: hai bản trung bình NDCG@5 (D59), số ca IDCG = 0, số người bị loại, Coverage và hai chỉ số bao phủ (D60).
 - **Test:** `RankingMetricsTest`, `MetricSummaryTest`.
 - **Ca:** TC224–TC230.
-- **Chốt ở bước này:** hàm chỉ số nhận số nguyên rel (0, 1, 2), không nhận `Relevance`, để test ghi thẳng ví dụ A.3. Ứng viên `LOAI` trong danh sách được đổi thành rel 0 trước khi gọi (D55).
+- **Chốt ở bước này:**
+  - Hàm chỉ số nhận số nguyên rel (0, 1, 2), không nhận `Relevance`, để test ghi thẳng ví dụ A.3. Ứng viên `LOAI` trong danh sách được đổi thành rel 0 trước khi gọi (D55) bằng `RankingMetrics.relsInList(List<Relevance>)`; TC228 kiểm qua hàm này.
+  - Đầu vào là `List<Integer>`. Danh sách: rel của **cả** danh sách ứng viên, theo thứ tự xếp hạng; Precision@5 và DCG@5 chỉ đọc 5 phần tử đầu. Tập lý tưởng: rel của mọi ứng viên trong tập lý tưởng, thứ tự không quan trọng; IDCG@5 xếp giảm dần rồi lấy 5 đầu. rel ngoài 0–2 bị từ chối (`IllegalArgumentException`).
+  - `ndcgAt5` từ chối (`IllegalArgumentException`) khi danh sách có nhiều ứng viên rel = $r$ hơn tập lý tưởng, với $r$ = 1 hoặc 2: ứng viên có rel > 0 đã qua Bước 1 thật nên phải có trong tập lý tưởng. Nhờ vậy NDCG@5 ≤ 1, và bước 7 ghép nhầm danh sách với tập lý tưởng thì báo lỗi ngay.
+  - Record `UserMetrics.of(userId, listRels, idealRels)` tính chỉ số của một người, có đủ cột của `per_user.csv` (D72): `so_ung_vien` = số phần tử của danh sách; `so_muc_nhan_ly_tuong` = số giá trị rel khác nhau trong tập lý tưởng (0–3). `MetricSummary.of(List<UserMetrics>)` gộp lại. Danh sách truyền vào chỉ gồm người dùng đủ điều kiện (bước 7 lọc); danh sách rỗng bị từ chối.
+  - Precision@5 (cả hai bản), Coverage và hai chỉ số bao phủ lấy trung bình trên mọi người dùng đủ điều kiện; số ca IDCG@5 = 0 cũng đếm trên mọi người. Chỉ NDCG@5 có hai bản, vì R24 chỉ nói về NDCG và D72 chỉ có `ndcg_at_5_tat_ca`, `ndcg_at_5_loai_suy_bien`. Q8 của `Can_chot_truoc_tuan_5.md` hỏi cả Precision lẫn NDCG; theo thứ bậc, quyết định D72 đúng, và D59, spec 5.3 đã ghi rõ phạm vi. Bản (2) gồm người có `so_muc_nhan_ly_tuong` ≥ 2; người bị loại gồm cả người có tập lý tưởng rỗng.
+  - Không còn ai thuộc bản (2) thì NDCG@5 bản (2) là `NaN`, số người tính = 0: giá trị "không xác định", không bị đọc nhầm thành điểm thấp. Code trả `NaN` bằng một nhánh riêng, không để phép chia 0/0 tự sinh. NFR-04 (không `NaN`) nói về điểm của lõi matching, không áp dụng cho số gộp này.
+  - Cộng theo đúng thứ tự danh sách người dùng truyền vào (xếp theo mã), để số thực giống nhau giữa các lần chạy (D64).
 - **Tự kiểm:** dùng $\log_2(i)$ thay vì $\log_2(i+1)$ thì TC224 phải đỏ; IDCG tính trên danh sách thay vì tập lý tưởng thì TC226 phải đỏ.
 - **Commit:** `feat(evaluation): add ranking metrics`
 
