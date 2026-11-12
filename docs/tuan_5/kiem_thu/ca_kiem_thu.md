@@ -175,3 +175,4 @@ Danh mục ban đầu là của `V2__seed_skills.sql`.
 | ⚠1 | Quy tắc "nhiễu xóa hết lịch thì giữ lại một khung thật" cần một số ngẫu nhiên để chọn khung. D64 yêu cầu luôn rút đủ số cho mọi phần tử, nhưng chưa nói số này có rút cho mọi người có khai lịch hay chỉ khi cần | TC202, TC207 | TC202 chỉ so trình độ giữa các mức nhiễu, không so lịch. Chốt ở kế hoạch tuần 5, bước 2 |
 | ⚠2 | Câu chữ `detail` tiếng Việt của các lỗi API danh mục kỹ năng chưa quy định | TC252–TC261 | Các ca chỉ so mã lỗi và `errors[].field`. Chốt câu chữ ở kế hoạch tuần 5, bước 9 |
 | ⚠3 | `GET /api/admin/skills` xếp theo `name` bằng collation của PostgreSQL (như D40) | TC251 | So thứ tự giữa các tên không dấu, như D41 |
+| ⚠4 | "R với seed 2" có thể hiểu là bộ dữ liệu seed 2 (tập ứng viên khác hẳn, so thứ tự vô nghĩa) hay chỉ luồng R seed 2 | TC239 | Cả ba lượt dùng cùng bộ dữ liệu seed 1, chỉ đổi seed của luồng R. Chốt ở kế hoạch tuần 5, bước 6 (phát hiện khi code) |

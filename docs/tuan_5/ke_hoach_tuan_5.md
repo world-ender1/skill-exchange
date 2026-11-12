@@ -124,10 +124,16 @@ Quy ước chung:
 - **Tạo:**
   - `WeightSets`: 3 bộ bỏ thành phần (D66), 4 bộ độ nhạy (spec 5.4), có tên khớp `phuong_an` của D72.
   - Enum `ScheduleFitFormula` (`MIN`, `JACCARD`, `TRAN_3`) và `Rescorer`: tính lại ScheduleFit, $D$, MutualScore từ `ScoreBreakdown` của lõi và lịch tự khai của hai bên, dựng `MatchResult` mới, xếp lại từng nhóm bằng `RankingComparator` (D68).
-  - `Rankers`: `b0`, `b1`, `random`, `p(weights, formula)`, mỗi hàm nhận người gọi và danh sách hồ sơ, trả danh sách ứng viên đã xếp (D56, D65).
+  - `Rankers`: `b0`, `b1`, `random`, `p(weights, formula)`, mỗi hàm trả một `Ranker` (interface: nhận người gọi và danh sách hồ sơ, trả danh sách ứng viên đã xếp) (D56, D65).
 - **Test:** `WeightSetsTest`, `RescorerTest`, `RankersTest`.
 - **Ca:** TC234–TC243.
-- **Chốt ở bước này:** B0, B1 tạo `MatchingEngine` riêng với bộ trọng số (1, 0, 0, 0, 0); B0 dùng `new SkillSimilarity(List.of())`. Một `MatchingEngine` cho mỗi cấu hình, tạo một lần và dùng lại cho mọi người dùng.
+- **Chốt ở bước này:**
+  - B0, B1 tạo `MatchingEngine` riêng với bộ trọng số (1, 0, 0, 0, 0); B0 dùng `new SkillSimilarity(List.of())`. Một `MatchingEngine` cho mỗi cấu hình, tạo một lần và dùng lại cho mọi người dùng.
+  - Thêm interface `Ranker`: `rank(caller, profiles)` trả `List<Long>` mã ứng viên đã xếp, **đủ cả danh sách** (không cắt 5), vì `so_ung_vien` và tỷ lệ có nhãn 2 (D60) đọc cả danh sách. `new Rankers(relations)`; mỗi hàm `b0()`, `b1()`, `random(seed)`, `p(weights, formula)` tạo engine một lần và trả một `Ranker`. Bước 7 gọi mỗi hàm một lần cho mỗi cấu hình, đo latency (D61) quanh `rank`.
+  - `p(weights, MIN)` trả đúng kết quả lõi, không qua `Rescorer`: khớp chữ "đúng như lõi trả về" của D56, và latency của P đo đúng lõi (D61). `JACCARD`, `TRAN_3` mới qua `Rescorer`; TC242 (a) vẫn kiểm `Rescorer` với `MIN`.
+  - R: danh sách của B1 xếp theo `userId` tăng dần, rồi `Collections.shuffle(ids, new Random(seed + 2_000_000 + caller.userId()))` (D64); `seed` là seed của bộ dữ liệu, Random tạo mới cho từng người gọi. TC239 dùng cùng bộ dữ liệu seed 1, nhiễu mặc định cho cả ba lượt, chỉ đổi seed của R, để "khác thứ tự" không đến từ dữ liệu khác.
+  - `Rescorer` tính ScheduleFit cho từng chiều theo đúng vai trò người học, người dạy (ba công thức đều đối xứng nên hai chiều bằng nhau), rồi tính $D$ theo đúng thứ tự cộng của `ScoreCalculator.breakdown`. Không tìm thấy hồ sơ của một ứng viên trong danh sách: lỗi (`IllegalArgumentException`).
+  - `WeightSets`: record `Named(phuongAn, weights)`. Bộ mặc định dùng chính `MatchingWeights.DEFAULT`; ba bộ bỏ thành phần ghi số như D66, có test đối chiếu với quy tắc chia đều từ bộ mặc định.
 - **Tự kiểm:** `git diff --stat -- backend/src/main/java/com/skillexchange/matching` rỗng; bỏ bước xếp lại sau khi tính lại điểm thì TC243 phải đỏ.
 - **Commit:** `feat(evaluation): add baselines and ranker variants`
 
