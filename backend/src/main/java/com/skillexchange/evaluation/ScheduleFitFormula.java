@@ -13,15 +13,36 @@ import com.skillexchange.matching.Slot;
  */
 public enum ScheduleFitFormula {
     /** Số khung trùng / số khung của bên ít khung hơn: công thức của lõi (spec 4.3). */
-    MIN,
+    MIN("min"),
     /** Số khung trùng / số khung của hợp hai lịch. */
-    JACCARD,
+    JACCARD("jaccard"),
     /** min(số khung trùng, 3) / 3: trùng từ 3 khung trở lên là đủ. */
-    TRAN_3;
+    TRAN_3("tran3");
 
     /** Chưa khai lịch thì trung tính, như lõi (spec 4.3). */
     private static final double UNDECLARED = 0.5;
     private static final int CAP = 3;
+
+    private final String ten;
+
+    ScheduleFitFormula(String ten) {
+        this.ten = ten;
+    }
+
+    /** Tên trong tham số --schedule (D71) và trong phuong_an P_sf_<ten> (D72). */
+    public String ten() {
+        return ten;
+    }
+
+    /** Ngược của ten(); tên lạ thì IllegalArgumentException kèm danh sách tên hợp lệ. */
+    public static ScheduleFitFormula fromTen(String ten) {
+        for (ScheduleFitFormula formula : values()) {
+            if (formula.ten.equals(ten)) {
+                return formula;
+            }
+        }
+        throw new IllegalArgumentException("Công thức ScheduleFit không hợp lệ: " + ten + " (min | jaccard | tran3)");
+    }
 
     public double scheduleFit(Set<Slot> learnerSlots, Set<Slot> teacherSlots) {
         // Kiểm trước khi chia: hai tập rỗng thì min, hợp đều bằng 0.
