@@ -109,7 +109,13 @@ Quy ước chung:
 - **Tạo:** `PairedStatistics`: `wilcoxon(double[] diffs)` trả `n`, $W^+$, `z`, `p` hoặc kết quả "không có cặp khác nhau"; `bootstrapMeanCi(double[] diffs, int times, Random random)`.
 - **Test:** `PairedStatisticsTest`.
 - **Ca:** TC231–TC233.
-- **Chốt ở bước này:** $\Phi$ tính bằng xấp xỉ hàm `erf` của Abramowitz–Stegun 7.1.26 (sai số dưới $1.5 \times 10^{-7}$), đủ cho dung sai $10^{-3}$ của TC231–TC232; không thêm thư viện thống kê.
+- **Chốt ở bước này:**
+  - $\Phi$ tính bằng xấp xỉ hàm `erf` của Abramowitz–Stegun 7.1.26 (sai số dưới $1.5 \times 10^{-7}$), đủ cho dung sai $10^{-3}$ của TC231–TC232; không thêm thư viện thống kê. $p = 2(1 - \Phi(|z|))$ nên sai số tuyệt đối của $p$ cũng dưới $1.5 \times 10^{-7}$; báo cáo ghi $p < 10^{-6}$ thay vì số nhỏ hơn. `PairedStatistics.standardNormalCdf` để mức package cho test kiểm vài giá trị đã biết của $\Phi$.
+  - `wilcoxon` trả `Optional<WilcoxonResult>` (record `n`, `wPlus`, `z`, `p`); `Optional.empty()` là "không có cặp khác nhau", nên bước 7 buộc phải xử lý trường hợp này, không có `NaN`. `z` giữ dấu: dương khi $W^+$ lớn hơn kỳ vọng, tức phần tử thứ nhất của hiệu (P trong "P − B1") tốt hơn.
+  - **Hạng bằng nhau dùng dung sai $10^{-9}$**, cùng ngưỡng bỏ hiệu 0: xếp giá trị tuyệt đối tăng dần; một nhóm bằng nhau gồm phần tử đầu nhóm và mọi phần tử kế tiếp lệch nó dưới $10^{-9}$ (so với phần tử đầu nhóm, không so nối tiếp). Lý do: trong `double`, `0.6 - 0.4` = 0.19999999999999996 ≠ 0.2, mà hiệu Precision@5 luôn là bội của 0.2; so bằng `==` sẽ tách các hạng bằng nhau và làm sai $W^+$, hiệu chỉnh hạng bằng nhau.
+  - Mẫu số $\sqrt{n(n+1)(2n+1)/24 - \sum (t^3 - t)/48}$ luôn dương khi $n \ge 1$ (trường hợp xấu nhất, mọi hiệu bằng nhau, còn $3n(n+1)^2/48$), nên không cần nhánh riêng.
+  - Bootstrap dùng **mọi** hiệu, kể cả hiệu bằng 0 (D62 chỉ bỏ hiệu 0 ở Wilcoxon), vì nó lấy mẫu lại người dùng. Thứ tự rút (D64): lần lặp 1..`times`, mỗi lần rút $n$ chỉ số `random.nextInt(n)` liên tiếp, cộng theo thứ tự rút rồi chia $n$. Xếp `times` giá trị trung bình tăng dần; cận dưới là phần tử thứ $\lceil 0.025 \cdot times \rceil$, cận trên thứ $\lceil 0.975 \cdot times \rceil$ (đếm từ 1), tính bằng số nguyên để không lệch vì làm tròn số thực. Trả record `ConfidenceInterval(low, high)`.
+  - Hiệu chứa `NaN` hoặc vô cực: cả hai hàm từ chối (`IllegalArgumentException`). Bootstrap với mảng rỗng hoặc `times < 1`: từ chối. Wilcoxon với mảng rỗng: "không có cặp khác nhau".
 - **Tự kiểm:** quên hiệu chỉnh hạng bằng nhau thì TC232 (a) phải đỏ.
 - **Commit:** `feat(evaluation): add paired statistics`
 
