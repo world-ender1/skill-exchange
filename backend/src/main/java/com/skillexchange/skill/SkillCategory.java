@@ -24,6 +24,18 @@ public class SkillCategory {
     protected SkillCategory() {
     }
 
+    /** Nhóm mới (A01, D73). name đã được cắt khoảng trắng và kiểm trùng ở service. */
+    public static SkillCategory create(String name) {
+        SkillCategory category = new SkillCategory();
+        category.name = name;
+        return category;
+    }
+
+    /** Đổi tên. Không cần gọi save(): Entity đang được quản lý, Hibernate tự UPDATE khi commit. */
+    public void rename(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }

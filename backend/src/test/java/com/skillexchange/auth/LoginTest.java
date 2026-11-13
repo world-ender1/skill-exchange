@@ -112,7 +112,7 @@ class LoginTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("D14 vé của admin có role = ADMIN và qua được cổng /api/admin/** (đường dẫn chưa có nên 404, không phải 403)")
+    @DisplayName("D14 vé của admin có role = ADMIN và qua được cổng /api/admin/** (GET /api/admin/skills: 200)")
     void adminTokenHasAdminRole() throws Exception {
         User user = createUser("ACTIVE");
         jdbcTemplate.update("UPDATE users SET role = 'ADMIN' WHERE id = ?", user.getId());
@@ -120,8 +120,9 @@ class LoginTest extends IntegrationTestBase {
         String token = accessTokenOf(login(EMAIL, PASSWORD));
 
         assertThat(jwtDecoder.decode(token).getClaimAsString("role")).isEqualTo("ADMIN");
+        // Trước tuần 5 đường dẫn này chưa có nên mong 404; từ bước 9 tuần 5 API có thật, mong 200.
         mockMvc.perform(get("/api/admin/skills").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 
     @Test

@@ -24,4 +24,20 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
             """)
     List<Skill> findActive(@Param("categoryId") Long categoryId,
                            @Param("namePattern") String namePattern);
+
+    /** Mọi kỹ năng kể cả bị ẩn, cho màn hình quản trị A01 (D73). Cùng thứ tự với findActive. */
+    @Query("""
+            SELECT s FROM Skill s
+            JOIN FETCH s.category
+            ORDER BY s.name, s.id
+            """)
+    List<Skill> findAllWithCategory();
+
+    /** Số kỹ năng KHÁC exceptId có cùng tên, so không phân biệt hoa thường (D74; xem SkillCategoryRepository). */
+    @Query("""
+            SELECT COUNT(s) FROM Skill s
+            WHERE LOWER(s.name) = LOWER(:name)
+              AND (:exceptId IS NULL OR s.id <> :exceptId)
+            """)
+    long countSameName(@Param("name") String name, @Param("exceptId") Long exceptId);
 }

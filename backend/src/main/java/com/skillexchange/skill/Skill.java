@@ -36,6 +36,24 @@ public class Skill {
     protected Skill() {
     }
 
+    /** Kỹ năng mới, đang hoạt động (A01, D73). name đã được cắt khoảng trắng và kiểm trùng ở service. */
+    public static Skill create(SkillCategory category, String name) {
+        Skill skill = new Skill();
+        skill.category = category;
+        skill.name = name;
+        return skill;
+    }
+
+    /**
+     * Sửa cả ba trường cùng lúc, vì PUT /api/admin/skills/{id} bắt buộc gửi đủ ba (D73).
+     * Luật "đang có quan hệ thì không đổi nhóm" (D74) kiểm ở service, nơi đọc được skill_relations.
+     */
+    public void update(String name, SkillCategory category, boolean active) {
+        this.name = name;
+        this.category = category;
+        this.active = active;
+    }
+
     public Long getId() {
         return id;
     }

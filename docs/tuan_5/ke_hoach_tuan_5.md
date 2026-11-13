@@ -198,6 +198,18 @@ Quy ước chung:
   - `skill_relations` đọc ghi bằng `JdbcTemplate` thay vì Entity: bảng chỉ có hai cột khóa, và `MatchingDataRepository` đã đọc bảng này bằng SQL thuần, nên không có hai cách đọc cùng một bảng. Lệnh thêm dùng `LEAST/GREATEST` như V2.
   - Câu `detail` (giải quyết ⚠2 của bộ ca): "Tên kỹ năng đã tồn tại", "Tên nhóm kỹ năng đã tồn tại", "Không tìm thấy kỹ năng", "Không tìm thấy nhóm kỹ năng", "Không tìm thấy quan hệ liên quan", "Hai kỹ năng phải khác nhau", "Hai kỹ năng phải cùng nhóm", "Hai kỹ năng đã được đánh dấu liên quan", "Kỹ năng đang có quan hệ liên quan, hãy gỡ quan hệ trước khi đổi nhóm".
   - So tên không phân biệt hoa thường bằng `lower(name)` trong SQL; `name` mới cắt bằng `strip()` (D15).
+    `lower()` theo `LC_CTYPE` của DB: DB của dự án tạo bằng `en_US.utf8` nên `lower('DỮ LIỆU') = 'dữ liệu'`; DB tạo với `C` thì chỉ đổi chữ ASCII.
+  - Câu `message` trong `errors[]` (400 theo trường): `name` rỗng "Tên không được để trống", dài "Tên dài tối đa 100 ký tự"; thiếu `categoryId` "Chưa chọn nhóm kỹ năng"; thiếu `isActive` "Thiếu trạng thái hiện/ẩn"; thiếu `skillAId`/`skillBId` "Chưa chọn kỹ năng". Hai mã bằng nhau và khác nhóm là 400 chỉ có `detail` (không thuộc một trường).
+  - Thứ tự kiểm cụ thể (D74: 400 → 404 → 409):
+    - `PUT /skills/{id}`: dữ liệu sai → `{id}` không có → `categoryId` không có → trùng tên → đổi nhóm khi có quan hệ.
+    - `POST /skill-relations`: dữ liệu sai → hai mã bằng nhau → mã không có (xét `skillAId` trước) → khác nhóm → đã có. "Khác nhóm" là 400 nhưng xét sau 404 vì phải đọc được hai kỹ năng mới biết nhóm.
+  - `DELETE /skill-relations/{a}/{a}` (hai mã bằng nhau) trả 404 như mọi cặp không có: DELETE không có body để kiểm, quy tắc "hai mã bằng nhau 400" của D74 dành cho lệnh thêm.
+  - `POST` trả 201 không có header `Location`, như `POST /api/auth/register`.
+  - `GlobalExceptionHandler` không cần sửa: lưới `DataIntegrityViolationException` → 409 đã có từ tuần 3 (D24, `ErrorHandlingTest`). Lỗi `UNIQUE` lúc `INSERT` nổ ở `save()`; lúc đổi tên nổ khi commit; cả hai đều ra 409.
+  - Test gửi mã lớn trước khi cần "thứ tự ngược" (TC258, TC260), tính từ DB chứ không ghi cứng: id do V2 sinh không theo thứ tự khai báo (trên DB test Java = 6, Kotlin = 5, nên `/{Kotlin}/{Java}` lại là thứ tự đã lưu). Sửa ngược câu chữ TC258, TC260.
+  - Trả danh mục về như cũ (D39): `@BeforeEach` chụp `skill_categories`, `skills`, `skill_relations`; `@AfterEach` xóa dữ liệu người dùng, xóa kỹ năng và nhóm mới, ghi lại tên, nhóm, `is_active` và quan hệ cũ, đặt lại bộ đếm `IDENTITY`. Lớp `admin/CatalogSnapshot` trong test.
+  - TC250 với admin đòi mã 2xx (chặt hơn "không phải 401/403" của ca): khi API chưa có, admin nhận 404, cũng "không phải 401/403", nên test sẽ xanh từ trước khi viết code.
+  - Test tuần 3 `LoginTest.adminTokenHasAdminRole` (D14) mong `GET /api/admin/skills` trả 404 "vì đường dẫn chưa có"; bước này tạo API nên đổi mong đợi thành 200 (người học duyệt ngày 2026-11-14). Mục đích của test không đổi: vé admin qua được cổng `/api/admin/**`.
 - **Tự kiểm:** ghi lệnh thử vào `hoc_vibe_coding/http/tuan_5.http`; đăng nhập admin, gọi `GET /api/admin/skills` thấy 26 kỹ năng; sinh viên gọi nhận 403.
 - **Commit:** `feat(admin): add skill catalog management API`
 
