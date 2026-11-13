@@ -1,0 +1,16 @@
+04:20:39 Bắt đầu giai đoạn chon, seed [1, 2]
+04:20:39 seed 1, N = 500, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.2 giây
+04:20:39   P [CHI_SO]: 0.4 giây
+04:20:39   P_w_ky_nang [CHI_SO]: 0.2 giây
+04:20:40   P_w_lich [CHI_SO]: 0.2 giây
+04:20:40   P_w_uy_tin [CHI_SO]: 0.2 giây
+04:20:40   P_sf_jaccard [CHI_SO]: 0.2 giây
+04:20:40   P_sf_tran3 [CHI_SO]: 0.3 giây
+04:20:40 seed 2, N = 500, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.1 giây
+04:20:41   P [CHI_SO]: 0.2 giây
+04:20:41   P_w_ky_nang [CHI_SO]: 0.2 giây
+04:20:41   P_w_lich [CHI_SO]: 0.2 giây
+04:20:41   P_w_uy_tin [CHI_SO]: 0.2 giây
+04:20:42   P_sf_jaccard [CHI_SO]: 0.4 giây
+04:20:42   P_sf_tran3 [CHI_SO]: 0.8 giây
+04:20:42 Xong
