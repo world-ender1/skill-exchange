@@ -165,7 +165,7 @@ Quy ước chung:
 
 ### Bước 8 – Chạy thật và lưu kết quả (D69, D72; `docs/To_chuc_ket_qua.md`)
 
-- **Tạo:** `.claude/hooks/protect-results.mjs` (PreToolUse cho Write, Edit, Bash): chặn ghi vào file đã có trong `thuc_nghiem/ket_qua/` và lệnh xóa, di chuyển thư mục này; đăng ký trong `.claude/settings.json`. Thư mục `thuc_nghiem/ket_qua/`.
+- **Tạo:** `.claude/hooks/protect-results.mjs` (PreToolUse cho Write, Edit, Bash, PowerShell): chặn ghi vào mọi file trong `thuc_nghiem/ket_qua/` và lệnh xóa, di chuyển, ghi đè thư mục này; đăng ký trong `.claude/settings.json`. `.claude/hooks/thu-protect-results.mjs` (bảng ca thử hook). Thư mục `thuc_nghiem/ket_qua/`.
 - **Chạy:**
   1. Giai đoạn chọn: `--giai-doan chon --ten chon-cau-hinh`.
   2. Đọc NDCG@5 bản (2), ghi cấu hình đã chọn vào D69 (bổ sung), commit.
@@ -173,8 +173,17 @@ Quy ước chung:
   4. Giai đoạn báo cáo: `--giai-doan bao-cao --ten bao-cao --trong-so <…> --schedule <…>`.
   5. Tạo `docs/ket_qua.md` theo mẫu `docs/To_chuc_ket_qua.md` §3.1: mỗi con số kèm file nguồn, commit, ngày.
 - **Ca:** TC247–TC249.
+- **Chốt ở bước này:**
+  - **Hook, công cụ:** matcher thêm `PowerShell`, vì Claude Code trên máy này có cả công cụ PowerShell; chỉ chặn Bash thì `Remove-Item` vẫn xóa được.
+  - **Hook, Write/Edit:** chặn mọi `file_path` nằm trong `thuc_nghiem/ket_qua/` (sau khi đổi `\` thành `/`, rút gọn `..`, không phân biệt hoa thường), **kể cả file chưa có**. File ở đây chỉ do `EvaluationMain` tạo: AI tự viết file vào là thêm số không truy được về lượt chạy nào, còn thêm file vào thư mục đã có là sửa thư mục đó (CLAUDE.md). Sửa ngược D72 (trước ghi "file có sẵn").
+  - **Hook, lệnh shell:** chặn khi lệnh nhắc tới `thuc_nghiem` và có lệnh xóa, di chuyển, chép, ghi (`rm`, `mv`, `cp`, `del`, `Remove-Item`, `Move-Item`, `Copy-Item`, `Set-Content`, `Out-File`, `git rm`…), chuyển hướng `>`/`>>` vào `thuc_nghiem`, sửa tại chỗ (`sed -i`), `find … -delete`, hoặc hàm xóa/ghi của Python, Node (`shutil.rmtree`, `os.remove`, `rmSync`…). Luôn chặn `git clean` (trừ `-n`, `--dry-run`) và `git stash -u`/`-a`, kể cả khi lệnh không nhắc tên thư mục, vì kết quả chưa commit là file chưa theo dõi. Cho qua: lệnh chỉ đọc (`ls`, `cat`, `sed -n`, `Get-Content`, `Import-Csv`), `git add`, `git commit`, chạy `EvaluationMain` (chương trình tự từ chối thư mục đã có, D72).
+  - **Hook, cách báo:** chặn thì thoát 2, lý do ở stderr (Claude Code bỏ lời gọi công cụ và đưa lý do cho AI); không chặn thì thoát 0. Hook so chuỗi lệnh, không hiểu shell đầy đủ, nên không chặn được mọi cách (script để trong file riêng tự mở file để ghi; xóa thư mục cha như cả repo). Giới hạn này ghi ở đầu file hook. Bị chặn nhầm (ví dụ chép file kết quả ra ngoài) thì đọc bằng công cụ Read.
+  - **Thử hook:** `node .claude/hooks/thu-protect-results.mjs` chạy bảng ca (công cụ, đầu vào → chặn hay cho qua); đường dẫn có `\` dựng bằng `String.fromCharCode(92)` (`docs/harness-log.md`).
+  - **D69, cách lấy trung bình:** trung bình cộng hai giá trị `ndcg_at_5_loai_suy_bien` của seed 1 và seed 2 trong `metrics.csv` (không gia trọng theo `so_nguoi_tinh`), cùng cách lấy trung bình trên seed của bảng chính (D62). Bộ trọng số: so `P`, `P_w_ky_nang`, `P_w_lich`, `P_w_uy_tin`; công thức: so `P`, `P_sf_jaccard`, `P_sf_tran3`. Hơn `P` dưới $10^{-9}$ thì giữ mặc định; hai phương án khác mặc định lệch nhau dưới $10^{-9}$ thì lấy phương án đứng trước theo thứ tự trên. Bảng chọn ghi 6 chữ số thập phân.
+  - **Commit thư mục thô:** thư mục giai đoạn chọn commit cùng D69, để commit gắn tag `v1.0-thuc-nghiem` chứa số liệu đã dùng để chọn; thư mục giai đoạn báo cáo commit cùng `docs/ket_qua.md`.
+  - **`docs/ket_qua.md`:** số của seed báo cáo ghi trung bình ± độ lệch chuẩn mẫu (chia $k - 1$) của 3 giá trị seed 3–5 trong `metrics.csv` (D62); latency chỉ đo ở seed 3 nên ghi một giá trị; kiểm định chép từ `kiem_dinh.csv`. Làm tròn: chỉ số dạng tỷ lệ, hiệu và khoảng tin cậy 4 chữ số thập phân; số đếm 1 chữ số; latency 3 chữ số (ms); $z$ 2 chữ số; $p$ 4 chữ số, nhỏ hơn 0.0001 ghi `< 0.0001`. Dấu chấm thập phân như các tài liệu khác; seed nào `NaN` thì ô ghi `NaN`. Mỗi bảng ghi nguồn, commit, ngày ở dòng ngay trên bảng, vì mọi số trong một bảng lấy từ cùng một file (mẫu ở TCKQ §3.1 lặp ba cột này ở mọi dòng). Các bảng: chọn cấu hình (seed 1–2), (a) bảng chính, kiểm định D62, (b) quy mô, (c) mức nhiễu, (d) nhóm khai ít khung, (e) latency.
 - **Tự kiểm:** con số trong `docs/ket_qua.md` khớp `metrics.csv`; `git tag` có `v1.0-thuc-nghiem`.
-- **Commit:** `chore: add hook protecting experiment results`; `docs: record chosen configuration (D69)`; `docs: add experiment results`. Thư mục kết quả thô commit cùng `docs/ket_qua.md`.
+- **Commit:** `chore: add hook protecting experiment results`; `docs: record chosen configuration (D69)` (cùng thư mục giai đoạn chọn); `docs: add experiment results` (cùng thư mục giai đoạn báo cáo).
 
 ### Bước 9 – API danh mục kỹ năng (D73–D75; TK 4.9)
 

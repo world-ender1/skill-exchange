@@ -61,7 +61,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 ## Thực nghiệm (tuần 5)
 - `evaluation/` là Java thuần như lõi matching: không import `org.springframework`, không dùng DB (D71). Gọi lõi matching, **không sửa lõi** cho thực nghiệm: B0, B1 và công thức ScheduleFit khác dựng từ đầu ra của lõi (D65, D68)
 - Tái lập theo seed (D64): chỉ dùng `java.util.Random(seed)` theo các luồng đã chốt; không rút số ngẫu nhiên trong lúc duyệt `Set`/`Map` (thứ tự của `Set.copyOf` đổi giữa các lần chạy JVM)
-- Kết quả ở `thuc_nghiem/ket_qua/<ngày>_<tên>/`, mỗi lượt chạy một thư mục mới, không sửa hay xóa thư mục đã có (D72, `docs/To_chuc_ket_qua.md`). Mọi con số đưa vào báo cáo lấy từ `docs/ket_qua.md`
+- Kết quả ở `thuc_nghiem/ket_qua/<ngày>_<tên>/`, mỗi lượt chạy một thư mục mới, không sửa hay xóa thư mục đã có (D72, `docs/To_chuc_ket_qua.md`). Hook `.claude/hooks/protect-results.mjs` chặn Write/Edit vào đây và lệnh shell xóa, di chuyển, ghi đè thư mục này; bị chặn thì báo tôi, không tìm cách lách. Mọi con số đưa vào báo cáo lấy từ `docs/ket_qua.md`
 
 ## Quy ước API (thiết kế tuần 2, mục 4.1)
 - REST JSON, tiền tố `/api`, xác thực `Authorization: Bearer <JWT>` (hạn 24 giờ, chưa có refresh token)
