@@ -13,6 +13,9 @@ const WRITING_COMMANDS = new Set([
   'remove-item', 'ri', 'del', 'erase', 'rd', 'move-item', 'mi', 'move', 'rename-item', 'rni', 'ren', 'rename',
   'copy-item', 'cpi', 'copy', 'xcopy', 'robocopy', 'new-item', 'ni', 'clear-item', 'cli',
   'set-content', 'sc', 'add-content', 'ac', 'clear-content', 'clc', 'out-file', 'tee-object',
+  // Ghi file qua tùy chọn đầu ra hoặc giải nén (review tuần 5). Như cp, bị chặn cả khi chỉ đọc từ thuc_nghiem
+  // (ví dụ tar -c thuc_nghiem): chặn nhầm một lệnh hiếm còn hơn để lọt một lệnh ghi đè.
+  'export-csv', 'epcsv', 'expand-archive', 'unzip', 'tar', 'curl', 'wget', 'invoke-webrequest', 'iwr',
 ])
 
 // Dấu hiệu ghi hoặc xóa không nằm ở tên lệnh.
@@ -25,7 +28,7 @@ const WRITING_PATTERNS = [
   /\bopen\([^)]*,\s*['"][wax]/i,
   /\.write_(text|bytes)\s*\(/i,
   /\b(rm|rmdir|unlink|rename|writeFile|appendFile|copyFile|cp)(Sync)?\s*\(/i,
-  /\[System\.IO\.(File|Directory)\]::(Delete|Move|Copy|Write|Append)/i,
+  /\[(System\.)?IO\.(File|Directory)\]::(Delete|Move|Copy|Write|Append)/i, // [IO.File]:: cũng là System.IO.File
 ]
 
 // "git [tùy chọn chung như -C <thư mục>] clean|stash": tùy chọn chung đứng giữa git và lệnh con.

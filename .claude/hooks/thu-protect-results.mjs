@@ -70,6 +70,16 @@ const CASES = [
   ['PowerShell', { command: `Get-Content ${rel('thuc_nghiem', 'ket_qua', 'a', 'metrics.csv')} -TotalCount 5` }, QUA],
   ['PowerShell', { command: `Import-Csv ${rel('thuc_nghiem', 'ket_qua', 'a', 'metrics.csv')} | Where-Object chi_so -eq 'coverage'` }, QUA],
 
+  // Lọt qua bản đầu của hook, tìm ra khi review độc lập tuần 5 (README kiểm thử tuần 5)
+  ['PowerShell', { command: `Import-Csv ${rel('thuc_nghiem', 'ket_qua', 'a', 'metrics.csv')} | Export-Csv -Path ${rel('thuc_nghiem', 'ket_qua', 'a', 'metrics.csv')}` }, CHAN],
+  ['PowerShell', { command: `[IO.File]::WriteAllText('thuc_nghiem/ket_qua/a/README.md', 'x')` }, CHAN],
+  ['PowerShell', { command: `Expand-Archive x.zip -DestinationPath ${rel('thuc_nghiem', 'ket_qua', 'a')} -Force` }, CHAN],
+  ['PowerShell', { command: `Invoke-WebRequest http://example.invalid/x -OutFile ${rel('thuc_nghiem', 'ket_qua', 'a', 'metrics.csv')}` }, CHAN],
+  ['Bash', { command: 'curl -o thuc_nghiem/ket_qua/a/metrics.csv http://example.invalid/x' }, CHAN],
+  ['Bash', { command: 'wget -O thuc_nghiem/ket_qua/a/metrics.csv http://example.invalid/x' }, CHAN],
+  ['Bash', { command: 'unzip -o x.zip -d thuc_nghiem/ket_qua/a' }, CHAN],
+  ['Bash', { command: 'tar -xf x.tar -C thuc_nghiem/ket_qua/a' }, CHAN],
+
   // Công cụ khác không xét
   ['Read', { file_path: abs('thuc_nghiem', 'ket_qua', RUN, 'README.md') }, QUA],
 ]
