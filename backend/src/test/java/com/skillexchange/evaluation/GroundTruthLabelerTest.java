@@ -184,6 +184,22 @@ class GroundTruthLabelerTest {
         assertThat(labeler.label(U, kotlinTwo)).isEqualTo(NHAN_1);
     }
 
+    /**
+     * TC212 có một kỹ năng trùng chính xác (Java) và một kỹ năng liên quan (MySQL). Ca này có HAI kỹ năng
+     * trùng chính xác, một đạt một không: bắt bản sai "mọi kỹ năng trùng chính xác phải đạt mục tiêu",
+     * bản sai mà TC212 và TC223 không bắt (README kiểm thử tuần 5, mục "Làm hỏng code").
+     * (b) đảo thứ tự học để kỹ năng không đạt (SQL) được xét trước: bắt bản sai "chỉ xét kỹ năng trùng đầu tiên".
+     */
+    @Test
+    @DisplayName("D54 v dạy Java (3), SQL (1), cả hai trùng chính xác: nhãn 2, một kỹ năng đạt là đủ dù kỹ năng kia thấp hơn mục tiêu; (b) u học SQL trước Java: vẫn nhãn 2")
+    void d54_oneExactSkillMeetingTargetIsEnoughAmongExactMatches() {
+        SimUser javaMeetsSqlBelow = candidate(24, same(JAVA, 3), same(SQL, 1));
+        SimUser uSqlFirst = learner(List.of(new SimLearn(SQL, 2), new SimLearn(JAVA, 3)), U_SLOTS, ONLINE);
+
+        assertThat(labeler.label(U, javaMeetsSqlBelow)).as("(a)").isEqualTo(NHAN_2);
+        assertThat(labeler.label(uSqlFirst, javaMeetsSqlBelow)).as("(b)").isEqualTo(NHAN_2);
+    }
+
     @Test
     @DisplayName("D53 u chưa khai lịch, v1: không bị loại, nhãn 1 vì nhãn 2 cần cả hai đã khai lịch")
     void d53_learnerWithoutScheduleIsNotExcluded() {
