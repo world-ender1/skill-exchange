@@ -121,7 +121,22 @@ Chạy lại 2026-11-14 bằng script: thay đúng một đoạn code, chạy l�
 
 ## Đối chiếu code với quyết định (D52–D77)
 
-Bảng dưới là truy vết quyết định → ca và test. **Chưa làm** lượt review độc lập (đọc code đối chiếu từng câu của quyết định) như tuần 4.
+Ba lượt review độc lập (phiên AI riêng, chỉ đọc, không được đưa kết luận của người chạy) đối chiếu code với từng câu của quyết định và phần "Chốt ở bước này" của kế hoạch, chia theo: (1) sinh dữ liệu, gán nhãn, chỉ số, kiểm định (D53–D55, D57–D60, D62–D64); (2) phương án, cách chạy, kết quả (D56, D61, D65–D72, phần D62, D64 ở `ExperimentRunner`); (3) phạm vi, API, giao diện (D52, D73–D76). D77 không có code. Mọi chỗ lệch được mở code hoặc chạy thử lại trước khi xử lý.
+
+| Kết quả | Quyết định | Xử lý |
+| --- | --- | --- |
+| Khớp | D52, D53, D54, D55, D56, D57, D58, D59, D60, D63, D65, D66, D67 (phần code), D68, D69, D70, D71, D73, D75, D76; D62, D64 ở đường chạy chính | – |
+| Tài liệu chưa theo kịp code (không đổi số liệu) | D64: "mức nhiễu cao hơn chỉ thêm thay đổi" sai với khung giữ lại khi nhiễu xóa hết lịch (đo lại: 4 trên 4224 người có khai lịch, seed 1–5, N = 1000); "kỹ năng theo thứ tự của V2" khác cách chọn theo hạng Zipf của kế hoạch bước 2 | Sửa D64, kế hoạch bước 2; comment `SyntheticDataGenerator` – `7e625a5` |
+| Tài liệu chưa theo kịp code (không đổi số liệu) | D61: "cho từng phương án" trong khi kế hoạch (e) và code đo B0, B1, R, P; "B0, B1 … gần P" sai với B0 (0.671 so với 1.258 ms); ô latency cũng là ô chỉ số nên có thêm một lượt chạy trước lượt làm nóng | Sửa D61, kế hoạch bước 7; câu ghi chú latency trong `README.md` do `ResultWriter` sinh – `7e625a5` |
+| Tài liệu chưa theo kịp code (không đổi số liệu) | D62, trường hợp biên chưa xảy ra: kế hoạch ghi "các cột số để trống" khi không có người nào, code và test ghi `so_cap` = 0, `n_wilcoxon` = 0 | Sửa kế hoạch bước 7 |
+| Tài liệu chưa theo kịp code | D74: "hai mã bằng nhau 400" chưa nói chỉ áp dụng cho lệnh thêm (`DELETE` trả 404 theo kế hoạch bước 9); trỏ D15 thay vì D16. Kế hoạch bước 9 vừa ghi sửa vừa ghi không sửa `GlobalExceptionHandler`. TK 6.1, §7 ghi thiếu đường dẫn API của A01 | Sửa D74, kế hoạch bước 9, TK 6.1, §7 |
+| Code lệch ở trường hợp biên | D72: hook `protect-results` cho lọt 7 lệnh ghi (`Export-Csv`, `[IO.File]::`, `curl -o`, `wget -O`, `unzip -d`, `tar -C`, `Expand-Archive`); đã thử bằng cách đưa JSON vào hook | Bịt, thêm 8 ca vào bảng thử, 55/55 đúng – `fafa779`; sửa kế hoạch bước 8 |
+| Code lệch ở trường hợp biên | D72: `README.md` của lượt chạy chỉ ghi khi đóng file; tiến trình bị dừng ngang (Ctrl+C) thì không có `README.md` | Giữ code đã gắn tag `v1.0-thuc-nghiem`; sửa D72 và `docs/To_chuc_ket_qua.md`: thiếu `README.md` là dấu hiệu lượt chạy dở |
+| Sai trong chính README này | Bản đầu ghi vi phạm `UNIQUE` đồng thời "chỉ kiểm bằng đọc code", trong khi đã có test `d74_concurrentCreateGivesConflictNotServerError` | Sửa README và `ca_kiem_thu.md` |
+
+Ghi chú, không phải lệch: spec 5.4 ghi seed 3–5 chỉ dùng cho cấu hình mặc định và cấu hình đã chọn, còn D70 (d) chạy thêm `P_sf_jaccard` ở seed 3–5 (chỉ chỉ số `_it_khung`); theo thứ bậc tài liệu thì D70 đúng, kế hoạch bước 7 đã giải thích. Phần "báo cáo ghi" của D56, D66, D67 kiểm khi viết báo cáo tuần 5. Các tình huống đồng thời và trường hợp biên khác review tìm ra ghi ở "Giới hạn".
+
+### Truy vết quyết định → ca, test
 
 | Quyết định | Kiểm bằng |
 | --- | --- |
@@ -146,7 +161,7 @@ Bảng dưới là truy vết quyết định → ca và test. **Chưa làm** l�
 | D71 cách chạy | TC247 (2 test + thủ công); 6 test D71; không import Spring |
 | D72 định dạng kết quả | TC244–TC246, TC248; 8 test D72 |
 | D73 API | TC250–TC255, TC258–TC260; 1 test D73 |
-| D74 kiểm dữ liệu, mã lỗi | TC252–TC258, TC261; 4 test D74. Vi phạm `UNIQUE` khi hai request cùng lúc: chỉ kiểm bằng đọc code (`ca_kiem_thu.md`, "Không kiểm ở tuần 5") |
+| D74 kiểm dữ liệu, mã lỗi | TC252–TC258, TC261; 4 test D74, trong đó `d74_concurrentCreateGivesConflictNotServerError` cho năm request cùng lúc thêm "Rust" (một 201, bốn 409, không 500; không ép được lần nào cũng tranh chấp). Đổi tên cùng lúc chỉ kiểm bằng đọc code |
 | D75 kỹ năng bị ẩn | TC251, TC255, TC258 |
 | D76 giao diện A01 | TC262–TC264 (thủ công) |
 | D77 không sửa báo cáo cũ | Không phải code; nằm ở báo cáo tuần 5 |
@@ -158,7 +173,7 @@ TC262–TC264 chạy bằng Chrome headless điều khiển qua DevTools Protoco
 | Ca | Kết quả |
 | --- | --- |
 | TC247 – sửa tạm một file trong `backend/`, chạy `--giai-doan bao-cao` | Đạt (14/11/2026). Sửa tạm `backend/.gitattributes`: giai đoạn báo cáo thoát mã 1, "Dừng: backend/ có thay đổi chưa commit; commit hết rồi chạy lại (D71)", không tạo thư mục (`--out` trỏ vào thư mục tạm). Giai đoạn chọn vẫn chạy, `README.md` ghi "có" thay đổi chưa commit. Trả file về, `backend/` sạch |
-| TC248 – hook chặn sửa, xóa thư mục kết quả | Đạt (14/11/2026) bằng `.claude/hooks/thu-protect-results.mjs`: **47/47 ca** đúng (Write, Edit, Bash, PowerShell; chặn ghi, xóa, di chuyển, `git clean`, `git stash -u`; cho qua đọc, commit và lệnh chạy thực nghiệm). Script đưa JSON giả vào hook, không chạy lệnh xóa thật. Thư mục mới vẫn tạo được: hai lượt chạy của bước 8 tạo sau commit thêm hook (`4d4bc65`) |
+| TC248 – hook chặn sửa, xóa thư mục kết quả | Đạt bằng `.claude/hooks/thu-protect-results.mjs`: lượt đầu (14/11/2026) 47/47 ca đúng; review độc lập tìm ra 7 lệnh ghi lọt qua, bịt ở `fafa779`, bảng thử nay **55/55 ca** đúng (Write, Edit, Bash, PowerShell; chặn ghi, xóa, di chuyển, `git clean`, `git stash -u`; cho qua đọc, commit và lệnh chạy thực nghiệm). Script đưa JSON giả vào hook, không chạy lệnh xóa thật. Thư mục mới vẫn tạo được: hai lượt chạy của bước 8 tạo sau commit thêm hook (`4d4bc65`) |
 | TC249 – latency ở lượt chạy báo cáo | Đạt: N = 1000 có `latency_tb_ms`, `latency_p95_ms` > 0 cho `B0`, `B1`, `R`, `P` (D70 e); `P` trung bình 1.258 ms ≤ 2000 ms. `README.md` của lượt chạy ghi CPU, RAM. Số ở `docs/ket_qua.md`, bảng 7 |
 | TC262 – admin, sinh viên đăng nhập | Đạt (14/11/2026). Admin vào `/admin/skills`, menu chỉ có "Danh mục kỹ năng" và "Đăng xuất", trang hiện 26 kỹ năng, 9 cặp. Sinh viên vào `/profile`, menu 4 mục như cũ. Ảnh `tc262_admin_a01_1280.png` |
 | TC263 – gõ đường dẫn của vai trò khác | Đạt (14/11/2026). Admin gõ `/matches`, `/profile`, `/skills`, `/search`, `/users/1`, `/`, `/abc`, `/login`, `/admin/khong-co` đều về `/admin/skills`. Sinh viên gõ `/admin/skills`, `/admin/khong-co`, `/`, `/login` đều về `/profile`. Sinh viên tự gọi `GET /api/admin/skills` nhận 403; chưa đăng nhập gõ `/admin/skills` về `/login` |
@@ -166,9 +181,13 @@ TC262–TC264 chạy bằng Chrome headless điều khiển qua DevTools Protoco
 
 ## Giới hạn
 
-- Chưa review độc lập code với D52–D77; mới có bảng truy vết.
 - Frontend chưa có test tự động. A01 kiểm bằng một script chạy một lần, script không lưu trong repo. Ở frontend, kiểu TypeScript là lưới an toàn duy nhất.
 - D71 xét `git status` của `backend/`, nên file bị `.gitignore` không được tính, kể cả `target/classes`. Sửa code, biên dịch, rồi trả mã nguồn về mà không biên dịch lại thì giai đoạn báo cáo vẫn chạy với lớp đã biên dịch từ code đã sửa. Cách chạy của D71 luôn `.\mvnw.cmd -q compile` trước nên tránh được, nhưng chương trình không tự kiểm.
-- Vi phạm `UNIQUE` khi hai request thêm cùng tên đúng một lúc chỉ kiểm bằng đọc code.
+- Vi phạm `UNIQUE` khi thêm cùng tên đúng một lúc có test nhưng không ép được tranh chấp xảy ra mỗi lần; đổi tên cùng lúc chỉ kiểm bằng đọc code.
+- Hai tình huống đồng thời D74 không bảo đảm (review độc lập; chấp nhận vì chỉ có một admin, xem lại ở tuần 8): "Rust" và "rust" thêm cùng lúc có thể cùng nhận 201, vì `UNIQUE` của DB phân biệt hoa thường và D74 chọn không thêm migration; đổi nhóm một kỹ năng và thêm quan hệ cho nó cùng lúc có thể tạo quan hệ khác nhóm, DB không có ràng buộc chặn.
+- Độ dài tên đếm bằng `String.length()` (đơn vị UTF-16): ký tự ngoài BMP như emoji tính là 2, nên 51 emoji đã bị coi là quá 100 ký tự. Giống `fullName` (D16).
+- Tên có ký tự NUL: suy từ cách các thư viện đổi lỗi thì ra 409 "Dữ liệu xung đột" thay vì 400; chưa chạy thử.
+- So tên không phân biệt hoa thường với chữ có dấu dựa vào `LC_CTYPE` của DB (`en_US.utf8` trên máy dev); cần kiểm lại ở môi trường deploy tuần 8 (kế hoạch bước 9).
+- Hook `protect-results` so chuỗi trên cả lệnh, nên chặn nhầm cả commit message hay heredoc có tên thư mục kết quả cùng một tên lệnh ghi (gặp hai lần khi review). Cách tránh ghi ở kế hoạch bước 8.
 - Latency đo trong bộ nhớ, một seed, một máy; chưa đo end-to-end `GET /api/matches` trên 1.000 hồ sơ trong DB (tuần 8, D61).
 - Chưa đo độ phủ mã (coverage).

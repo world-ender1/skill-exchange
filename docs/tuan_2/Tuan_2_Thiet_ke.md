@@ -653,7 +653,7 @@ stateDiagram-v2
 | S08 | Hộp yêu cầu | Tab Đã nhận / Đã gửi; nút Chấp nhận, Từ chối, Hủy | `/requests` |
 | S09 | Phiên của tôi và chi tiết phiên | Trạng thái, liên hệ bên kia, nút Bắt đầu / Hoàn thành / Hủy / Báo cáo / Đánh giá | `/sessions`, `/sessions/{id}/*` |
 | S10 | Tìm kiếm | Tìm theo kỹ năng dạy và/hoặc tên | `/users/search`, `/skills` |
-| A01 | Quản trị danh mục kỹ năng | Bảng kỹ năng theo nhóm; thêm/sửa/ẩn; quản lý quan hệ liên quan | `/admin/skills*` |
+| A01 | Quản trị danh mục kỹ năng | Bảng kỹ năng theo nhóm; thêm/sửa/ẩn; quản lý quan hệ liên quan | `/admin/skills*`, `/admin/skill-categories*`, `/admin/skill-relations*`, `/skill-categories` |
 | A02 | Xử lý báo cáo sự cố | Hàng đợi báo cáo; xem phiên; chốt Hoàn thành / Hủy kèm ghi chú | `/admin/reports*` |
 
 ### 6.2. Luồng điều hướng
@@ -749,7 +749,7 @@ Cột "Kiểm thử" trỏ tới nhóm unit test ở spec mục 7.1 (N1–N5) ho
 | FR-05 Yêu cầu trao đổi | `exchange_requests` | `/requests*` | S06, S07, S08 | N5 | 6 |
 | FR-06 Phiên và xác nhận hoàn thành | `exchange_sessions` | `/sessions*` | S09 | N5 | 6 |
 | FR-07 Đánh giá | `reviews` | `/sessions/{id}/reviews`, `/users/{id}/reviews` | S09, S06 | N5 | 7 |
-| FR-08 Quản trị danh mục kỹ năng | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*` | A01 | `tuan_5/kiem_thu` | 5 |
+| FR-08 Quản trị danh mục kỹ năng | `skills`, `skill_categories`, `skill_relations` | `/admin/skill*`, `/skill-categories` | A01 | `tuan_5/kiem_thu` | 5 |
 | FR-08 Khóa/mở khóa tài khoản | `users.status` | `/admin/users/{id}/status` | chưa có màn hình (rà soát R41) | chưa có | 7 |
 | FR-09 Báo cáo sự cố | `incident_reports` | `/sessions/{id}/reports` (tuần 6), `/admin/reports*` (tuần 7) | S09, A02 | N5 | 6, 7 |
 | FR-10 Tìm kiếm, hồ sơ công khai | `users`, `user_teach_skills`, `user_learn_skills`, `user_availability` | `/users/search`, `/users/{id}` | S06, S10 | Ca riêng tư viết ở `tuan_4/kiem_thu` (quyết định tuần 4, D31) | 4 |

@@ -77,7 +77,7 @@ Mỗi thư mục trong `thuc_nghiem/ket_qua/` có:
 
 Cột của từng file, tên phương án, tên chỉ số và cách chạy: quyết định tuần 5, D71, D72.
 
-Lượt chạy hỏng vẫn giữ thư mục và ghi lý do hỏng trong `README.md`.
+Lượt chạy hỏng vì lỗi trong chương trình vẫn giữ thư mục và ghi lý do hỏng trong `README.md`. Tiến trình bị dừng ngang (Ctrl+C, tắt máy) thì thư mục không có `README.md`: thiếu `README.md` là dấu hiệu lượt chạy dở (D72).
 
 ### 3.3. Phiên bản code
 

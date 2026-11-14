@@ -130,7 +130,7 @@ Mọi ca dùng người học $u$ và ứng viên gốc ở mục "Dữ liệu m
 | TC246 | NFR-06 | Chạy thử hai lần cùng tham số vào hai thư mục tạm | Hai `metrics.csv` giống hệt nhau, trừ các dòng `latency_tb_ms`, `latency_p95_ms` | Unit |
 | TC247 | D71 | Sửa tạm một file trong `backend/` (chưa commit), chạy `--giai-doan bao-cao` | Dừng, báo có thay đổi chưa commit; không tạo thư mục kết quả. Giai đoạn `chon` vẫn chạy và ghi "có thay đổi chưa commit" trong `README.md` | Thủ công |
 | TC248 | D72 | Nhờ AI sửa một file trong thư mục kết quả đã có; nhờ AI xóa thư mục đó bằng lệnh shell; chạy thực nghiệm tạo thư mục mới | Hai thao tác đầu bị hook chặn; thư mục mới vẫn tạo được | Thủ công |
-| TC249 | D61, NFR-03 | Lượt chạy giai đoạn báo cáo | Có `latency_tb_ms`, `latency_p95_ms` > 0 cho mọi phương án ở N = 1000; P có latency trung bình ≤ 2000 ms. `README.md` ghi CPU, RAM | Thủ công |
+| TC249 | D61, NFR-03 | Lượt chạy giai đoạn báo cáo | Có `latency_tb_ms`, `latency_p95_ms` > 0 cho mọi phương án ở N = 1000 (`B0`, `B1`, `R`, `P`; D70 e); P có latency trung bình ≤ 2000 ms. `README.md` ghi CPU, RAM | Thủ công |
 
 ## G. API danh mục kỹ năng (tích hợp)
 
@@ -165,7 +165,7 @@ Danh mục ban đầu là của `V2__seed_skills.sql`.
 
 - Thời gian end-to-end của `GET /api/matches` trên 1.000 hồ sơ trong DB (NFR-03): tuần 8 (D61).
 - Khóa/mở khóa tài khoản và màn hình quản lý tài khoản: tuần 7 (D52).
-- Vi phạm `UNIQUE` khi hai request thêm cùng tên đúng một lúc trả 409 (D74): khó tái hiện ổn định bằng test; kiểm bằng đọc code (exception của DB được đổi thành 409).
+- Vi phạm `UNIQUE` khi hai request thêm cùng tên đúng một lúc trả 409 (D74): không tái hiện ổn định được, nên không đặt ca TC. Bước 9 thêm test `d74_concurrentCreateGivesConflictNotServerError` (năm request cùng lúc thêm "Rust": một 201, bốn 409, không 500); test không ép được lần nào cũng xảy ra tranh chấp. Đổi tên cùng lúc (lỗi nổ khi commit) chỉ kiểm bằng đọc code.
 - Con số kết quả thực nghiệm (P có tốt hơn B1 không...) không phải ca kiểm thử: chúng là kết quả, ghi ở `docs/ket_qua.md`.
 
 ## Những điểm tài liệu chưa quy định rõ (phát hiện khi viết ca)
