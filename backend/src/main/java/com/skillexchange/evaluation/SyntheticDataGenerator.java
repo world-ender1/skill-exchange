@@ -188,7 +188,9 @@ public final class SyntheticDataGenerator {
 
     /**
      * Giá trị tự khai của một người. Số được rút đủ kể cả khi xác suất bằng 0 hay khi không cần dùng,
-     * để mọi mức nhiễu dùng chung một dãy số: mức cao hơn chỉ thêm thay đổi (D64, TC202).
+     * để mọi mức nhiễu dùng chung một dãy số: mức cao hơn chỉ thêm thay đổi cho trình độ và cho từng khung (D64, TC202).
+     * Ngoại lệ: khung giữ lại khi nhiễu xóa hết lịch được chọn trên cả lịch thật, nên có thể là khung đã bị sót
+     * ở mức thấp hơn (seed 1–5, N = 1000: 4 trên 4224 người có khai lịch, giữa mức mặc định và mức cao).
      */
     private static SimUser withNoise(long id, TrueProfile profile, NoiseLevel noise, Random random) {
         List<SimTeach> teach = new ArrayList<>();

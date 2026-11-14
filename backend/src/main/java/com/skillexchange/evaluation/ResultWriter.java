@@ -284,7 +284,9 @@ public final class ResultWriter implements AutoCloseable {
         md.append("- `log.txt`: log lượt chạy, có giờ.\n");
         if (config.phase() == Phase.BAO_CAO) {
             md.append("\nGhi chú latency (D61): đo trong bộ nhớ, đơn luồng, sau một lượt làm nóng. B0, B1, R chạy qua")
-                    .append(" cùng lõi với P (D65) nên latency của chúng gần P.\n");
+                    .append(" cùng lõi với P (D65) rồi lọc hoặc xếp lại, nên không phương án nào bỏ qua được phần việc")
+                    .append(" của lõi; B0 giữ ít ứng viên hơn nên có thể nhanh hơn P. Tổng số ứng viên của từng phương án")
+                    .append(" ghi trong `log.txt`.\n");
         }
         return md.toString();
     }
