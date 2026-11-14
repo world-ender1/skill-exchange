@@ -215,9 +215,18 @@ Quy ước chung:
 
 ### Bước 10 – Giao diện A01 (D76; TK 6.1, 6.2)
 
-- **Sửa:** `src/api/types.ts` (kiểu của D73), `src/App.tsx` (route `/admin/skills`), `src/pages/LoginPage.tsx` (sau đăng nhập đọc `/api/me`, `ADMIN` vào `/admin/skills`), `src/components/Layout.tsx` (menu theo vai trò).
-- **Tạo:** `src/pages/AdminSkillsPage.tsx`, `src/auth/RequireAdmin.tsx` (sinh viên bị chuyển về `/profile`).
+- **Sửa:** `src/api/types.ts` (kiểu của D73), `src/api/client.ts` (thêm `DELETE`), `src/App.tsx` (route `/admin/skills`, trang chính theo vai trò), `src/pages/LoginPage.tsx` (sau đăng nhập về `/`, nơi đọc vai trò từ `/api/me`), `src/components/Layout.tsx` (đọc `/api/me`, menu theo vai trò), `src/index.css`.
+- **Tạo:** `src/pages/AdminSkillsPage.tsx`, `src/auth/RequireAdmin.tsx` (sinh viên bị chuyển về `/profile`), `src/auth/RequireStudent.tsx` (admin bị chuyển về `/admin/skills`).
 - **Ca:** TC262–TC264 (thủ công).
+- **Chốt ở bước này:**
+  - Vai trò đọc ở một chỗ: `Layout` gọi `/api/me` khi mở (một lần mỗi lần đăng nhập hoặc F5, chuyển giữa các trang con không gọi lại) rồi đưa `role` xuống trang con bằng `<Outlet context>`. Không lưu `role` vào `localStorage`, không tự giải mã JWT: D76 lấy vai trò từ `/api/me`. Đang tải thì thanh trên chỉ có tên và "Đăng xuất"; lỗi thì hiện `Notice` và nút "Thử lại".
+  - Trang chính theo vai trò cũng ở một chỗ (`RoleHome` trong `App.tsx`, nằm trong `Layout`): `/`, đường dẫn lạ, `/login` khi đã có vé và ngay sau khi đăng nhập đều qua `/`: `ADMIN` vào `/admin/skills`, `STUDENT` vào `/profile`. `LoginPage` chuyển về `/` thay vì tự gọi `/api/me` lần nữa. Sinh viên gõ `/admin/<đường dẫn chưa có>` cũng về `/profile` qua luật này.
+  - Admin mở trang sinh viên (`/profile`, `/skills`, `/matches`, `/search`, `/users/:id`) thì chuyển về `/admin/skills` (người học chọn ngày 2026-11-14, đối xứng D76). Sửa ngược D76, TK 6.2, TC263.
+  - Bố cục A01: thẻ "Thêm" (thêm kỹ năng: tên + nhóm; thêm nhóm); mỗi nhóm một thẻ theo thứ tự `GET /api/skill-categories` (D40), đầu thẻ có "Đổi tên"; trong thẻ là kỹ năng của nhóm theo thứ tự `GET /api/admin/skills`, kỹ năng ẩn có nhãn "Đã ẩn", mỗi dòng có "Sửa" (tên + nhóm) và "Ẩn"/"Hiện". Gom theo `categoryId` để nhóm chưa có kỹ năng nào vẫn hiện (tên nhóm là duy nhất nên giống gom theo `categoryName`). Thẻ cuối "Kỹ năng liên quan": cặp "A – B" kèm "Xóa"; thêm cặp bằng hai ô chọn gồm mọi kỹ năng kể cả đã ẩn (D75), không lọc theo nhóm.
+  - Sau mỗi thao tác thành công, tải lại cả ba danh sách từ backend thay vì tự chèn vào danh sách đang có: thứ tự là `ORDER BY name` của PostgreSQL (⚠3), sắp lại ở trình duyệt có thể khác.
+  - Lỗi: `Notice` hiện `detail` ở thẻ hoặc dòng vừa thao tác; `errors[].message` hiện dưới ô của form vừa gửi. Không kiểm trước ở giao diện (D76): ô tên không đặt `maxLength`, nút không bị khóa khi ô trống; backend trả 400.
+  - Xóa cặp và ẩn kỹ năng không hỏi xác nhận: thêm lại hoặc hiện lại được ngay, không mất dữ liệu khác.
+  - Kiểu mới ở `types.ts`: `SkillCategory`, `AdminSkill`, `AdminSkillRelation` (tên `SkillRelation` đã dùng cho `'EXACT' | 'RELATED'` từ tuần 4).
 - **Tự kiểm:** `npm run build`, `npm run lint` không lỗi; màn hình rộng 360 px.
 - **Commit:** `feat(frontend): add admin skill catalog page`
 

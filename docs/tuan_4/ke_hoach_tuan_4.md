@@ -153,7 +153,7 @@ Quy ước chung:
 - **Tạo:** `src/pages/MatchesPage.tsx` (S05), `src/pages/UserProfilePage.tsx` (S06), `src/pages/SearchPage.tsx` (S10), `src/components/MatchCard.tsx`, `src/format.ts` (`formatPercent` theo D50, nhãn khung giờ).
 - **Ca:** TC179–TC184 (thủ công).
 - **Chốt ở bước này:**
-  - Đường dẫn `/matches` (S05), `/users/:id` (S06), `/search` (S10), cùng nằm sau `RequireAuth`. Menu: Hồ sơ, Kỹ năng, Gợi ý, Tìm kiếm. Sau đăng nhập vẫn vào `/profile` như tuần 3.
+  - Đường dẫn `/matches` (S05), `/users/:id` (S06), `/search` (S10), cùng nằm sau `RequireAuth`. Menu: Hồ sơ, Kỹ năng, Gợi ý, Tìm kiếm. Sau đăng nhập vẫn vào `/profile` như tuần 3 (từ tuần 5, admin vào `/admin/skills` và có menu riêng, D76).
   - S05 gọi **cả hai** `type` khi mở trang (`limit` mặc định 10, chưa có "xem thêm"), để hai tab hiện `total` ngay. Lỗi của API (ví dụ 403 khi tài khoản chưa xác thực) hiện bằng `Notice` với `detail` của backend.
   - Dòng kỹ năng trên thẻ, mũi tên luôn đi từ kỹ năng **được dạy** tới kỹ năng **muốn học** như wireframe: "Bạn học: Java (trùng, trình độ 3)" khi `EXACT`; "Bạn học: Java ← Kotlin (kỹ năng liên quan, trình độ 2)" khi `RELATED` (trình độ là `theirLevel`). "Bạn dạy: Python (trùng, trình độ 4)" / "Bạn dạy: Tiếng Nhật → Tiếng Hàn (kỹ năng liên quan, trình độ 3)" (trình độ là `yourLevel`). Nhiều dòng thì mỗi kỹ năng một dòng.
   - `reviewCount = 0` → nhãn "Mới"; ngược lại "★ 4.2 (5)". `hasPendingRequest = true` → nhãn "Đã gửi yêu cầu" (chưa có nút gửi, D31). "Xem chi tiết điểm" bật/tắt bảng D và 5 thành phần của từng chiều, số in nguyên như API trả (3 chữ số), không đổi sang phần trăm, để so trực tiếp với bảng tính tay.

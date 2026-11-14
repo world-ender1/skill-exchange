@@ -675,7 +675,7 @@ flowchart TD
 
 Người dùng mới được dẫn qua S03 → S04 vì chưa có kỹ năng thì không có gợi ý.
 
-Luồng của admin không vẽ trong sơ đồ: admin đăng nhập xong vào thẳng A01; menu của admin chỉ có A01 (A02 thêm ở tuần 7). Sinh viên mở đường dẫn của admin thì bị chuyển về S03 (quyết định tuần 5, D76).
+Luồng của admin không vẽ trong sơ đồ: admin đăng nhập xong vào thẳng A01; menu của admin chỉ có A01 (A02 thêm ở tuần 7). Sinh viên mở đường dẫn của admin thì bị chuyển về S03; admin mở đường dẫn của sinh viên thì bị chuyển về A01 (quyết định tuần 5, D76).
 
 ### 6.3. Bản phác thảo (wireframe) các màn hình chính
 

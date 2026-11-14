@@ -15,9 +15,9 @@ export function LoginPage() {
   // Thông báo sau khi đăng ký xong; hiện trên tab Đăng nhập.
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
 
-  // Đã có vé thì không cần ở trang này nữa.
+  // Đã có vé thì không cần ở trang này nữa. "/" tự chọn trang chính theo vai trò (RoleHome, D76).
   if (getToken()) {
-    return <Navigate to="/profile" replace />
+    return <Navigate to="/" replace />
   }
 
   function handleRegistered(email: string) {
@@ -65,7 +65,9 @@ function LoginForm({ registeredEmail }: { registeredEmail: string | null }) {
         body: { email, password },
       })
       setToken(result.accessToken)
-      navigate('/profile', { replace: true })
+      // D76: vai trò đọc từ /api/me. Layout gọi /api/me khi mở "/", rồi RoleHome đưa ADMIN vào
+      // /admin/skills, STUDENT vào /profile. Không gọi /api/me ở đây để luật chọn trang chỉ nằm một chỗ.
+      navigate('/', { replace: true })
     } catch (e) {
       setError(toError(e))
     } finally {

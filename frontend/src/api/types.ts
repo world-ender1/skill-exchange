@@ -135,3 +135,28 @@ export type UserSearchResult = {
   learningMode: LearningMode | null
   teachSkills: PublicTeachSkill[]
 }
+
+// ---------- Tuần 5: quản trị danh mục kỹ năng A01 (TK 4.9, D73) ----------
+
+/** GET /api/skill-categories (D40); cũng là response của POST/PUT /api/admin/skill-categories. */
+export type SkillCategory = {
+  id: number
+  name: string
+}
+
+/** Một phần tử của GET /api/admin/skills: có cả kỹ năng đã ẩn (isActive = false). */
+export type AdminSkill = {
+  id: number
+  name: string
+  categoryId: number
+  categoryName: string
+  isActive: boolean
+}
+
+/** Một cặp của GET /api/admin/skill-relations, luôn skillAId < skillBId. */
+export type AdminSkillRelation = {
+  skillAId: number
+  skillAName: string
+  skillBId: number
+  skillBName: string
+}

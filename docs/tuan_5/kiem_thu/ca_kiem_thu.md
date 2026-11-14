@@ -156,7 +156,7 @@ Danh mục ban đầu là của `V2__seed_skills.sql`.
 | Mã | Nguồn | Đầu vào | Mong đợi | Loại |
 | --- | --- | --- | --- | --- |
 | TC262 | D76, TK 6.2 | Admin đăng nhập; sinh viên đăng nhập | Admin vào `/admin/skills`, menu chỉ có "Danh mục kỹ năng" và đăng xuất. Sinh viên vào `/profile` như cũ | Thủ công |
-| TC263 | D76 | Sinh viên gõ `/admin/skills` | Chuyển về `/profile` | Thủ công |
+| TC263 | D76 | Sinh viên gõ `/admin/skills`; admin gõ `/matches` | Sinh viên chuyển về `/profile`; admin chuyển về `/admin/skills` | Thủ công |
 | TC264 | D76, NFR-08 | Trên A01: thêm kỹ năng, đổi tên, ẩn rồi hiện lại, thêm nhóm, đổi tên nhóm, thêm cặp, xóa cặp; thử thêm tên trùng; mở ở màn hình rộng 360 px | Bảng nhóm theo nhóm, kỹ năng ẩn có đánh dấu; mỗi thao tác hiện đúng sau khi tải lại; lỗi 409/400 hiện `detail` của backend; đọc được ở 360 px, không cuộn ngang | Thủ công |
 
 ---

@@ -387,3 +387,68 @@ form {
   padding: 0;
   margin: 0;
 }
+
+/* ---------- Quản trị danh mục kỹ năng (A01, tuần 5) ---------- */
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.card-head h2 {
+  flex: 1 1 auto;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.edit-form {
+  margin-bottom: 12px;
+}
+
+.admin-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 360 px: nút xuống dòng thay vì đẩy trang rộng ra (NFR-08, TC264). */
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.admin-row .skill-name {
+  flex: 1 1 160px;
+  overflow-wrap: anywhere; /* tên dài không có khoảng trắng vẫn xuống dòng */
+}
+
+.admin-row.is-hidden .skill-name {
+  color: var(--muted);
+}
+
+.admin-rows .notice {
+  margin-top: 6px;
+}
+
+.badge-hidden {
+  background: var(--border);
+  color: var(--text);
+}
+
+.relation-list {
+  margin-bottom: 20px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
