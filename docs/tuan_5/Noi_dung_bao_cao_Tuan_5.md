@@ -151,7 +151,7 @@ Tuần 5 không thêm thư viện. Module thực nghiệm chỉ dùng thư việ
 
 | Tuần | Nội dung chính | Link |
 | --- | --- | --- |
-| 5 | Module thực nghiệm (dữ liệu giả lập, nhãn, B0, B1, R, P, chỉ số, kiểm định) và kết quả thực nghiệm; API và giao diện quản trị danh mục kỹ năng A01 | https://github.com/world-ender1/skill-exchange/compare/3afe4a8...[CẦN BỔ SUNG: hash commit báo cáo tuần 5] |
+| 5 | Module thực nghiệm (dữ liệu giả lập, nhãn, B0, B1, R, P, chỉ số, kiểm định) và kết quả thực nghiệm; API và giao diện quản trị danh mục kỹ năng A01 | https://github.com/world-ender1/skill-exchange/compare/3afe4a8...618c6e7 |
 
 Dòng tuần 4 đang kết thúc ở `64f13e5`, nhưng các commit báo cáo tuần 4 (điền hash, `.docx`) nằm sau đó, tới `3afe4a8`. Nên đổi điểm cuối dòng tuần 4 thành `3afe4a8` để hai khoảng nối liền.
 

@@ -17,7 +17,7 @@ Repo: https://github.com/world-ender1/skill-exchange
 | Giao diện A01; điều hướng theo vai trò (admin đăng nhập vào thẳng A01) | [911c6a8](https://github.com/world-ender1/skill-exchange/commit/911c6a8) |
 | Kiểm tra cả tuần: 429/429 test đạt; 13 lần làm hỏng code, một lần không test nào đỏ nên đã thêm test (nhãn 2, D54); 6 ca thủ công đạt | [ceb97d3](https://github.com/world-ender1/skill-exchange/commit/ceb97d3), [31bae4c](https://github.com/world-ender1/skill-exchange/commit/31bae4c) |
 | Review độc lập code với D52–D77: sửa câu ghi chú latency do chương trình sinh, bịt 7 lệnh ghi lọt qua hook bảo vệ kết quả, sửa tài liệu theo code | [7e625a5](https://github.com/world-ender1/skill-exchange/commit/7e625a5), [fafa779](https://github.com/world-ender1/skill-exchange/commit/fafa779), [ab2430e](https://github.com/world-ender1/skill-exchange/commit/ab2430e) |
-| Báo cáo tuần 5 | [CẦN BỔ SUNG: hash commit báo cáo] |
+| Báo cáo tuần 5 | [618c6e7](https://github.com/world-ender1/skill-exchange/commit/618c6e7) |
 
 ## 2. Kết quả thực nghiệm chính
 
