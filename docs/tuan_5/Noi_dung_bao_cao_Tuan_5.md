@@ -221,7 +221,7 @@ nhãn + danh sách ──► RankingMetrics, MetricSummary   Precision@5, NDCG@5
 
 ## 6.2. Kết quả kiểm thử (bổ sung)
 
-Backend đạt **429/429 test** (chạy lại ngày 15/11/2026 ở commit `ab2430e`), gồm 288 test của tuần 3–4; tuần 5 thêm 141 test (124 unit, 17 tích hợp). 59/59 ca tự động của tuần 5 đều có test; 6 ca có phần thủ công đều đạt. Lõi matching không đổi so với cuối tuần 4; module `evaluation` không import Spring.
+Kiểm thử tuần 5: backend đạt **429/429 test** (chạy lại ngày 15/11/2026 ở commit `ab2430e`), gồm 288 test của tuần 3–4; tuần 5 thêm 141 test (124 unit, 17 tích hợp). 59/59 ca tự động của tuần 5 đều có test; 6 ca có phần thủ công đều đạt. Lõi matching không đổi so với cuối tuần 4; module `evaluation` không import Spring.
 
 *Bảng 6.6: Một số ca kiểm thử tiêu biểu tuần 5*
 
