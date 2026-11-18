@@ -135,7 +135,14 @@ Quy ước chung:
   - Kiểu theo D30: `duration_minutes` → `Short`, `TIMESTAMPTZ` → `Instant`, `version` → `Integer` + `@Version`, cột có `CHECK IN` → enum `@Enumerated(EnumType.STRING)`.
   - Khóa ngoại ánh xạ như các Entity tuần 3 trong `user/`, `skill/`; danh sách đọc bằng truy vấn kéo sẵn tên người và tên kỹ năng, không để N+1 (skill `jpa-patterns`).
   - Báo cáo sự cố phía người dùng nằm ở `exchange`, không ở `review` như tiêu đề TK 4.8: `complete` phải kiểm báo cáo mở trong cùng transaction (R33). Phần admin (A02) ở `admin`, tuần 7.
-- **Tự kiểm:** đổi `duration_minutes` sang `Integer` thì app không khởi động (`ddl-auto: validate`).
+  - Phát hiện khi làm:
+    - Tuần 3 có hai cách ánh xạ khóa ngoại (`Skill` dùng `@ManyToOne` tới nhóm; `UserTeachSkill` giữ `skillId` dạng `Long`). Chọn cách thứ hai cho cả ba Entity: mọi khóa ngoại (`senderId`, `receiverId`, các mã kỹ năng, `requestId`, `firstCompletedBy`, `cancelledBy`, `sessionId`, `reporterId`, `resolvedBy`) là `Long`; danh sách cần tên thì Repository JOIN và trả DTO (bước 6–7), nên không có quan hệ LAZY để lỡ đọc ngoài transaction.
+    - **`version` để `null`, không gán `0`** dù DB có `DEFAULT 0` (ngoại lệ của quy ước D30): với `@Version Integer`, Spring Data coi entity là mới khi version bằng `null`; gán `0` thì `save()` gọi `merge` thay vì `persist`, chèn một bản sao, object đang cầm không có `id`. Hibernate tự ghi `0` khi INSERT. Sửa ngược D30 và skill `jpa-patterns`.
+    - Thêm enum `ReportResolution` (`SESSION_COMPLETED`, `SESSION_CANCELLED`) cho cột `resolution` có `CHECK IN` (D30).
+    - Tạo bằng hàm tĩnh như `User.register`, `Skill.create`: `ExchangeRequest.create(...)` (trạng thái `PENDING`), `ExchangeSession.scheduleFrom(request, now)` (chép giờ, thời lượng, hình thức, địa điểm theo D90), `IncidentReport.open(...)`. `createdAt` truyền vào từ `Clock` của service (D88). Chưa có hàm đổi trạng thái: thêm ở bước 6–8 khi có test dùng tới.
+    - Entity không tự kiểm luật nghiệp vụ (ví dụ `TWO_WAY` phải có kỹ năng chiều ngược): service kiểm theo D89, CHECK của DB là lưới cuối; test ghim rằng DB vẫn chặn.
+    - `ExchangeMappingTest` (5 test): lưu, đọc lại đủ cột của ba Entity; enum lưu bằng tên (đọc lại bằng SQL); `save()` trả lại chính object đã truyền; CHECK `TWO_WAY` và chỉ mục một phần `uq_requests_one_pending` của DB vẫn chặn.
+- **Tự kiểm:** đổi `duration_minutes` sang `Integer` thì app không khởi động (`ddl-auto: validate`). Khi làm (làm hỏng rồi trả lại): field `durationMinutes` kiểu `Integer` → 5 test lỗi "wrong column type encountered in column [duration_minutes]"; bỏ `@Enumerated(EnumType.STRING)` ở `status` → 5 test lỗi "wrong column type ... [status]"; gán `version = 0` → test lưu yêu cầu đỏ ở chỗ `save()` phải trả lại chính object.
 - **Commit:** `feat(exchange): add request, session and report entities`
 
 ### Bước 5 – Tạo yêu cầu: `POST /api/requests` (FR-05; R36; TK 4.6)
