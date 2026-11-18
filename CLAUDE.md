@@ -13,6 +13,7 @@ Tài liệu dự án (đọc trước khi làm tính năng):
 - Quyết định triển khai tuần 3 (auth, JWT, hồ sơ, kỹ năng, cách chạy test; D1–D30, D39–D42): `docs/tuan_3/Quyet_dinh_tuan_3.md`
 - Quyết định triển khai tuần 4 (matching, hồ sơ công khai, tìm kiếm; D31–D38, D43–D51): `docs/tuan_4/Quyet_dinh_tuan_4.md`
 - Quyết định triển khai tuần 5 (thực nghiệm, quản trị danh mục kỹ năng A01; D52–D77): `docs/tuan_5/Quyet_dinh_tuan_5.md`. Lý do chọn từng quyết định: `docs/tuan_5/Can_chot_truoc_tuan_5.md`
+- Quyết định triển khai tuần 6 (giao diện Tailwind CSS + shadcn/ui; D78 trở đi): `docs/tuan_6/Quyet_dinh_tuan_6.md`
 - Ca kiểm thử viết trước từ tài liệu: `docs/tuan_<n>/kiem_thu/`
 - Rà soát toàn bộ tài liệu và các vấn đề còn chờ sửa theo đợt (R01–R56): `docs/ra_soat/Bao_cao_ra_soat.md`
 - `hoc_vibe_coding/` là tài liệu học, không phải code hay spec dự án.
@@ -29,7 +30,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 
 ## Công nghệ
 - Backend: Java 21, Spring Boot 4.1, Maven wrapper, Spring Security, Spring Data JPA, Flyway, PostgreSQL 17
-- Frontend: React 19 + TypeScript + Vite, lint bằng oxlint
+- Frontend: React 19 + TypeScript + Vite, lint bằng oxlint. Giao diện dùng Tailwind CSS 4 + shadcn/ui (D78): component shadcn nằm ở `src/components/ui/`, icon `lucide-react`; form vẫn viết tay, không dùng `react-hook-form` (D23)
 - Bí mật và cấu hình máy (DB, JWT_SECRET, MAIL_*, ADMIN_EMAIL/ADMIN_PASSWORD, FRONTEND_URL) nằm trong `.env` ở thư mục gốc; mẫu ở `.env.example`
 
 ## Lệnh thường dùng (PowerShell, chạy từ `C:\DACN`)

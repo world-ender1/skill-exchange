@@ -5,7 +5,7 @@ Nền tảng ghép cặp trao đổi kỹ năng giữa sinh viên: mỗi ngườ
 ## Công nghệ
 
 - **Backend:** Java 21, Spring Boot 4.1 (Web MVC, Security + JWT, Data JPA, Mail), Flyway, PostgreSQL 17
-- **Frontend:** React 19, TypeScript, Vite, React Router
+- **Frontend:** React 19, TypeScript, Vite, React Router, Tailwind CSS, shadcn/ui
 - **Môi trường dev:** Docker Compose (PostgreSQL, Mailpit để bắt thư)
 
 ## Tiến độ

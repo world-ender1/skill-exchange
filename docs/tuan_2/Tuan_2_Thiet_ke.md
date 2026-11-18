@@ -37,7 +37,7 @@ flowchart LR
 
 | Thành phần | Công nghệ | Vai trò |
 | --- | --- | --- |
-| Frontend | React, TypeScript, Vite | Giao diện người dùng, gọi REST API |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, shadcn/ui (D78) | Giao diện người dùng, gọi REST API |
 | Backend | Spring Boot 4, Spring Security, Spring Data JPA | Nghiệp vụ, phân quyền, thuật toán matching |
 | Cơ sở dữ liệu | PostgreSQL 17, Flyway | Lưu dữ liệu; Flyway quản lý phiên bản lược đồ |
 | Xác thực | JWT (access token) | Mỗi request gửi token trong header `Authorization` |

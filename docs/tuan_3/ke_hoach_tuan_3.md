@@ -165,7 +165,7 @@ Tách 2–3 commit.
   - Đăng ký xong ở lại S01, báo "kiểm tra email" và chuyển sang tab Đăng nhập. S02 không có `token` trên URL (hoặc xác thực thất bại) thì hiện ô nhập email + nút "Gửi lại link".
   - S03 hiện thông báo "chưa xác thực email" khi `status = PENDING_VERIFICATION` (D29), kèm đường tới S02 để gửi lại link. Hồ sơ và lịch rảnh có hai nút Lưu riêng vì là hai API riêng.
   - S04: chọn kỹ năng từ `GET /api/skills` (gộp theo nhóm); kỹ năng đã bị ẩn đang có thì vẫn hiện, kèm chữ "(đã ngừng)". Hai danh sách có hai nút Lưu riêng; S04 nhắc người dùng lưu danh sách học trước khi chuyển kỹ năng sang dạy (D19).
-  - Dùng `react-router` 8 (bản hiện hành; D23 chỉ ghi tên thư viện). Giao diện CSS viết tay, không thêm thư viện UI.
+  - Dùng `react-router` 8 (bản hiện hành; D23 chỉ ghi tên thư viện). Giao diện CSS viết tay, không thêm thư viện UI (từ tuần 6 đổi sang Tailwind CSS + shadcn/ui, D78).
 - **Tự kiểm:** đi trọn S01 → S04 rồi F5; email Gmail báo lỗi; tắt backend không trắng trang; đăng xuất rồi gõ `/profile` → về đăng nhập; `npm run build`, `npm run lint` không lỗi.
 - **Commit:** mỗi màn hình một commit, ví dụ `feat(frontend): add login and register pages`.
 
