@@ -1,13 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { CircleCheck, CircleX, Loader2, Mail } from 'lucide-react'
+import { useSearchParams } from 'react-router'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { ApiError, apiRequest, toError } from '../api/client'
 import { getToken } from '../auth/token'
+import { AuthShell } from '../components/AuthShell'
 import { Field } from '../components/Field'
 import { Notice } from '../components/Notice'
+import { TextLink } from '../components/TextLink'
 
 type VerifyState = 'verifying' | 'success' | 'failed' | 'no-token'
+
+/** Icon và màu theo trạng thái (kế hoạch tuần 6, bước 2). Màu đi kèm chữ, không dùng màu một mình để báo kết quả. */
+const STATE_ICON = {
+  verifying: <Loader2 className="size-5 animate-spin text-muted-foreground" aria-hidden="true" />,
+  success: <CircleCheck className="size-5 text-success" aria-hidden="true" />,
+  failed: <CircleX className="size-5 text-destructive" aria-hidden="true" />,
+  'no-token': <Mail className="size-5 text-muted-foreground" aria-hidden="true" />,
+}
 
 /**
  * S02 – Xác thực email. Mở từ link trong thư: /verify-email?token=... (D5).
@@ -38,27 +52,34 @@ export function VerifyEmailPage() {
   }, [token])
 
   return (
-    <main className="auth-page">
-      <h1 className="brand">Skill Exchange</h1>
-      <div className="card">
-        <h2>Xác thực email</h2>
+    <AuthShell>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {STATE_ICON[state]}
+            Xác thực email
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {state === 'verifying' && <p className="text-muted-foreground">Đang xác thực…</p>}
 
-        {state === 'verifying' && <p>Đang xác thực…</p>}
+          {state === 'success' && (
+            <>
+              <Notice kind="success">Xác thực email thành công. Tài khoản của bạn đã được kích hoạt.</Notice>
+              <p>
+                {getToken()
+                  ? <TextLink to="/profile">Về hồ sơ của tôi</TextLink>
+                  : <TextLink to="/login">Đăng nhập</TextLink>}
+              </p>
+            </>
+          )}
 
-        {state === 'success' && (
-          <>
-            <Notice kind="success">Xác thực email thành công. Tài khoản của bạn đã được kích hoạt.</Notice>
-            <p>
-              {getToken() ? <Link to="/profile">Về hồ sơ của tôi</Link> : <Link to="/login">Đăng nhập</Link>}
-            </p>
-          </>
-        )}
+          {state === 'failed' && <Notice kind="error">{failure}</Notice>}
 
-        {state === 'failed' && <Notice kind="error">{failure}</Notice>}
-
-        {(state === 'failed' || state === 'no-token') && <ResendForm />}
-      </div>
-    </main>
+          {(state === 'failed' || state === 'no-token') && <ResendForm />}
+        </CardContent>
+      </Card>
+    </AuthShell>
   )
 }
 
@@ -85,8 +106,10 @@ function ResendForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <p className="muted small">Nhập email đã đăng ký để nhận link xác thực mới. Mỗi lần gửi cách nhau ít nhất 60 giây.</p>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        Nhập email đã đăng ký để nhận link xác thực mới. Mỗi lần gửi cách nhau ít nhất 60 giây.
+      </p>
       {sent && (
         <Notice kind="success">
           Nếu email này đang chờ xác thực, một link mới đã được gửi. Hãy kiểm tra hộp thư.
@@ -95,13 +118,14 @@ function ResendForm() {
       {error && !error.fieldErrors.email && <Notice kind="error">{error.message}</Notice>}
 
       <Field label="Email trường" error={error?.fieldErrors.email}>
-        <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       </Field>
-      <div className="actions">
-        <button type="submit" className="primary" disabled={submitting}>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={submitting}>
+          {submitting && <Loader2 className="animate-spin" aria-hidden="true" />}
           {submitting ? 'Đang gửi…' : 'Gửi lại link'}
-        </button>
-        <Link to="/login">Về đăng nhập</Link>
+        </Button>
+        <TextLink to="/login" className="text-sm">Về đăng nhập</TextLink>
       </div>
     </form>
   )

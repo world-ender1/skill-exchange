@@ -3,7 +3,6 @@ import { BookOpen, LogOut, Search, Sparkles, Tags, User } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
-import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
@@ -19,13 +18,12 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Skeleton } from '@/components/ui/skeleton'
 import { apiRequest, toError } from '../api/client'
 import type { MyProfile, Role } from '../api/types'
 import { clearToken } from '../auth/token'
-import { Notice } from './Notice'
-
-const APP_NAME = 'Skill Exchange'
+import { AppLogo } from './AppLogo'
+import { LoadError } from './LoadError'
+import { PageSkeleton } from './PageSkeleton'
 
 type NavItem = { to: string; label: string; icon: LucideIcon }
 
@@ -89,17 +87,12 @@ export function Layout() {
         {/* Chỉ hiện dưới 768 px: tên ứng dụng và nút mở menu. */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-4 md:hidden">
           <SidebarTrigger aria-label="Mở menu" />
-          <span className="font-heading text-lg font-bold">{APP_NAME}</span>
+          <AppLogo />
         </header>
         {/* SidebarInset đã là <main>, nên phần nội dung dùng <div>. */}
         <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-8">
           {loadError ? (
-            <div className="flex flex-col items-start gap-3">
-              <Notice kind="error">{loadError}</Notice>
-              <Button variant="outline" onClick={() => { setLoadError(null); setReloadKey((k) => k + 1) }}>
-                Thử lại
-              </Button>
-            </div>
+            <LoadError message={loadError} onRetry={() => { setLoadError(null); setReloadKey((k) => k + 1) }} />
           ) : role === null ? (
             <PageSkeleton />
           ) : (
@@ -127,8 +120,8 @@ function AppSidebar({ role, onLogout }: { role: Role | null; onLogout: () => voi
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <span className="px-2 py-1 font-heading text-lg font-bold">{APP_NAME}</span>
+      <SidebarHeader className="px-4 py-3">
+        <AppLogo />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -160,16 +153,5 @@ function AppSidebar({ role, onLogout }: { role: Role | null; onLogout: () => voi
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
-}
-
-/** Khung xám giữ chỗ trong lúc đọc vai trò, thay chữ "Đang tải…" (kế hoạch bước 1). */
-function PageSkeleton() {
-  return (
-    <div aria-busy="true" aria-label="Đang tải" className="flex flex-col gap-4">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-40 w-full" />
-      <Skeleton className="h-40 w-full" />
-    </div>
   )
 }

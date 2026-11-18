@@ -13,6 +13,8 @@ type FieldProps = {
   /** Lỗi của ô này lấy từ errors[] của backend (D24); không có thì không hiện gì. */
   error?: string
   hint?: string
+  /** Lớp thêm cho khung ngoài, ví dụ "sm:col-span-2" để ô chiếm hai cột của lưới form. */
+  className?: string
   /** Đúng một ô nhập (input, select, textarea...). */
   children: ReactNode
 }
@@ -31,7 +33,7 @@ type ControlProps = {
  * bằng id: useId() sinh id, cloneElement gắn id đó (và aria-invalid, aria-describedby để trình đọc màn hình
  * đọc lỗi khi vào ô) vào ô nhập con. Nhờ vậy các trang vẫn viết <Field label="..."><input .../></Field> như cũ.
  */
-export function Field({ label, error, hint, children }: FieldProps) {
+export function Field({ label, error, hint, className, children }: FieldProps) {
   const generatedId = useId()
   const message = error ?? hint
   const messageId = `${generatedId}-message`
@@ -48,7 +50,7 @@ export function Field({ label, error, hint, children }: FieldProps) {
   }
 
   return (
-    <FieldRoot data-invalid={error ? true : undefined}>
+    <FieldRoot data-invalid={error ? true : undefined} className={className}>
       <FieldLabel htmlFor={controlId}>{label}</FieldLabel>
       {control}
       {hint && !error && <FieldDescription id={messageId}>{hint}</FieldDescription>}

@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
+import { Loader2, Plus, X } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { ApiError, apiRequest, toError } from '../api/client'
 import type { LearnSkill, Skill, TeachSkill } from '../api/types'
+import { LoadError } from '../components/LoadError'
 import { Notice } from '../components/Notice'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { SkillCombobox } from '../components/SkillCombobox'
 
 /** Thang trình độ của spec mục 4.6. */
 const LEVELS = [
@@ -58,15 +66,10 @@ export function SkillsPage() {
   }, [reloadKey])
 
   if (loadError) {
-    return (
-      <>
-        <Notice kind="error">{loadError}</Notice>
-        <p><button type="button" onClick={() => { setLoadError(null); setReloadKey((k) => k + 1) }}>Thử lại</button></p>
-      </>
-    )
+    return <LoadError message={loadError} onRetry={() => { setLoadError(null); setReloadKey((k) => k + 1) }} />
   }
   if (!data) {
-    return <p>Đang tải kỹ năng…</p>
+    return <PageSkeleton label="Đang tải kỹ năng" />
   }
 
   // Kỹ năng đã LƯU ở danh sách kia: không cho chọn ở danh sách này (D19). Backend vẫn kiểm lại.
@@ -74,36 +77,39 @@ export function SkillsPage() {
   const savedLearnIds = new Set(data.learn.map((s) => s.skillId))
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <h1>Kỹ năng của tôi</h1>
       <Notice kind="info">
         Một kỹ năng không thể vừa dạy vừa muốn học. Muốn chuyển một kỹ năng từ "muốn học" sang "dạy",
         hãy bỏ nó khỏi danh sách muốn học và <strong>lưu</strong> trước, rồi mới thêm vào danh sách dạy.
       </Notice>
 
-      <SkillListEditor
-        title="Kỹ năng tôi có thể dạy"
-        path="/api/me/teach-skills"
-        levelLabel="Trình độ"
-        levelRequired
-        catalog={data.catalog}
-        initial={data.teach}
-        otherListIds={savedLearnIds}
-        otherListName="muốn học"
-        onSaved={(rows) => setData((d) => d && { ...d, teach: rows as TeachSkill[] })}
-      />
-      <SkillListEditor
-        title="Kỹ năng tôi muốn học"
-        path="/api/me/learn-skills"
-        levelLabel="Mục tiêu"
-        levelRequired={false}
-        catalog={data.catalog}
-        initial={data.learn.map((s) => ({ ...s, level: s.targetLevel }))}
-        otherListIds={savedTeachIds}
-        otherListName="dạy"
-        onSaved={(rows) => setData((d) => d && { ...d, learn: rows as LearnSkill[] })}
-      />
-    </>
+      {/* Từ 1024 px hai danh sách nằm cạnh nhau; hẹp hơn thì xếp chồng. */}
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <SkillListEditor
+          title="Kỹ năng tôi có thể dạy"
+          path="/api/me/teach-skills"
+          levelLabel="Trình độ"
+          levelRequired
+          catalog={data.catalog}
+          initial={data.teach}
+          otherListIds={savedLearnIds}
+          otherListName="muốn học"
+          onSaved={(rows) => setData((d) => d && { ...d, teach: rows as TeachSkill[] })}
+        />
+        <SkillListEditor
+          title="Kỹ năng tôi muốn học"
+          path="/api/me/learn-skills"
+          levelLabel="Mục tiêu"
+          levelRequired={false}
+          catalog={data.catalog}
+          initial={data.learn.map((s) => ({ ...s, level: s.targetLevel }))}
+          otherListIds={savedTeachIds}
+          otherListName="dạy"
+          onSaved={(rows) => setData((d) => d && { ...d, learn: rows as LearnSkill[] })}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -131,8 +137,14 @@ function SkillListEditor(props: EditorProps) {
   const [error, setError] = useState<ApiError | null>(null)
 
   const chosenIds = new Set(rows.map((r) => r.skillId))
-  // Gộp danh mục theo nhóm để hiện trong <optgroup>.
-  const categories = [...new Set(catalog.map((s) => s.categoryName))]
+  const full = rows.length >= MAX_SKILLS
+
+  /** Lý do một kỹ năng không chọn được, hiện mờ trong ô chọn như <option disabled> cũ. */
+  function disabledReason(skill: Skill): string | null {
+    if (otherListIds.has(skill.id)) return `đang ở danh sách ${otherListName}`
+    if (chosenIds.has(skill.id)) return 'đã có trong danh sách'
+    return null
+  }
 
   function addRow() {
     const skill = catalog.find((s) => s.id === Number(newSkillId))
@@ -172,65 +184,75 @@ function SkillListEditor(props: EditorProps) {
     }
   }
 
-  /** Lỗi của dòng thứ index, ví dụ errors[].field = "[1].skillId" (chốt ở bước 9). */
+  /** Lỗi của dòng thứ index, ví dụ errors[].field = "[1].skillId" (chốt ở bước 9 tuần 3). */
   function rowError(index: number): string | undefined {
     return error?.fieldErrors[`[${index}].skillId`] ?? error?.fieldErrors[`[${index}].${levelField}`]
   }
 
   return (
-    <section className="card">
-      <h2>{title}</h2>
-      {error && <Notice kind="error">{error.message}</Notice>}
-      {saved && <Notice kind="success">Đã lưu.</Notice>}
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardAction>
+          <Badge variant="secondary" className="tabular-nums">{rows.length}/{MAX_SKILLS}</Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {error && <Notice kind="error">{error.message}</Notice>}
+        {saved && <Notice kind="success">Đã lưu.</Notice>}
 
-      {rows.length === 0 ? (
-        <p className="muted">Chưa có kỹ năng nào.</p>
-      ) : (
-        <ul className="skill-rows">
-          {rows.map((row, index) => (
-            <li key={row.skillId}>
-              <div className="skill-row">
-                <span className="skill-name">
-                  {row.skillName}
-                  {/* D20: kỹ năng bị admin ẩn vẫn được giữ, nhưng nói rõ cho người dùng. */}
-                  {!row.isActive && <span className="muted small"> (đã ngừng)</span>}
-                </span>
-                <select aria-label={`${levelLabel} ${row.skillName}`} value={row.level ?? ''}
-                        onChange={(e) => updateLevel(index, e.target.value === '' ? null : Number(e.target.value))}>
-                  {!levelRequired && <option value="">Không đặt mục tiêu</option>}
-                  {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-                </select>
-                <button type="button" onClick={() => removeRow(index)}>Bỏ</button>
-              </div>
-              {rowError(index) && <span className="field-error">{rowError(index)}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
+        {rows.length === 0 ? (
+          <p className="text-muted-foreground">Chưa có kỹ năng nào.</p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {rows.map((row, index) => (
+              <li key={row.skillId} className="flex flex-col gap-1 py-2 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-2">
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 font-medium">
+                    <span className="break-words">{row.skillName}</span>
+                    {/* D20: kỹ năng bị admin ẩn vẫn được giữ, nhưng nói rõ cho người dùng. */}
+                    {!row.isActive && <Badge variant="outline">đã ngừng</Badge>}
+                  </span>
+                  <NativeSelect className="w-36 shrink-0" aria-label={`${levelLabel} ${row.skillName}`}
+                                value={row.level ?? ''}
+                                onChange={(e) => updateLevel(index, e.target.value === '' ? null : Number(e.target.value))}>
+                    {!levelRequired && <NativeSelectOption value="">Không đặt mục tiêu</NativeSelectOption>}
+                    {LEVELS.map((l) => <NativeSelectOption key={l.value} value={l.value}>{l.label}</NativeSelectOption>)}
+                  </NativeSelect>
+                  <Button variant="ghost" size="icon" aria-label={`Bỏ ${row.skillName}`} onClick={() => removeRow(index)}>
+                    <X aria-hidden="true" />
+                  </Button>
+                </div>
+                {rowError(index) && <p className="text-sm text-destructive">{rowError(index)}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
 
-      <div className="actions">
-        <select aria-label="Chọn kỹ năng để thêm" value={newSkillId} onChange={(e) => setNewSkillId(e.target.value)}
-                disabled={rows.length >= MAX_SKILLS} className="grow">
-          <option value="">{rows.length >= MAX_SKILLS ? 'Đã đủ 10 kỹ năng' : 'Chọn kỹ năng…'}</option>
-          {categories.map((category) => (
-            <optgroup key={category} label={category}>
-              {catalog.filter((s) => s.categoryName === category).map((s) => (
-                <option key={s.id} value={s.id} disabled={chosenIds.has(s.id) || otherListIds.has(s.id)}>
-                  {s.name}{otherListIds.has(s.id) ? ` (đang ở danh sách ${otherListName})` : ''}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-        <button type="button" onClick={addRow} disabled={!newSkillId}>Thêm</button>
-      </div>
-
-      <div className="actions">
-        <button type="button" className="primary" onClick={save} disabled={saving}>
+        <div className="flex gap-2">
+          <div className="min-w-0 flex-1">
+            <SkillCombobox
+              skills={catalog}
+              value={newSkillId}
+              onChange={setNewSkillId}
+              ariaLabel="Chọn kỹ năng để thêm"
+              placeholder={full ? 'Đã đủ 10 kỹ năng' : 'Chọn kỹ năng…'}
+              disabledReason={disabledReason}
+              disabled={full}
+            />
+          </div>
+          <Button variant="outline" onClick={addRow} disabled={!newSkillId}>
+            <Plus aria-hidden="true" />
+            Thêm
+          </Button>
+        </div>
+      </CardContent>
+      <CardFooter className="border-t">
+        <Button onClick={save} disabled={saving}>
+          {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
           {saving ? 'Đang lưu…' : 'Lưu danh sách'}
-        </button>
-        <span className="muted small">{rows.length}/{MAX_SKILLS} kỹ năng</span>
-      </div>
-    </section>
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

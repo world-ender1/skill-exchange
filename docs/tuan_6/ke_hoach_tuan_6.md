@@ -94,6 +94,14 @@ Quy ước chung:
   - S03: thẻ thông tin chia 2 cột từ 640 px; số điện thoại và liên hệ gom thành một nhóm có icon `Lock` và ghi chú "riêng tư"; lưới lịch rảnh D84.
   - S04: hai thẻ Dạy và Muốn học cạnh nhau từ 1024 px. Ô thêm kỹ năng là combobox (`Popover` + `Command`) gõ để lọc, gom theo nhóm; kỹ năng không chọn được vẫn hiện mờ kèm lý do như hiện nay. Bộ đếm là `Badge` "n/10". Nút bỏ là icon `X` có `aria-label` "Bỏ <tên kỹ năng>".
   - Không đổi lời gọi API, state và câu thông báo.
+  - Phát hiện khi làm:
+    - **Component dùng chung** (thêm ngoài danh sách "Tạo"): `AuthShell` (khung S01, S02), `AppLogo` (logo ở menu và trang đăng nhập), `PageSkeleton`, `LoadError` (hộp lỗi + "Thử lại", trước lặp ở 4 trang), `TextLink` (link trong câu chữ), `SkillCombobox` (S04, bước 3 dùng lại ở S10). Hằng số lưới (`DAYS`, `PERIODS`, `slotKey`) đặt ở `src/availability.ts` như `format.ts`: file component chỉ nên xuất component (luật `only-export-components` của oxlint, để hot reload chạy đúng).
+    - **Ô chọn trình độ, hình thức học dùng `NativeSelect`** (thẻ `<select>` thật), không dùng `Select` của Radix: `Select` của Radix là nút bấm + danh sách, `Field` không gắn `id` vào được nên nhãn không nối với ô; `<select>` thật còn mở bộ chọn của hệ điều hành trên điện thoại.
+    - Combobox lọc **không phân biệt dấu** (gõ "tieng" ra "Tiếng Anh"; bộ lọc mặc định của `cmdk` so nguyên văn) và lọc cả theo tên nhóm. Kỹ năng không chọn được hiện mờ kèm lý do: "đang ở danh sách …" như cũ, thêm "đã có trong danh sách" cho kỹ năng đã thêm. Vẫn chọn rồi bấm "Thêm" như cũ.
+    - `AvailabilityGrid` vẽ hai bảng (ngang từ 640 px, dọc dưới 640 px), bảng không dùng ẩn bằng `display: none` nên không nhận Tab và trình đọc màn hình bỏ qua. Mỗi ô là `<label>` bọc `Checkbox` nên bấm cả ô 44 px được. Chế độ chỉ đọc (S06) không có ô chọn: dấu tick và câu ẩn "Sáng Thứ Hai: rảnh/không rảnh".
+    - `Field` nhận thêm `className` tùy chọn (ví dụ `sm:col-span-2` cho ô "Giới thiệu"); chỗ gọi cũ không đổi.
+    - S02 khi mở không có `token`: icon `Mail`.
+    - Nút lưu đặt ở chân thẻ (`CardFooter`), nối với form bằng thuộc tính `form="profile-form"`; nhấn Enter trong ô nhập vẫn gửi form.
 - **Tự kiểm:** đi trọn S01 → S04 như TC31 tuần 3; lưới lịch ở 360 px không cuộn ngang và tick được bằng bàn phím (Tab, Space).
 - **Commit:** `feat(frontend): restyle auth, profile and skills pages`
 

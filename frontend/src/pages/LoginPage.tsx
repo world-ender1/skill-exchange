@@ -1,15 +1,22 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router'
+import { Loader2 } from 'lucide-react'
+import { Navigate, useNavigate } from 'react-router'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ApiError, apiRequest, toError } from '../api/client'
 import { getToken, setToken } from '../auth/token'
+import { AuthShell } from '../components/AuthShell'
 import { Field } from '../components/Field'
 import { Notice } from '../components/Notice'
+import { TextLink } from '../components/TextLink'
 
 type Tab = 'login' | 'register'
 
-/** S01 – Đăng nhập / Đăng ký (D25: đăng ký có ô Họ tên). */
+/** S01 – Đăng nhập / Đăng ký (D25: đăng ký có ô Họ tên). Giao diện: thẻ giữa trang, hai tab (kế hoạch tuần 6, bước 2). */
 export function LoginPage() {
   const [tab, setTab] = useState<Tab>('login')
   // Thông báo sau khi đăng ký xong; hiện trên tab Đăng nhập.
@@ -26,25 +33,25 @@ export function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <h1 className="brand">Skill Exchange</h1>
-      <div className="card">
-        <div className="tabs" role="tablist">
-          <button type="button" role="tab" aria-selected={tab === 'login'}
-                  className={tab === 'login' ? 'tab active' : 'tab'} onClick={() => setTab('login')}>
-            Đăng nhập
-          </button>
-          <button type="button" role="tab" aria-selected={tab === 'register'}
-                  className={tab === 'register' ? 'tab active' : 'tab'} onClick={() => setTab('register')}>
-            Đăng ký
-          </button>
-        </div>
-
-        {tab === 'login'
-          ? <LoginForm registeredEmail={registeredEmail} />
-          : <RegisterForm onRegistered={handleRegistered} />}
-      </div>
-    </main>
+    <AuthShell>
+      <Card>
+        <CardContent>
+          {/* Tabs của Radix tự gắn role="tab", aria-selected và cho chuyển tab bằng phím mũi tên. */}
+          <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)}>
+            <TabsList className="w-full">
+              <TabsTrigger value="login">Đăng nhập</TabsTrigger>
+              <TabsTrigger value="register">Đăng ký</TabsTrigger>
+            </TabsList>
+            <TabsContent value="login" className="pt-4">
+              <LoginForm registeredEmail={registeredEmail} />
+            </TabsContent>
+            <TabsContent value="register" className="pt-4">
+              <RegisterForm onRegistered={handleRegistered} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </AuthShell>
   )
 }
 
@@ -76,7 +83,7 @@ function LoginForm({ registeredEmail }: { registeredEmail: string | null }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       {registeredEmail && (
         <Notice kind="success">
           Đăng ký thành công. Hãy mở hộp thư email trường và bấm link xác thực.
@@ -86,18 +93,19 @@ function LoginForm({ registeredEmail }: { registeredEmail: string | null }) {
       {error && <Notice kind="error">{error.message}</Notice>}
 
       <Field label="Email trường" error={error?.fieldErrors.email}>
-        <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       </Field>
       <Field label="Mật khẩu" error={error?.fieldErrors.password}>
-        <input type="password" autoComplete="current-password" value={password}
+        <Input type="password" autoComplete="current-password" value={password}
                onChange={(e) => setPassword(e.target.value)} />
       </Field>
 
-      <button type="submit" className="primary" disabled={submitting}>
+      <Button type="submit" disabled={submitting} className="w-full">
+        {submitting && <Loader2 className="animate-spin" aria-hidden="true" />}
         {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
-      </button>
-      <p className="muted small">
-        Chưa nhận được thư xác thực? <Link to="/verify-email">Gửi lại link</Link>
+      </Button>
+      <p className="text-center text-sm text-muted-foreground">
+        Chưa nhận được thư xác thực? <TextLink to="/verify-email">Gửi lại link</TextLink>
       </p>
     </form>
   )
@@ -128,23 +136,24 @@ function RegisterForm({ onRegistered }: { onRegistered: (email: string) => void 
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       {error && <Notice kind="error">{error.message}</Notice>}
 
       <Field label="Email trường" error={error?.fieldErrors.email} hint="Chỉ nhận email do trường cấp">
-        <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       </Field>
       <Field label="Họ tên" error={error?.fieldErrors.fullName}>
-        <input autoComplete="name" maxLength={100} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        <Input autoComplete="name" maxLength={100} value={fullName} onChange={(e) => setFullName(e.target.value)} />
       </Field>
       <Field label="Mật khẩu" error={error?.fieldErrors.password} hint="8–72 ký tự">
-        <input type="password" autoComplete="new-password" value={password}
+        <Input type="password" autoComplete="new-password" value={password}
                onChange={(e) => setPassword(e.target.value)} />
       </Field>
 
-      <button type="submit" className="primary" disabled={submitting}>
+      <Button type="submit" disabled={submitting} className="w-full">
+        {submitting && <Loader2 className="animate-spin" aria-hidden="true" />}
         {submitting ? 'Đang đăng ký…' : 'Đăng ký'}
-      </button>
+      </Button>
     </form>
   )
 }

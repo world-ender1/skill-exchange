@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Loader2, Lock } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { FieldLegend, FieldSet } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
 import { ApiError, apiRequest, toError } from '../api/client'
-import type { AvailabilitySlot, LearningMode, MyProfile, Period } from '../api/types'
+import type { AvailabilitySlot, LearningMode, MyProfile } from '../api/types'
+import { PERIODS, slotKey } from '../availability'
+import { AvailabilityGrid } from '../components/AvailabilityGrid'
 import { Field } from '../components/Field'
+import { LoadError } from '../components/LoadError'
 import { Notice } from '../components/Notice'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { TextLink } from '../components/TextLink'
 
 /** S03 – Hồ sơ của tôi: thông tin cá nhân, liên hệ riêng tư, hình thức học, lưới lịch rảnh 7×3. */
 export function ProfilePage() {
@@ -39,32 +50,29 @@ export function ProfilePage() {
   }, [reloadKey])
 
   if (loadError) {
-    return (
-      <>
-        <Notice kind="error">{loadError}</Notice>
-        <p><button type="button" onClick={() => { setLoadError(null); setReloadKey((k) => k + 1) }}>Thử lại</button></p>
-      </>
-    )
+    return <LoadError message={loadError} onRetry={() => { setLoadError(null); setReloadKey((k) => k + 1) }} />
   }
   if (!profile || !slots) {
-    return <p>Đang tải hồ sơ…</p>
+    return <PageSkeleton label="Đang tải hồ sơ" />
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <h1>Hồ sơ của tôi</h1>
       {profile.status === 'PENDING_VERIFICATION' && (
         // D29: frontend dùng status để nhắc xác thực email.
         <Notice kind="info">
           Email <strong>{profile.email}</strong> chưa được xác thực. Bạn vẫn điền được hồ sơ, nhưng cần xác thực
-          để dùng gợi ý ghép cặp. <Link to="/verify-email">Gửi lại link xác thực</Link>
+          để dùng gợi ý ghép cặp. <TextLink to="/verify-email">Gửi lại link xác thực</TextLink>
         </Notice>
       )}
       {/* key: đổi người dùng/dữ liệu thì React tạo lại form với giá trị mới. */}
       <ProfileForm key={profile.id} initial={profile} onSaved={setProfile} />
-      <AvailabilityGrid initial={slots} />
-      <p className="muted">Tiếp theo: <Link to="/skills">khai báo kỹ năng dạy và muốn học</Link>.</p>
-    </>
+      <AvailabilityCard initial={slots} />
+      <p className="text-sm text-muted-foreground">
+        Tiếp theo: <TextLink to="/skills">khai báo kỹ năng dạy và muốn học</TextLink>.
+      </p>
+    </div>
   )
 }
 
@@ -101,57 +109,67 @@ function ProfileForm({ initial, onSaved }: { initial: MyProfile; onSaved: (profi
   }
 
   return (
-    <section className="card">
-      <h2>Thông tin cá nhân</h2>
-      <form onSubmit={handleSubmit} noValidate>
-        {error && <Notice kind="error">{error.message}</Notice>}
-        {saved && <Notice kind="success">Đã lưu hồ sơ.</Notice>}
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Thông tin cá nhân</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form id="profile-form" onSubmit={handleSubmit} noValidate className="grid gap-4 sm:grid-cols-2">
+          {error && <div className="sm:col-span-2"><Notice kind="error">{error.message}</Notice></div>}
+          {saved && <div className="sm:col-span-2"><Notice kind="success">Đã lưu hồ sơ.</Notice></div>}
 
-        <Field label="Email trường" hint="Không đổi được">
-          <input value={initial.email} disabled />
-        </Field>
-        <Field label="Họ tên" error={error?.fieldErrors.fullName}>
-          <input maxLength={100} value={fullName} onChange={(e) => setFullName(e.target.value)} />
-        </Field>
-        <Field label="Giới thiệu" error={error?.fieldErrors.bio} hint="Tối đa 1000 ký tự">
-          <textarea rows={3} maxLength={1000} value={bio} onChange={(e) => setBio(e.target.value)} />
-        </Field>
-        <Field label="Hình thức học" error={error?.fieldErrors.learningMode}>
-          <select value={learningMode} onChange={(e) => setLearningMode(e.target.value as LearningMode | '')}>
-            <option value="">Chưa khai báo</option>
-            <option value="ONLINE">Trực tuyến</option>
-            <option value="OFFLINE">Gặp trực tiếp</option>
-            <option value="ANY">Cách nào cũng được</option>
-          </select>
-        </Field>
-        <Field label="Số điện thoại" error={error?.fieldErrors.phone}
-               hint="Riêng tư: chỉ người đã nhận trao đổi với bạn mới thấy">
-          <input type="tel" maxLength={20} value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </Field>
-        <Field label="Liên hệ khác" error={error?.fieldErrors.contactInfo} hint="Ví dụ: Zalo, Facebook. Riêng tư như số điện thoại">
-          <textarea rows={2} maxLength={500} value={contactInfo} onChange={(e) => setContactInfo(e.target.value)} />
-        </Field>
+          <Field label="Email trường" hint="Không đổi được">
+            <Input value={initial.email} disabled />
+          </Field>
+          <Field label="Họ tên" error={error?.fieldErrors.fullName}>
+            <Input maxLength={100} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </Field>
+          <Field label="Giới thiệu" error={error?.fieldErrors.bio} hint="Tối đa 1000 ký tự" className="sm:col-span-2">
+            <Textarea rows={3} maxLength={1000} value={bio} onChange={(e) => setBio(e.target.value)} />
+          </Field>
+          <Field label="Hình thức học" error={error?.fieldErrors.learningMode}>
+            <NativeSelect className="w-full" value={learningMode}
+                          onChange={(e) => setLearningMode(e.target.value as LearningMode | '')}>
+              <NativeSelectOption value="">Chưa khai báo</NativeSelectOption>
+              <NativeSelectOption value="ONLINE">Trực tuyến</NativeSelectOption>
+              <NativeSelectOption value="OFFLINE">Gặp trực tiếp</NativeSelectOption>
+              <NativeSelectOption value="ANY">Cách nào cũng được</NativeSelectOption>
+            </NativeSelect>
+          </Field>
 
-        <div className="actions">
-          <button type="submit" className="primary" disabled={saving}>{saving ? 'Đang lưu…' : 'Lưu hồ sơ'}</button>
-        </div>
-      </form>
-    </section>
+          {/* Nhóm thông tin riêng tư (NFR-02): gom lại, có icon khóa để người dùng thấy ngay phần này không công khai. */}
+          <FieldSet className="rounded-lg border p-4 sm:col-span-2">
+            <FieldLegend className="flex items-center gap-2">
+              <Lock className="size-4 text-muted-foreground" aria-hidden="true" />
+              Liên hệ riêng tư
+            </FieldLegend>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Số điện thoại" error={error?.fieldErrors.phone}
+                     hint="Riêng tư: chỉ người đã nhận trao đổi với bạn mới thấy">
+                <Input type="tel" maxLength={20} value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </Field>
+              <Field label="Liên hệ khác" error={error?.fieldErrors.contactInfo}
+                     hint="Ví dụ: Zalo, Facebook. Riêng tư như số điện thoại">
+                <Textarea rows={2} maxLength={500} value={contactInfo} onChange={(e) => setContactInfo(e.target.value)} />
+              </Field>
+            </div>
+          </FieldSet>
+        </form>
+      </CardContent>
+      <CardFooter className="border-t">
+        {/* form="profile-form": nút nằm ngoài thẻ <form> (ở chân thẻ) vẫn gửi đúng form này. */}
+        <Button type="submit" form="profile-form" disabled={saving}>
+          {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
+          {saving ? 'Đang lưu…' : 'Lưu hồ sơ'}
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }
 
 // ---------- Lịch rảnh ----------
 
-const DAYS = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ nhật'] // dayOfWeek 1..7
-const PERIODS: { value: Period; label: string }[] = [
-  { value: 'MORNING', label: 'Sáng' },
-  { value: 'AFTERNOON', label: 'Chiều' },
-  { value: 'EVENING', label: 'Tối' },
-]
-
-const slotKey = (dayOfWeek: number, period: Period) => `${dayOfWeek}-${period}`
-
-function AvailabilityGrid({ initial }: { initial: AvailabilitySlot[] }) {
+function AvailabilityCard({ initial }: { initial: AvailabilitySlot[] }) {
   // Set các ô đang được tick, khóa dạng "2-EVENING".
   const [selected, setSelected] = useState(() => new Set(initial.map((s) => slotKey(s.dayOfWeek, s.period))))
   const [saving, setSaving] = useState(false)
@@ -177,13 +195,13 @@ function AvailabilityGrid({ initial }: { initial: AvailabilitySlot[] }) {
     setSaved(false)
     setError(null)
     const body: AvailabilitySlot[] = []
-    DAYS.forEach((_, index) => {
+    for (let dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
       for (const { value } of PERIODS) {
-        if (selected.has(slotKey(index + 1, value))) {
-          body.push({ dayOfWeek: index + 1, period: value })
+        if (selected.has(slotKey(dayOfWeek, value))) {
+          body.push({ dayOfWeek, period: value })
         }
       }
-    })
+    }
     try {
       // PUT thay cả lịch: gửi đúng các ô đang tick; không tick ô nào = "chưa khai báo lịch".
       const result = await apiRequest<AvailabilitySlot[]>('/api/me/availability', { method: 'PUT', body })
@@ -197,45 +215,23 @@ function AvailabilityGrid({ initial }: { initial: AvailabilitySlot[] }) {
   }
 
   return (
-    <section className="card">
-      <h2>Lịch rảnh</h2>
-      <p className="muted small">Tick các buổi bạn thường rảnh để được gợi ý người có lịch trùng.</p>
-      {error && <Notice kind="error">{error}</Notice>}
-      {saved && <Notice kind="success">Đã lưu lịch rảnh.</Notice>}
-
-      <div className="grid-scroll">
-        <table className="availability">
-          <thead>
-            <tr>
-              <th scope="col"></th>
-              {DAYS.map((day) => <th key={day} scope="col">{day}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {PERIODS.map(({ value, label }) => (
-              <tr key={value}>
-                <th scope="row">{label}</th>
-                {DAYS.map((day, index) => {
-                  const key = slotKey(index + 1, value)
-                  return (
-                    <td key={key} className={selected.has(key) ? 'on' : undefined}>
-                      <input type="checkbox" aria-label={`${label} ${day}`}
-                             checked={selected.has(key)} onChange={() => toggle(key)} />
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="actions">
-        <button type="button" className="primary" onClick={save} disabled={saving}>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Lịch rảnh</CardTitle>
+        <CardDescription>Tick các buổi bạn thường rảnh để được gợi ý người có lịch trùng.</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {error && <Notice kind="error">{error}</Notice>}
+        {saved && <Notice kind="success">Đã lưu lịch rảnh.</Notice>}
+        <AvailabilityGrid selected={selected} onToggle={toggle} />
+      </CardContent>
+      <CardFooter className="flex flex-wrap items-center gap-3 border-t">
+        <Button onClick={save} disabled={saving}>
+          {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
           {saving ? 'Đang lưu…' : 'Lưu lịch rảnh'}
-        </button>
-        <span className="muted small">Đã chọn {selected.size} buổi</span>
-      </div>
-    </section>
+        </Button>
+        <span className="text-sm text-muted-foreground">Đã chọn {selected.size} buổi</span>
+      </CardFooter>
+    </Card>
   )
 }
