@@ -79,7 +79,7 @@ function LoginForm({ registeredEmail }: { registeredEmail: string | null }) {
     <form onSubmit={handleSubmit} noValidate>
       {registeredEmail && (
         <Notice kind="success">
-          Đăng ký thành công. Mở email <strong>{registeredEmail}</strong> và bấm link xác thực.
+          Đăng ký thành công. Hãy mở hộp thư email trường và bấm link xác thực.
           Bạn vẫn có thể đăng nhập ngay để điền hồ sơ.
         </Notice>
       )}
