@@ -1,6 +1,6 @@
 # Nội dung điền vào mẫu báo cáo – Tuần 4 (Matching, hồ sơ công khai, tìm kiếm)
 
-Nguồn: `git log` tuần 4, `Quyet_dinh_tuan_4.md`, `ke_hoach_tuan_4.md`, `kiem_thu/README.md`, spec tuần 1 (mục 4, phụ lục A.3), thiết kế tuần 2 (mục 3.5, 4.3, 4.5). Số liệu kiểm thử lấy từ lần chạy ngày 08/11/2026. Chỗ chưa có dữ liệu ghi **[CẦN BỔ SUNG]**. Số bảng/hình nối tiếp bản báo cáo sau tuần 3 (`Update báo cáo tuần 3.docx`).
+Nguồn: `git log` tuần 4, `Quyet_dinh_tuan_4.md`, `ke_hoach_tuan_4.md`, `kiem_thu/README.md`, spec tuần 1 (mục 4, phụ lục A.3), thiết kế tuần 2 (mục 3.5, 4.3, 4.5). Số liệu kiểm thử lấy từ lần chạy ngày 08/11/2026. Số bảng/hình nối tiếp bản báo cáo sau tuần 3 (`Update báo cáo tuần 3.docx`).
 
 ## Bảng đối chiếu: phần nào của tuần 4 điền vào mục nào của mẫu
 
@@ -18,10 +18,6 @@ Nguồn: `git log` tuần 4, `Quyet_dinh_tuan_4.md`, `ke_hoach_tuan_4.md`, `kiem
 | Lệnh chạy test | Phụ lục | Bổ sung |
 
 Bảng mới 5.4 nằm ở mục 5.3 nên bảng biến môi trường (Bảng 5.4 cũ, mục 5.4) đổi số thành **Bảng 5.5**.
-
-## Sửa theo góp ý của giảng viên (sau báo cáo tuần 3)
-
-[CẦN BỔ SUNG: ghi các góp ý cho báo cáo tuần 3 và chỗ đã sửa, như phần này ở `Noi_dung_bao_cao_Tuan_3.md`. Nếu không có góp ý thì xóa mục này.]
 
 ---
 
