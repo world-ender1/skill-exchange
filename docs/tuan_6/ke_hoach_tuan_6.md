@@ -1,6 +1,6 @@
 # KẾ HOẠCH TUẦN 6
 
-Lập ngày 2026-11-18. Áp dụng `docs/tuan_6/Quyet_dinh_tuan_6.md`: D78–D85 (giao diện, đã chốt) và D86 trở đi (yêu cầu, phiên, báo cáo sự cố; chốt ở Bước 0). Ca kiểm thử: `docs/tuan_6/kiem_thu/ca_kiem_thu.md` (TC301 trở đi, viết ở Bước 0).
+Lập ngày 2026-11-18. Áp dụng `docs/tuan_6/Quyet_dinh_tuan_6.md`: D78–D85 (giao diện) và D86–D96 (yêu cầu, phiên, báo cáo sự cố; chốt ở Bước 0). Ca kiểm thử: `docs/tuan_6/kiem_thu/ca_kiem_thu.md` (61 ca, TC301–TC361, viết ở Bước 0).
 
 **Phạm vi** (spec 9, dòng tuần 6): FR-05 (yêu cầu kèm lịch đề xuất), FR-06 (vòng đời phiên, xác nhận hoàn thành), quyền xem liên hệ và địa điểm/link, FR-09 phần người dùng (gửi báo cáo sự cố); unit test nhóm 5 của spec 7.1, trừ phần đánh giá. Thêm việc ngoài FR: chuyển giao diện sang Tailwind CSS + shadcn/ui (D78).
 
@@ -67,7 +67,7 @@ Quy ước chung:
 - **Cài:** `tailwindcss`, `@tailwindcss/vite`, `@fontsource/be-vietnam-pro`, `@fontsource-variable/inter`; `npx shadcn@latest init` (Radix, `slate`, D83). Thêm component khi cần, bắt đầu với: `button`, `card`, `input`, `label`, `textarea`, `select`, `checkbox`, `tabs`, `badge`, `alert`, `skeleton`, `field`, `separator`, `sidebar`, `sheet`.
 - **Sửa:** `vite.config.ts` (plugin, alias `@/`), `tsconfig.app.json` và `tsconfig.json` (`paths`), `src/index.css` (Tailwind, biến màu D79, chế độ tối D82, font D80; phần CSS cũ giữ tới bước 3), `src/main.tsx` (import font), `src/components/Layout.tsx` (D81), `src/components/Field.tsx`, `src/components/Notice.tsx` (D85).
 - **Tạo:** `frontend/components.json`, `src/components/ui/*` (do CLI sinh), `src/lib/utils.ts` (CLI sinh).
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC301–TC305, TC307 (thủ công).
 - **Chốt ở bước này:**
   - Không sửa tay code trong `src/components/ui/`, trừ việc thêm kiểu `success` cho `Alert` (D85). Muốn đổi giao diện chung thì đổi biến màu.
   - oxlint báo lỗi ở code CLI sinh ra thì tắt đúng luật đó cho riêng `src/components/ui/` trong `.oxlintrc.json`, không sửa code sinh ra.
@@ -79,7 +79,7 @@ Quy ước chung:
 
 - **Sửa:** `LoginPage.tsx`, `VerifyEmailPage.tsx`, `ProfilePage.tsx`, `SkillsPage.tsx`.
 - **Tạo:** `src/components/AvailabilityGrid.tsx` (lưới D84, có chế độ chỉ đọc để S06 dùng ở bước 3).
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC306 (thủ công).
 - **Chốt ở bước này** (bố cục đã duyệt ngày 2026-11-18):
   - S01: thẻ giữa trang, tên ứng dụng phía trên, hai tab bằng `Tabs`.
   - S02: thẻ có icon trạng thái (`Loader2` quay khi đang xác thực, `CircleCheck`, `CircleX`).
@@ -92,7 +92,7 @@ Quy ước chung:
 ### Bước 3 – Chuyển S05, S06, S10, A01; bỏ CSS cũ
 
 - **Sửa:** `MatchesPage.tsx`, `MatchCard.tsx`, `UserProfilePage.tsx`, `SearchPage.tsx`, `AdminSkillsPage.tsx`, `src/index.css` (xóa mọi class cũ, chỉ còn Tailwind, biến màu và font).
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC308–TC310 (thủ công); chạy lại TC301–TC307 trên cả 8 màn.
 - **Chốt ở bước này:**
   - S05: `Tabs` kèm số người. Thẻ ứng viên có avatar chữ cái đầu, % phù hợp cỡ chữ lớn và thanh tiến độ, các badge; mỗi lý do một dòng có icon; lịch trùng dạng chip. "Chi tiết điểm" mở bằng `Collapsible`: mỗi thành phần một dòng gồm nhãn, `Progress` thang 0–1 (spec 4.3: mọi thành phần trong [0, 1]) và số nguyên văn API (`tabular-nums`), cuối cùng là dòng D. Không làm tròn, không dùng biểu đồ tròn (NFR-09: cần so với bảng tính tay).
   - S06: phần đầu có avatar, tên, hình thức học và chỗ cho nút "Gửi yêu cầu" (bước 9); hai thẻ Dạy, Muốn học; lịch rảnh là `AvailabilityGrid` chỉ đọc.
@@ -106,7 +106,7 @@ Quy ước chung:
 - **Tạo** trong `exchange`: Entity `ExchangeRequest`, `ExchangeSession`, `IncidentReport`; enum `RequestType`, `RequestStatus`, `SessionStatus`, `MeetingMode` (`ONLINE`, `OFFLINE`), `ReportStatus`; ba Repository.
 - **Migration:** không có nếu Q2 theo gợi ý.
 - **Test:** `ExchangeMappingTest`: lưu và đọc lại mỗi Entity; vi phạm CHECK của DB (ví dụ `TWO_WAY` thiếu kỹ năng chiều ngược) ra lỗi, chứng tỏ Entity khớp bảng.
-- **Ca:** (điền ở Bước 0).
+- **Ca:** không có ca TC (bước chỉ dựng Entity); `ExchangeMappingTest` là test riêng của bước.
 - **Chốt ở bước này:**
   - Kiểu theo D30: `duration_minutes` → `Short`, `TIMESTAMPTZ` → `Instant`, `version` → `Integer` + `@Version`, cột có `CHECK IN` → enum `@Enumerated(EnumType.STRING)`.
   - Khóa ngoại ánh xạ như các Entity tuần 3 trong `user/`, `skill/`; danh sách đọc bằng truy vấn kéo sẵn tên người và tên kỹ năng, không để N+1 (skill `jpa-patterns`).
@@ -118,7 +118,7 @@ Quy ước chung:
 
 - **Tạo:** `ExchangeRequestController`, `ExchangeRequestService`, DTO `CreateRequestRequest`, `RequestResponse` (theo bảng DTO của Bước 0).
 - **Sửa:** `common/SecurityConfig` (`/api/requests/**`, `/api/sessions/**` cần `ACTIVE_STUDENT`, D44).
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC311–TC325.
 - **Phải phủ:** từng dòng của bảng R36; Q3, Q4; gửi cho admin hoặc người bị khóa thì 404; trùng `PENDING` cùng chiều thì 409, kể cả khi DB báo lỗi unique (D24); chiều ngược lại thì được.
 - **Chốt ở bước này:** Sim > 0 tính bằng `SkillSimilarity` của lõi matching (Java thuần, D34) dựng từ `skill_relations`; dùng lại hàm đọc quan hệ của `MatchingDataRepository`, không viết câu SQL thứ hai cho cùng bảng.
 - **Tự kiểm:** ghi lệnh thử vào `hoc_vibe_coding/http/tuan_6.http`; bỏ kiểm "kỹ năng thuộc danh sách học" thì ca R36 tương ứng phải đỏ.
@@ -128,7 +128,7 @@ Quy ước chung:
 
 - **API:** `GET /api/requests?box=sent|received&status=`, `GET /api/requests/{id}`, `POST /api/requests/{id}/accept`, `/reject` (`note` tùy chọn), `/cancel`.
 - **Sửa:** `common/GlobalExceptionHandler` (lỗi khóa lạc quan `ObjectOptimisticLockingFailureException` → 409).
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC326–TC337.
 - **Phải phủ:** bảng "Yêu cầu" của phụ lục rà soát, đủ mọi ô; `accept` tạo phiên `SCHEDULED` với giờ, thời lượng, hình thức, địa điểm chép từ yêu cầu, **trong cùng transaction**; `accept` sau `proposed_start_at` thì 409 (R34); `accept` khi người gửi không còn `ACTIVE` thì 409 (R37); `responded_at` được ghi (R39); địa điểm/link và liên hệ theo Q1.
 - **Tự kiểm:** bỏ `@Version` thì ca "hủy đúng lúc chấp nhận" phải đỏ; ném lỗi sau khi lưu phiên thì yêu cầu vẫn `PENDING` (transaction rollback).
 - **Commit:** `feat(exchange): add request inbox and responses`
@@ -136,7 +136,8 @@ Quy ước chung:
 ### Bước 7 – Vòng đời phiên (TDD hai lượt; TK 4.7, 5.2; R34, R35, R38)
 
 - **API:** `GET /api/sessions?status=`, `GET /api/sessions/{id}` (kèm `phone`, `contactInfo` của bên kia và địa điểm/link, NFR-02), `POST /api/sessions/{id}/start`, `/complete`, `/cancel` (`reason` bắt buộc).
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC338–TC350, TC355.
+- **Chốt ở bước này:** `SessionDetail` đọc đủ `myReviewed`, `openReport`, `resolution` từ DB ngay ở bước này (D92), không để giá trị cứng chờ bước 8: TC355 dựng đánh giá, báo cáo bằng SQL nên không cần API báo cáo.
 - **Phải phủ:** bảng "Phiên" của phụ lục rà soát, trừ cột đánh giá và cột admin; `start` từ đúng 15 phút trước `start_at` (giả giờ bằng `MutableClock`: 15 phút 0 giây được, sớm hơn 1 giây thì 409), không có cận trên (R34); `complete` lần 1 ghi `first_completed_by`, lần 2 phải là bên còn lại; hủy từ `IN_PROGRESS` giữ `started_at` (được tính vào CompletionRate); hủy `WAITING_CONFIRMATION` thì 409; người ngoài 403; mọi ca bị cấm không đổi dữ liệu (spec 7.1 nhóm 5).
 - **Tự kiểm:** đổi 15 phút thành 0 hoặc dùng `Instant.now()` thay `Clock` thì ca biên phải đỏ. Gọi `GET /api/matches` sau khi có phiên hoàn thành và phiên hủy: Reputation đổi khác 0.5 (D32 đọc dữ liệu thật).
 - **Commit:** `feat(exchange): add session lifecycle API`
@@ -144,8 +145,8 @@ Quy ước chung:
 ### Bước 8 – Gửi báo cáo sự cố (TDD hai lượt; FR-09 phần người dùng; R33)
 
 - **API:** `POST /api/sessions/{id}/reports` `{reason}`.
-- **Sửa:** `complete` trả 409 khi phiên có báo cáo `OPEN`; `GET /api/sessions/{id}` trả `openReport` (R38).
-- **Ca:** (điền ở Bước 0).
+- **Sửa:** `complete` trả 409 khi phiên có báo cáo `OPEN` (D93; `openReport` của chi tiết phiên đã có từ bước 7).
+- **Ca:** TC351–TC354.
 - **Phải phủ:** chỉ nhận khi `WAITING_CONFIRMATION`, trạng thái khác thì 409; mỗi phiên một báo cáo mở, người gửi sau nhận 409 (kể cả lỗi unique từ DB); người ngoài 403; lý do rỗng 400 (Q4).
 - **Tự kiểm:** bỏ kiểm báo cáo mở trong `complete` thì ca tương ứng phải đỏ.
 - **Commit:** `feat(exchange): add incident report API`
@@ -153,7 +154,7 @@ Quy ước chung:
 ### Bước 9 – S07 Gửi yêu cầu (Q7, Q8; wireframe TK 6.3)
 
 - **Tạo:** trang S07 theo đường dẫn của Q8. **Sửa:** `MatchCard.tsx`, `UserProfilePage.tsx` (nút "Gửi yêu cầu"; ẩn khi `hasPendingRequest`, giữ badge "Đã gửi yêu cầu"), `App.tsx`, `api/types.ts`.
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC356–TC358 (thủ công).
 - **Chốt ở bước này:** chọn loại bằng `RadioGroup`; ngày và giờ dùng ô `date`, `time` của trình duyệt (không thêm thư viện lịch); chip khung trùng theo Q7; hình thức chỉ `ONLINE`/`OFFLINE`; dưới ô địa điểm/link ghi ai được xem theo Q1. Gửi xong chuyển sang S08, tab "Đã gửi". Lỗi theo ô hiện dưới ô (D24).
 - **Tự kiểm:** gửi yêu cầu hai chiều từ S05 ở 360 px; gửi trùng nhận thông báo 409.
 - **Commit:** `feat(frontend): add send request page`
@@ -161,7 +162,7 @@ Quy ước chung:
 ### Bước 10 – S08 Hộp yêu cầu (Q10)
 
 - **Tạo:** trang `/requests`. **Sửa:** `Layout.tsx` (mục "Yêu cầu", D81), `App.tsx`, `api/types.ts`.
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC359 (thủ công).
 - **Chốt ở bước này:** hai tab "Đã nhận", "Đã gửi"; ô lọc trạng thái mặc định "Tất cả". Mỗi thẻ: người kia (link hồ sơ), loại, kỹ năng hai chiều, giờ, thời lượng, hình thức, địa điểm/link theo Q1, lời nhắn, ghi chú từ chối, `Badge` trạng thái (`PENDING` màu `warning`, `ACCEPTED` `success`, `REJECTED` `destructive`, `CANCELLED` màu xám). Nút theo trạng thái và vai trò: Chấp nhận, Từ chối (hộp thoại nhập ghi chú tùy chọn), Hủy; yêu cầu `ACCEPTED` có "Xem phiên". Gặp 409 thì hiện `detail` và tải lại danh sách.
 - **Tự kiểm:** hai trình duyệt, hai tài khoản: một bên hủy, bên kia bấm chấp nhận thì nhận 409 và thấy trạng thái mới.
 - **Commit:** `feat(frontend): add request inbox page`
@@ -169,20 +170,28 @@ Quy ước chung:
 ### Bước 11 – S09 Phiên của tôi và chi tiết phiên (Q10; wireframe TK 6.3)
 
 - **Tạo:** trang `/sessions`, `/sessions/:id`. **Sửa:** `Layout.tsx` (mục "Phiên"), `App.tsx`, `api/types.ts`.
-- **Ca:** (điền ở Bước 0).
+- **Ca:** TC360, TC361 (thủ công).
 - **Chốt ở bước này:** chi tiết có thanh tiến trình trạng thái (Đã lên lịch → Đang diễn ra → Chờ xác nhận → Hoàn thành; Đã hủy hiện riêng kèm lý do), giờ, hình thức, địa điểm/link, liên hệ bên kia. Nút theo trạng thái và vai trò, đúng bảng của Bước 0: Bắt đầu (trước mốc 15 phút thì khóa, kèm chữ "Mở lúc HH:mm"), Hoàn thành, Xác nhận hoàn thành, Hủy (hộp thoại nhập lý do), Báo cáo sự cố (hộp thoại nhập lý do; chỉ khi `WAITING_CONFIRMATION` và chưa có báo cáo mở). Nút chỉ ẩn để dễ dùng, quyền do backend kiểm (spec 6.3). Gặp 409 thì hiện `detail` và tải lại phiên. Chưa có nút đánh giá (tuần 7).
 - **Tự kiểm:** đi trọn luồng hai tài khoản: gửi → chấp nhận → cả hai thấy liên hệ → bắt đầu → một bên hoàn thành → bên kia báo cáo, rồi thử bấm xác nhận thì nhận 409.
 - **Commit:** `feat(frontend): add sessions pages`
 
 ## 3. Đối chiếu ca kiểm thử
 
-Điền ở Bước 0, sau khi viết ca: mỗi ca thuộc đúng một bước.
+Đã đối chiếu 61 ca: mọi ca thuộc đúng một bước.
 
 | Bước | Ca |
 | --- | --- |
-| 1–3 | (điền ở Bước 0) |
-| 4–8 | (điền ở Bước 0) |
-| 9–11 | (điền ở Bước 0) |
+| 1 | TC301–TC305, TC307 (thủ công) |
+| 2 | TC306 (thủ công) |
+| 3 | TC308–TC310 (thủ công) |
+| 4 | – |
+| 5 | TC311–TC325 |
+| 6 | TC326–TC337 |
+| 7 | TC338–TC350, TC355 |
+| 8 | TC351–TC354 |
+| 9 | TC356–TC358 (thủ công) |
+| 10 | TC359 (thủ công) |
+| 11 | TC360, TC361 (thủ công) |
 
 ## 4. Sau bước 11 – Kiểm tra cả tuần
 
