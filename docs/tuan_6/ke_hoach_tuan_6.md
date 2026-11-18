@@ -151,8 +151,21 @@ Quy ước chung:
 - **Sửa:** `common/SecurityConfig` (`/api/requests/**`, `/api/sessions/**` cần `ACTIVE_STUDENT`, D44).
 - **Ca:** TC311–TC325.
 - **Phải phủ:** từng dòng của bảng R36; Q3, Q4; gửi cho admin hoặc người bị khóa thì 404; trùng `PENDING` cùng chiều thì 409, kể cả khi DB báo lỗi unique (D24); chiều ngược lại thì được.
-- **Chốt ở bước này:** Sim > 0 tính bằng `SkillSimilarity` của lõi matching (Java thuần, D34) dựng từ `skill_relations`; dùng lại hàm đọc quan hệ của `MatchingDataRepository`, không viết câu SQL thứ hai cho cùng bảng.
-- **Tự kiểm:** ghi lệnh thử vào `hoc_vibe_coding/http/tuan_6.http`; bỏ kiểm "kỹ năng thuộc danh sách học" thì ca R36 tương ứng phải đỏ.
+- **Chốt ở bước này:**
+  - Sim > 0 tính bằng `SkillSimilarity` của lõi matching (Java thuần, D34) dựng từ `skill_relations`; dùng lại hàm đọc quan hệ của `MatchingDataRepository`, không viết câu SQL thứ hai cho cùng bảng.
+  - **Hủy yêu cầu trong TC315, TC323 làm bằng SQL** (`status = 'CANCELLED'`, `responded_at` = giờ đồng hồ giả, như D90): API hủy có ở bước 6. Điều bước này cần kiểm là tạo yêu cầu chỉ chặn trùng `PENDING`. Sửa ngược TC315, TC323.
+  - Bước (1) của D89 là Bean Validation trên DTO; bước (2)–(8) kiểm ở service theo đúng thứ tự. Trong bước (6) và (7), kiểm `senderLearnSkillId` trước `receiverLearnSkillId`. Thêm test `D89` ghim thứ tự các bước mà TC chưa ghim: (2) trước (3), (3) trước (8), (6) trước (7), (7) trước (8).
+  - `durationMinutes` trong DTO là `Integer`, đổi sang `Short` sau khi qua kiểm: số quá lớn (ví dụ 40000) ra lỗi theo ô, không thành "JSON không đọc được" vì tràn `Short`. `type` là enum như `mode`: giá trị lạ → 400 "Nội dung JSON không đọc được".
+  - Mã kỹ năng không tồn tại cũng là "không có trong danh sách muốn học" (400 ở bước 6 của D89), không phải 404.
+  - Người nhận hợp lệ = `ACTIVE` và `STUDENT`, cùng điều kiện với `GET /api/users/{id}` (TK 4.3).
+  - Trùng `PENDING` lọt qua kiểm của service (hai request chạy song song) thì chỉ mục `uq_requests_one_pending` chặn, lưới D24 trả 409 với câu chung "Dữ liệu xung đột với dữ liệu đã có". Không có test song song ở bước này: `ExchangeMappingTest` đã ghim DB chặn, `ErrorHandlingTest` đã ghim lưới 409.
+  - Response dựng từ một câu JPQL (`ExchangeRequestRepository.findRowById`) JOIN tên hai người, tên kỹ năng (kể cả kỹ năng đã ẩn) và LEFT JOIN phiên để có `sessionId`; bước 6 dùng lại cho danh sách, chi tiết. `RequestItem.from(row, viewerId)` áp luôn luật địa điểm/link của D91 (người gửi luôn thấy, người nhận chỉ thấy khi `ACCEPTED`) vì đó là hàm ánh xạ duy nhất; bước 5 chỉ test nhánh người gửi, nhánh người nhận test ở bước 6.
+- **Tự kiểm:** ghi lệnh thử vào `hoc_vibe_coding/http/tuan_6.http`; bỏ kiểm "kỹ năng thuộc danh sách học" thì ca R36 tương ứng phải đỏ. Khi làm (`CreateRequestApiTest`, 17 test: TC311–TC325, D87 không vé 401, D89 thứ tự kiểm; làm hỏng rồi trả lại):
+  - bỏ kiểm danh sách học của người gửi → TC320 đỏ (201 thay vì 400), test D89 đỏ (ra câu của bước 7);
+  - `proposedStartAt` bằng hiện tại được nhận (`isBefore` thay `!isAfter`) → TC317 đỏ;
+  - bỏ `/api/requests/**` khỏi luật `ACTIVE_STUDENT` → TC322 đỏ (tài khoản chưa xác thực nhận 400 thay vì 403);
+  - người gửi không thấy địa điểm/link của mình → TC311 đỏ;
+  - kiểm Sim (7) trước danh sách học (6) → TC320 và test D89 đỏ.
 - **Commit:** `feat(exchange): add create request API`
 
 ### Bước 6 – Hộp yêu cầu và phản hồi (TDD hai lượt; TK 4.6, 5.1; R34, R35, R37, R39)

@@ -62,8 +62,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Quyền Active (D44): chỉ sinh viên ACTIVE. Xét ở tầng filter, trước controller,
                         // nên admin hay tài khoản chưa xác thực nhận 403 kể cả khi tham số sai (403 trước 400).
-                        // Tuần 6 thêm đường dẫn của mình vào cùng luật này.
-                        .requestMatchers("/api/matches/**", "/api/users/**")
+                        // Tuần 6 thêm yêu cầu và phiên (D86, D87): admin xem phiên làm cùng A02 ở tuần 7.
+                        // "/**" khớp cả chính đường dẫn gốc, ví dụ POST /api/requests.
+                        .requestMatchers("/api/matches/**", "/api/users/**", "/api/requests/**", "/api/sessions/**")
                                 .hasAuthority(AccountStatusFilter.ACTIVE_STUDENT)
                         .anyRequest().authenticated())
 
