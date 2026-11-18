@@ -19,8 +19,12 @@ type SkillComboboxProps = {
   /** Mã kỹ năng đang chọn dạng chuỗi, '' = chưa chọn. */
   value: string
   onChange: (value: string) => void
-  /** Tên của ô cho trình đọc màn hình, ví dụ "Chọn kỹ năng để thêm". */
-  ariaLabel: string
+  /** Tên cho trình đọc màn hình khi ô không có nhãn hiển thị, ví dụ "Chọn kỹ năng để thêm" (S04). */
+  ariaLabel?: string
+  /** Do Field gắn vào (S10) để <label> và lỗi nối với nút mở danh sách. */
+  id?: string
+  'aria-invalid'?: boolean
+  'aria-describedby'?: string
   placeholder: string
   /** Lý do một kỹ năng không chọn được (đã có trong danh sách...), null = chọn được. */
   disabledReason?: (skill: Skill) => string | null
@@ -60,10 +64,13 @@ export function SkillCombobox(props: SkillComboboxProps) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={props.id}
           variant="outline"
           role="combobox"
           aria-expanded={open}
           aria-label={ariaLabel}
+          aria-invalid={props['aria-invalid']}
+          aria-describedby={props['aria-describedby']}
           disabled={disabled}
           className="w-full justify-between font-normal"
         >

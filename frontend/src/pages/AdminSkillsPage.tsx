@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
+import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from '@/components/ui/native-select'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { ApiError, apiRequest, toError } from '../api/client'
 import type { AdminSkill, AdminSkillRelation, SkillCategory } from '../api/types'
 import { Field } from '../components/Field'
+import { LoadError } from '../components/LoadError'
 import { Notice } from '../components/Notice'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Catalog = {
   categories: SkillCategory[]
@@ -66,31 +76,32 @@ export function AdminSkillsPage() {
   }
 
   if (loadError) {
-    return (
-      <>
-        <Notice kind="error">{loadError}</Notice>
-        <p><button type="button" onClick={() => { setLoadError(null); void reload() }}>Thử lại</button></p>
-      </>
-    )
+    return <LoadError message={loadError} onRetry={() => { setLoadError(null); void reload() }} />
   }
   if (!catalog) {
-    return <p>Đang tải danh mục kỹ năng…</p>
+    return <PageSkeleton label="Đang tải danh mục kỹ năng" />
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <h1>Danh mục kỹ năng</h1>
       <Notice kind="info">
         Kỹ năng không xóa được, chỉ ẩn. Kỹ năng đã ẩn không còn trong danh sách chọn của sinh viên,
         nhưng người đang có vẫn giữ và vẫn được tính khi ghép cặp.
       </Notice>
 
-      <section className="card">
-        <h2>Thêm mới</h2>
-        <AddSkillForm categories={catalog.categories} onChanged={reload} />
-        <hr className="divider" />
-        <AddCategoryForm onChanged={reload} />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Thêm mới</CardTitle>
+        </CardHeader>
+        {/* Từ 768 px hai form nằm cạnh nhau; hẹp hơn thì xếp chồng, ngăn bằng đường kẻ. */}
+        <CardContent className="grid gap-6 md:grid-cols-[1fr_auto_1fr]">
+          <AddSkillForm categories={catalog.categories} onChanged={reload} />
+          <Separator orientation="vertical" className="hidden md:block" />
+          <Separator className="md:hidden" />
+          <AddCategoryForm onChanged={reload} />
+        </CardContent>
+      </Card>
 
       {catalog.categories.map((category) => (
         <CategoryCard
@@ -104,7 +115,17 @@ export function AdminSkillsPage() {
       ))}
 
       <RelationsCard catalog={catalog} onChanged={reload} />
-    </>
+    </div>
+  )
+}
+
+/** Nút gửi của các form trên trang: vòng quay khi đang gửi, chữ đổi theo trạng thái. */
+function SubmitButton({ busy, busyText, children }: { busy: boolean; busyText: string; children: ReactNode }) {
+  return (
+    <Button type="submit" disabled={busy}>
+      {busy && <Loader2 className="animate-spin" aria-hidden="true" />}
+      {busy ? busyText : children}
+    </Button>
   )
 }
 
@@ -162,21 +183,21 @@ function AddSkillForm({ categories, onChanged }: { categories: SkillCategory[]; 
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       <h3>Thêm kỹ năng</h3>
       {error && <Notice kind="error">{error.message}</Notice>}
       {added && <Notice kind="success">Đã thêm kỹ năng “{added}”.</Notice>}
       <Field label="Tên kỹ năng" error={error?.fieldErrors.name}>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
       </Field>
       <Field label="Nhóm" error={error?.fieldErrors.categoryId}>
-        <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-          <option value="">Chọn nhóm…</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <NativeSelect className="w-full" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <NativeSelectOption value="">Chọn nhóm…</NativeSelectOption>
+          {categories.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.name}</NativeSelectOption>)}
+        </NativeSelect>
       </Field>
-      <div className="actions">
-        <button type="submit" className="primary" disabled={busy}>{busy ? 'Đang thêm…' : 'Thêm kỹ năng'}</button>
+      <div>
+        <SubmitButton busy={busy} busyText="Đang thêm…"><Plus aria-hidden="true" />Thêm kỹ năng</SubmitButton>
       </div>
     </form>
   )
@@ -198,15 +219,15 @@ function AddCategoryForm({ onChanged }: { onChanged: OnChanged }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       <h3>Thêm nhóm</h3>
       {error && <Notice kind="error">{error.message}</Notice>}
       {added && <Notice kind="success">Đã thêm nhóm “{added}”.</Notice>}
       <Field label="Tên nhóm" error={error?.fieldErrors.name}>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
       </Field>
-      <div className="actions">
-        <button type="submit" className="primary" disabled={busy}>{busy ? 'Đang thêm…' : 'Thêm nhóm'}</button>
+      <div>
+        <SubmitButton busy={busy} busyText="Đang thêm…"><Plus aria-hidden="true" />Thêm nhóm</SubmitButton>
       </div>
     </form>
   )
@@ -241,35 +262,48 @@ function CategoryCard({ category, skills, categories, onChanged }: CategoryCardP
   }
 
   return (
-    <section className="card">
+    <Card>
       {editing ? (
-        <form onSubmit={handleSubmit} noValidate className="edit-form">
-          {error && <Notice kind="error">{error.message}</Notice>}
-          <Field label="Tên nhóm" error={error?.fieldErrors.name}>
-            <input value={name} onChange={(e) => setName(e.target.value)} />
-          </Field>
-          <div className="actions">
-            <button type="submit" className="primary" disabled={busy}>{busy ? 'Đang lưu…' : 'Lưu'}</button>
-            <button type="button" onClick={() => setEditing(false)} disabled={busy}>Hủy</button>
-          </div>
-        </form>
+        <CardContent>
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+            {error && <Notice kind="error">{error.message}</Notice>}
+            <Field label="Tên nhóm" error={error?.fieldErrors.name}>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </Field>
+            <div className="flex flex-wrap gap-2">
+              <SubmitButton busy={busy} busyText="Đang lưu…">Lưu</SubmitButton>
+              <Button type="button" variant="outline" onClick={() => setEditing(false)} disabled={busy}>Hủy</Button>
+            </div>
+          </form>
+        </CardContent>
       ) : (
-        <div className="card-head">
-          <h2>{category.name} <span className="muted small">({skills.length})</span></h2>
-          <button type="button" onClick={startEdit}>Đổi tên nhóm</button>
-        </div>
+        <CardHeader>
+          <CardTitle className="flex flex-wrap items-center gap-2 text-lg break-words">
+            {/* Tên nhóm là tiêu đề cấp 2 của trang, như bản cũ. */}
+            <h2 className="text-lg">{category.name}</h2>
+            <Badge variant="secondary" className="tabular-nums">{skills.length}</Badge>
+          </CardTitle>
+          <CardAction>
+            <Button variant="outline" size="sm" onClick={startEdit}>
+              <Pencil aria-hidden="true" />
+              Đổi tên nhóm
+            </Button>
+          </CardAction>
+        </CardHeader>
       )}
 
-      {skills.length === 0 ? (
-        <p className="muted">Chưa có kỹ năng nào.</p>
-      ) : (
-        <ul className="admin-rows">
-          {skills.map((skill) => (
-            <SkillRow key={skill.id} skill={skill} categories={categories} onChanged={onChanged} />
-          ))}
-        </ul>
-      )}
-    </section>
+      <CardContent>
+        {skills.length === 0 ? (
+          <p className="text-muted-foreground">Chưa có kỹ năng nào.</p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {skills.map((skill) => (
+              <SkillRow key={skill.id} skill={skill} categories={categories} onChanged={onChanged} />
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -313,21 +347,21 @@ function SkillRow({ skill, categories, onChanged }: SkillRowProps) {
 
   if (editing) {
     return (
-      <li>
-        <form onSubmit={handleSubmit} noValidate className="edit-form">
+      <li className="py-3">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 rounded-lg border p-4">
           {error && <Notice kind="error">{error.message}</Notice>}
           <Field label="Tên kỹ năng" error={error?.fieldErrors.name}>
-            <input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
           <Field label="Nhóm" error={error?.fieldErrors.categoryId}
                  hint="Kỹ năng đang có quan hệ liên quan thì phải gỡ quan hệ trước khi đổi nhóm">
-            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <NativeSelect className="w-full" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              {categories.map((c) => <NativeSelectOption key={c.id} value={c.id}>{c.name}</NativeSelectOption>)}
+            </NativeSelect>
           </Field>
-          <div className="actions">
-            <button type="submit" className="primary" disabled={busy}>{busy ? 'Đang lưu…' : 'Lưu'}</button>
-            <button type="button" onClick={() => setEditing(false)} disabled={busy}>Hủy</button>
+          <div className="flex flex-wrap gap-2">
+            <SubmitButton busy={busy} busyText="Đang lưu…">Lưu</SubmitButton>
+            <Button type="button" variant="outline" onClick={() => setEditing(false)} disabled={busy}>Hủy</Button>
           </div>
         </form>
       </li>
@@ -335,16 +369,23 @@ function SkillRow({ skill, categories, onChanged }: SkillRowProps) {
   }
 
   return (
-    <li>
-      <div className={skill.isActive ? 'admin-row' : 'admin-row is-hidden'}>
-        <span className="skill-name">
-          {skill.name}
-          {!skill.isActive && <> <span className="badge badge-hidden">Đã ẩn</span></>}
+    <li className="flex flex-col gap-2 py-2 first:pt-0 last:pb-0">
+      {/* 360 px: các nút xuống dòng thay vì đẩy trang rộng ra (NFR-08, TC264). */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="flex min-w-40 flex-1 flex-wrap items-center gap-2 break-words">
+          <span className={skill.isActive ? 'font-medium' : 'font-medium text-muted-foreground'}>{skill.name}</span>
+          {!skill.isActive && <Badge variant="outline">Đã ẩn</Badge>}
         </span>
-        <button type="button" onClick={startEdit} disabled={busy}>Sửa</button>
-        <button type="button" onClick={toggleActive} disabled={busy}>
-          {skill.isActive ? 'Ẩn' : 'Hiện'}
-        </button>
+        {/* Ẩn/hiện = công tắc "Đang dùng" (kế hoạch bước 3). Tên kỹ năng nằm trong aria-label để mỗi công tắc có tên riêng. */}
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={skill.isActive} onCheckedChange={toggleActive} disabled={busy}
+                  aria-label={`Đang dùng ${skill.name}`} />
+          Đang dùng
+        </label>
+        <Button variant="ghost" size="sm" onClick={startEdit} disabled={busy} aria-label={`Sửa ${skill.name}`}>
+          <Pencil aria-hidden="true" />
+          Sửa
+        </Button>
       </div>
       {error && <Notice kind="error">{error.message}</Notice>}
     </li>
@@ -372,36 +413,45 @@ function RelationsCard({ catalog, onChanged }: { catalog: Catalog; onChanged: On
   }
 
   return (
-    <section className="card">
-      <h2>Kỹ năng liên quan</h2>
-      <p className="muted small">
-        Hai kỹ năng cùng nhóm được đánh dấu liên quan thì người muốn học kỹ năng này vẫn được gợi ý người dạy kỹ năng kia.
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          <h2 className="text-lg">Kỹ năng liên quan</h2>
+        </CardTitle>
+        <CardDescription>
+          Hai kỹ năng cùng nhóm được đánh dấu liên quan thì người muốn học kỹ năng này vẫn được gợi ý người dạy kỹ năng kia.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        {catalog.relations.length === 0 ? (
+          <p className="text-muted-foreground">Chưa có cặp nào.</p>
+        ) : (
+          <ul className="flex flex-col divide-y">
+            {catalog.relations.map((relation) => (
+              <RelationRow key={`${relation.skillAId}-${relation.skillBId}`} relation={relation} onChanged={onChanged} />
+            ))}
+          </ul>
+        )}
 
-      {catalog.relations.length === 0 ? (
-        <p className="muted">Chưa có cặp nào.</p>
-      ) : (
-        <ul className="admin-rows relation-list">
-          {catalog.relations.map((relation) => (
-            <RelationRow key={`${relation.skillAId}-${relation.skillBId}`} relation={relation} onChanged={onChanged} />
-          ))}
-        </ul>
-      )}
+        <Separator />
 
-      <form onSubmit={handleSubmit} noValidate>
-        <h3>Thêm cặp</h3>
-        {error && <Notice kind="error">{error.message}</Notice>}
-        <Field label="Kỹ năng thứ nhất" error={error?.fieldErrors.skillAId}>
-          <SkillSelect value={skillAId} onChange={setSkillAId} catalog={catalog} />
-        </Field>
-        <Field label="Kỹ năng thứ hai" error={error?.fieldErrors.skillBId}>
-          <SkillSelect value={skillBId} onChange={setSkillBId} catalog={catalog} />
-        </Field>
-        <div className="actions">
-          <button type="submit" className="primary" disabled={busy}>{busy ? 'Đang thêm…' : 'Thêm cặp'}</button>
-        </div>
-      </form>
-    </section>
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          <h3>Thêm cặp</h3>
+          {error && <Notice kind="error">{error.message}</Notice>}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Kỹ năng thứ nhất" error={error?.fieldErrors.skillAId}>
+              <SkillSelect value={skillAId} onChange={setSkillAId} catalog={catalog} />
+            </Field>
+            <Field label="Kỹ năng thứ hai" error={error?.fieldErrors.skillBId}>
+              <SkillSelect value={skillBId} onChange={setSkillBId} catalog={catalog} />
+            </Field>
+          </div>
+          <div>
+            <SubmitButton busy={busy} busyText="Đang thêm…"><Plus aria-hidden="true" />Thêm cặp</SubmitButton>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -416,10 +466,14 @@ function RelationRow({ relation, onChanged }: { relation: AdminSkillRelation; on
   }
 
   return (
-    <li>
-      <div className="admin-row">
-        <span className="skill-name">{relation.skillAName} – {relation.skillBName}</span>
-        <button type="button" onClick={remove} disabled={busy}>{busy ? 'Đang xóa…' : 'Xóa'}</button>
+    <li className="flex flex-col gap-2 py-2 first:pt-0 last:pb-0">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="min-w-40 flex-1 font-medium break-words">{relation.skillAName} – {relation.skillBName}</span>
+        <Button variant="ghost" size="sm" onClick={remove} disabled={busy}
+                aria-label={`Xóa cặp ${relation.skillAName} – ${relation.skillBName}`}>
+          {busy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Trash2 aria-hidden="true" />}
+          {busy ? 'Đang xóa…' : 'Xóa'}
+        </Button>
       </div>
       {error && <Notice kind="error">{error.message}</Notice>}
     </li>
@@ -430,23 +484,27 @@ type SkillSelectProps = {
   value: string
   onChange: (value: string) => void
   catalog: Catalog
+  /** Do Field gắn vào để <label> và lỗi nối với ô chọn. */
+  id?: string
+  'aria-invalid'?: boolean
+  'aria-describedby'?: string
 }
 
 /**
  * Ô chọn kỹ năng gom theo nhóm, gồm cả kỹ năng đã ẩn (D75: vẫn tạo được quan hệ với kỹ năng bị ẩn).
  * Không lọc theo nhóm của ô kia: "hai kỹ năng phải cùng nhóm" do backend kiểm (D76).
  */
-function SkillSelect({ value, onChange, catalog }: SkillSelectProps) {
+function SkillSelect({ value, onChange, catalog, ...aria }: SkillSelectProps) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">Chọn kỹ năng…</option>
+    <NativeSelect className="w-full" value={value} onChange={(e) => onChange(e.target.value)} {...aria}>
+      <NativeSelectOption value="">Chọn kỹ năng…</NativeSelectOption>
       {catalog.categories.map((category) => (
-        <optgroup key={category.id} label={category.name}>
+        <NativeSelectOptGroup key={category.id} label={category.name}>
           {catalog.skills.filter((s) => s.categoryId === category.id).map((s) => (
-            <option key={s.id} value={s.id}>{s.name}{s.isActive ? '' : ' (đã ẩn)'}</option>
+            <NativeSelectOption key={s.id} value={s.id}>{s.name}{s.isActive ? '' : ' (đã ẩn)'}</NativeSelectOption>
           ))}
-        </optgroup>
+        </NativeSelectOptGroup>
       ))}
-    </select>
+    </NativeSelect>
   )
 }

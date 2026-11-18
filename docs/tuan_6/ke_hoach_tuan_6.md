@@ -114,6 +114,14 @@ Quy ước chung:
   - S06: phần đầu có avatar, tên, hình thức học và chỗ cho nút "Gửi yêu cầu" (bước 9); hai thẻ Dạy, Muốn học; lịch rảnh là `AvailabilityGrid` chỉ đọc.
   - S10: một hàng tìm kiếm (ô tên có icon `Search`, combobox kỹ năng, nút Tìm); kết quả là lưới thẻ, 2 cột từ 640 px; không có ai thì hiện lời gợi ý, không để trống.
   - A01: mỗi nhóm một thẻ; ẩn/hiện kỹ năng bằng `Switch` có nhãn "Đang dùng"; xóa cặp liên quan vẫn không hỏi xác nhận (bước 10 tuần 5).
+  - Phát hiện khi làm:
+    - `Progress` do CLI sinh không chuyển `value` xuống Radix nên trình đọc màn hình không đọc được giá trị. Mọi thanh tiến độ (mức phù hợp, 5 thành phần) đặt `aria-hidden`: con số in ngay cạnh mới là dữ liệu (NFR-09).
+    - S05: hai tab dài kèm số đếm rộng khoảng 355 px, quá chỗ trống ở màn 360 px; cho nhãn tab xuống dòng (`whitespace-normal`, bỏ chiều cao cố định) thay vì cuộn ngang. Danh sách ứng viên giữ một cột.
+    - S10: icon `Search` đặt ở nút "Tìm", không đặt trong ô tên: `Field` cần ô nhập là con duy nhất để gắn `id`, `aria-*`; bọc ô trong khung có icon thì nhãn nối vào khung chứ không vào ô. `SkillCombobox` nhận thêm `id`, `aria-invalid`, `aria-describedby` để nhãn "Kỹ năng người đó dạy" nối vào nút combobox; `ariaLabel` thành tùy chọn (chỉ S04 cần vì không có nhãn hiển thị).
+    - A01: tên nhóm vẫn là tiêu đề cấp 2 như cũ. Công tắc, nút "Sửa", "Xóa" có `aria-label` kèm tên kỹ năng hoặc tên cặp ("Đang dùng Java", "Sửa Java", "Xóa cặp Java – Kotlin") để mỗi nút có tên riêng; chữ hiện trên màn hình nằm trong tên đó (WCAG 2.5.3). Ô chọn kỹ năng của admin vẫn là `<select>` (`NativeSelect`), gồm cả kỹ năng đã ẩn (D75).
+    - Component dùng chung mới: `UserAvatar` (chữ cái đầu của từ đầu và từ cuối của tên, ẩn khỏi trình đọc màn hình vì tên đã hiện ngay cạnh).
+    - S06: phần giới thiệu giữ xuống dòng người dùng gõ (`whitespace-pre-line`).
+    - `src/legacy.css` đã xóa; kiểm bằng script tách `className` thành từng lớp: không còn lớp cũ nào.
 - **Tự kiểm:** chạy hết các ca thủ công của D78–D85; so với ảnh chụp ở mục 1: không mất chữ, nút hay thông báo nào; `grep` không còn class cũ (`match-card`, `admin-row`, `skill-rows`...).
 - **Commit:** `feat(frontend): restyle matching, search and admin pages`. Sau đó gộp `feat/ui-tailwind` vào `main`.
 

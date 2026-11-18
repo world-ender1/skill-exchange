@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Loader2, MonitorSmartphone, Search, SearchX } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { apiRequest, toError } from '../api/client'
 import type { Skill, UserSearchResult } from '../api/types'
 import { Field } from '../components/Field'
 import { Notice } from '../components/Notice'
+import { SkillCombobox } from '../components/SkillCombobox'
+import { TextLink } from '../components/TextLink'
+import { UserAvatar } from '../components/UserAvatar'
 import { formatMode } from '../format'
 
 /**
@@ -47,56 +54,74 @@ export function SearchPage() {
     }
   }
 
-  const categories = [...new Set(skills.map((s) => s.categoryName))]
-
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <h1>Tìm kiếm</h1>
-      <form className="card" onSubmit={search}>
-        <Field label="Tên" error={error?.q} hint="Có phân biệt dấu: “an” không tìm ra “Ân”">
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} />
-        </Field>
-        <Field label="Kỹ năng người đó dạy">
-          <select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
-            <option value="">Bất kỳ</option>
-            {categories.map((category) => (
-              <optgroup key={category} label={category}>
-                {skills.filter((s) => s.categoryName === category).map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </Field>
-        <div className="actions">
-          <button type="submit" className="primary" disabled={searching}>
-            {searching ? 'Đang tìm…' : 'Tìm'}
-          </button>
-        </div>
-      </form>
+      <Card>
+        <CardContent>
+          {/* Từ 640 px ba phần nằm trên một hàng; hẹp hơn thì xếp dọc. */}
+          <form onSubmit={search} className="grid items-start gap-4 sm:grid-cols-[1fr_1fr_auto]">
+            <Field label="Tên" error={error?.q} hint="Có phân biệt dấu: “an” không tìm ra “Ân”">
+              <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} />
+            </Field>
+            <Field label="Kỹ năng người đó dạy">
+              <SkillCombobox skills={skills} value={skillId} onChange={setSkillId}
+                             placeholder="Bất kỳ" emptyOptionLabel="Bất kỳ" />
+            </Field>
+            {/* Nút thẳng hàng với ô nhập: chừa một dòng trống bằng chiều cao nhãn ở màn rộng. */}
+            <Button type="submit" disabled={searching} className="sm:mt-7">
+              {searching
+                ? <Loader2 className="animate-spin" aria-hidden="true" />
+                : <Search aria-hidden="true" />}
+              {searching ? 'Đang tìm…' : 'Tìm'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       {error && !error.q && <Notice kind="error">{error.detail}</Notice>}
 
       {results && (results.length === 0
-        ? <p className="muted">Không tìm thấy ai.</p>
+        ? (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-10 text-center">
+            <SearchX className="size-8 text-muted-foreground" aria-hidden="true" />
+            <p className="font-medium">Không tìm thấy ai.</p>
+            <p className="text-sm text-muted-foreground">Thử bớt một điều kiện, hoặc tìm theo kỹ năng khác.</p>
+          </div>
+        )
         : (
-          <ul className="result-list">
+          <ul className="grid gap-4 sm:grid-cols-2">
             {results.map((user) => (
-              <li key={user.id} className="card">
-                <h2 className="match-name"><Link to={`/users/${user.id}`}>{user.fullName}</Link></h2>
-                <p className="small">Hình thức học: {formatMode(user.learningMode)}</p>
-                <p className="small">
-                  Dạy: {user.teachSkills.length === 0
-                    ? 'chưa khai báo'
-                    : user.teachSkills.map((s) => `${s.skillName} (${s.level})`).join(', ')}
-                </p>
+              <li key={user.id}>
+                <Card className="h-full">
+                  <CardContent className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      <UserAvatar fullName={user.fullName} />
+                      <h2 className="min-w-0 text-base break-words">
+                        <TextLink to={`/users/${user.id}`}>{user.fullName}</TextLink>
+                      </h2>
+                    </div>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <MonitorSmartphone className="size-4" aria-hidden="true" />
+                      Hình thức học: {formatMode(user.learningMode)}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5 text-sm">
+                      <span className="font-medium">Dạy:</span>
+                      {user.teachSkills.length === 0
+                        ? <span className="text-muted-foreground">chưa khai báo</span>
+                        : user.teachSkills.map((s) => (
+                          <Badge key={s.skillName} variant="secondary">{s.skillName} ({s.level})</Badge>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </li>
             ))}
           </ul>
         ))}
       {results && results.length === 20 && (
-        <p className="muted small">Chỉ hiện 20 người đầu tiên; hãy thêm điều kiện để thu hẹp.</p>
+        <p className="text-sm text-muted-foreground">Chỉ hiện 20 người đầu tiên; hãy thêm điều kiện để thu hẹp.</p>
       )}
-    </>
+    </div>
   )
 }

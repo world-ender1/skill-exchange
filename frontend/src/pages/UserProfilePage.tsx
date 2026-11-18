@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react'
+import { MonitorSmartphone } from 'lucide-react'
 import { useParams } from 'react-router'
 
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { apiRequest, toError } from '../api/client'
 import type { PublicProfile } from '../api/types'
+import { slotKey } from '../availability'
+import { AvailabilityGrid } from '../components/AvailabilityGrid'
 import { Notice } from '../components/Notice'
-import { formatLevel, formatMode, formatSlot } from '../format'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { UserAvatar } from '../components/UserAvatar'
+import { formatLevel, formatMode } from '../format'
 
 /**
  * S06 – Hồ sơ người khác (TK 4.3, 6.1). Chỉ thông tin công khai: API không trả email, số điện thoại,
  * liên hệ (NFR-02), nên trang này không có gì riêng tư để "lỡ" hiện ra.
- * Chưa có nút "Gửi yêu cầu" (tuần 6) và phần đánh giá (tuần 7), theo D31.
+ * Nút "Gửi yêu cầu" thêm ở bước 9 tuần 6 (phần đầu trang đã chừa chỗ); phần đánh giá ở tuần 7.
  */
 export function UserProfilePage() {
   // useParams: đọc phần ":id" của đường dẫn /users/:id.
@@ -34,59 +41,98 @@ export function UserProfilePage() {
 
   // Khi đổi sang hồ sơ khác, kết quả cũ (id khác) coi như chưa tải.
   if (!result || result.id !== (id ?? '')) {
-    return <p>Đang tải hồ sơ…</p>
+    return <PageSkeleton label="Đang tải hồ sơ" />
   }
   if (result.error || !result.profile) {
     return <Notice kind="error">{result.error}</Notice>
   }
 
   const profile = result.profile
+  const slots = new Set(profile.availability.map((s) => slotKey(s.dayOfWeek, s.period)))
+
   return (
-    <>
-      <h1>{profile.fullName}</h1>
-      <section className="card">
-        {profile.bio ? <p>{profile.bio}</p> : <p className="muted">Chưa có giới thiệu.</p>}
-        <p className="small">Hình thức học: {formatMode(profile.learningMode)}</p>
-      </section>
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <UserAvatar fullName={profile.fullName} className="size-14 text-lg" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <h1 className="break-words">{profile.fullName}</h1>
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MonitorSmartphone className="size-4" aria-hidden="true" />
+                Hình thức học: {formatMode(profile.learningMode)}
+              </span>
+            </div>
+          </div>
+          {profile.bio
+            ? <p className="break-words whitespace-pre-line">{profile.bio}</p>
+            : <p className="text-muted-foreground">Chưa có giới thiệu.</p>}
+        </CardContent>
+      </Card>
 
-      <section className="card">
-        <h2>Có thể dạy</h2>
-        <p className="muted small">Trình độ do người dùng tự khai báo.</p>
-        {profile.teachSkills.length === 0
-          ? <p className="muted">Chưa khai báo.</p>
-          : (
-            <ul className="plain-list">
-              {profile.teachSkills.map((skill) => (
-                <li key={skill.skillId}>
-                  {skill.skillName} <span className="muted">({skill.categoryName})</span> – {formatLevel(skill.level)}
-                </li>
-              ))}
-            </ul>
-          )}
-      </section>
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Có thể dạy</CardTitle>
+            <CardDescription>Trình độ do người dùng tự khai báo.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {profile.teachSkills.length === 0
+              ? <p className="text-muted-foreground">Chưa khai báo.</p>
+              : (
+                <ul className="flex flex-col divide-y">
+                  {profile.teachSkills.map((skill) => (
+                    <SkillLine key={skill.skillId} name={skill.skillName} category={skill.categoryName}
+                               badge={formatLevel(skill.level)} />
+                  ))}
+                </ul>
+              )}
+          </CardContent>
+        </Card>
 
-      <section className="card">
-        <h2>Muốn học</h2>
-        {profile.learnSkills.length === 0
-          ? <p className="muted">Chưa khai báo.</p>
-          : (
-            <ul className="plain-list">
-              {profile.learnSkills.map((skill) => (
-                <li key={skill.skillId}>
-                  {skill.skillName} <span className="muted">({skill.categoryName})</span> –{' '}
-                  {skill.targetLevel === null ? 'chưa đặt mục tiêu' : `mục tiêu ${formatLevel(skill.targetLevel)}`}
-                </li>
-              ))}
-            </ul>
-          )}
-      </section>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Muốn học</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profile.learnSkills.length === 0
+              ? <p className="text-muted-foreground">Chưa khai báo.</p>
+              : (
+                <ul className="flex flex-col divide-y">
+                  {profile.learnSkills.map((skill) => (
+                    <SkillLine key={skill.skillId} name={skill.skillName} category={skill.categoryName}
+                               badge={skill.targetLevel === null
+                                 ? 'chưa đặt mục tiêu'
+                                 : `mục tiêu ${formatLevel(skill.targetLevel)}`} />
+                  ))}
+                </ul>
+              )}
+          </CardContent>
+        </Card>
+      </div>
 
-      <section className="card">
-        <h2>Lịch rảnh</h2>
-        {profile.availability.length === 0
-          ? <p className="muted">Chưa khai báo.</p>
-          : <p>{profile.availability.map(formatSlot).join(', ')}</p>}
-      </section>
-    </>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Lịch rảnh</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {profile.availability.length === 0
+            ? <p className="text-muted-foreground">Chưa khai báo.</p>
+            // D84: cùng lưới với S03, ở chế độ chỉ đọc (không truyền onToggle).
+            : <AvailabilityGrid selected={slots} />}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function SkillLine({ name, category, badge }: { name: string; category: string; badge: string }) {
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 py-2 first:pt-0 last:pb-0">
+      <span>
+        <span className="font-medium">{name}</span> <span className="text-sm text-muted-foreground">({category})</span>
+      </span>
+      <Badge variant="secondary">{badge}</Badge>
+    </li>
   )
 }
