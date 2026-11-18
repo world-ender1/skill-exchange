@@ -1,454 +1,161 @@
-/* Giao diện viết tay, không dùng thư viện UI (bước 10). Màu đặt thành biến để có chế độ tối. */
-:root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --text: #1d2330;
-  --muted: #5d6676;
-  --border: #d9dde4;
-  --primary: #2457c5;
-  --primary-text: #ffffff;
-  --error: #b42318;
-  --error-bg: #fdecea;
-  --success: #1e7b34;
-  --success-bg: #e8f5ec;
-  --info-bg: #e9f0fd;
-  --selected: #dbe6fb;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* D80: font tự chứa (không tải từ Google Fonts), cả hai có bộ ký tự tiếng Việt. */
+@import "@fontsource-variable/inter";
+@import "@fontsource/be-vietnam-pro/600.css";
+@import "@fontsource/be-vietnam-pro/700.css";
+/* CSS cũ, xóa ở bước 3 tuần 6. Nằm trong layer base nên lớp tiện ích Tailwind luôn thắng. */
+@import "./legacy.css" layer(base);
 
-  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
-  color: var(--text);
-  background: var(--bg);
-  color-scheme: light dark;
+/*
+ * D82: chế độ tối theo cài đặt hệ thống, chỉ bằng CSS.
+ * shadcn/ui mặc định bật tối bằng lớp .dark (cần JavaScript gắn lớp); ở đây "dark:" nghĩa là media query.
+ */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+@theme inline {
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: 'Be Vietnam Pro', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * D79: màu nền xám lấy từ bảng slate của Tailwind 4 (ghi số OKLCH kèm tên sắc độ).
+ * Tương phản đã đo (WCAG 2.x): chữ ≥ 4.5:1, viền ô nhập ≥ 3:1 – xem "Chốt ở bước này" của kế hoạch bước 1.
+ */
+:root {
+    color-scheme: light dark;
+
+    --background: oklch(0.984 0.003 247.858);         /* slate-50 */
+    --foreground: oklch(0.208 0.042 265.755);         /* slate-900 */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.208 0.042 265.755);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.208 0.042 265.755);
+    --primary: #4F46E5;                               /* chàm, chữ trắng 6.3:1 */
+    --primary-foreground: #FFFFFF;
+    --secondary: oklch(0.968 0.007 247.896);          /* slate-100 */
+    --secondary-foreground: oklch(0.208 0.042 265.755);
+    --muted: oklch(0.968 0.007 247.896);              /* slate-100 */
+    --muted-foreground: oklch(0.446 0.043 257.281);   /* slate-600: slate-500 trên slate-100 chỉ 4.35:1 */
+    --accent: oklch(0.968 0.007 247.896);
+    --accent-foreground: oklch(0.208 0.042 265.755);
+    --destructive: oklch(0.577 0.245 27.325);         /* red-600 */
+    --success: oklch(0.527 0.154 150.069);            /* green-700 */
+    --warning: oklch(0.555 0.163 48.998);             /* amber-700 */
+    --border: oklch(0.929 0.013 255.508);             /* slate-200: viền trang trí */
+    --input: oklch(0.554 0.046 257.417);              /* slate-500: viền ô nhập 4.8:1 */
+    --ring: #4F46E5;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(1 0 0);
+    --sidebar-foreground: oklch(0.208 0.042 265.755);
+    --sidebar-primary: #4F46E5;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: oklch(0.968 0.007 247.896);
+    --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+    --sidebar-border: oklch(0.929 0.013 255.508);
+    --sidebar-ring: #4F46E5;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14171c;
-    --surface: #1d2129;
-    --text: #e6e9ef;
-    --muted: #9aa3b2;
-    --border: #353b47;
-    --primary: #6d9bff;
-    --primary-text: #0d1220;
-    --error: #ff8a80;
-    --error-bg: #3a1f1f;
-    --success: #7fd08f;
-    --success-bg: #1d3324;
-    --info-bg: #1f2a40;
-    --selected: #253658;
+    :root {
+        --background: oklch(0.129 0.042 264.695);     /* slate-950 */
+        --foreground: oklch(0.984 0.003 247.858);     /* slate-50 */
+        --card: oklch(0.208 0.042 265.755);           /* slate-900 */
+        --card-foreground: oklch(0.984 0.003 247.858);
+        --popover: oklch(0.208 0.042 265.755);
+        --popover-foreground: oklch(0.984 0.003 247.858);
+        --primary: #818CF8;                           /* chàm sáng, chữ slate-900 6.0:1 */
+        --primary-foreground: #0F172A;
+        --secondary: oklch(0.279 0.041 260.031);      /* slate-800 */
+        --secondary-foreground: oklch(0.984 0.003 247.858);
+        --muted: oklch(0.279 0.041 260.031);
+        --muted-foreground: oklch(0.704 0.04 256.788); /* slate-400 */
+        --accent: oklch(0.279 0.041 260.031);
+        --accent-foreground: oklch(0.984 0.003 247.858);
+        --destructive: oklch(0.704 0.191 22.216);     /* red-400 */
+        --success: oklch(0.792 0.209 151.711);        /* green-400 */
+        --warning: oklch(0.828 0.189 84.429);         /* amber-400 */
+        --border: oklch(0.279 0.041 260.031);         /* slate-800 */
+        --input: oklch(0.554 0.046 257.417);          /* slate-500: slate-600 trên slate-900 chỉ 2.4:1 */
+        --ring: #818CF8;
+        --sidebar: oklch(0.208 0.042 265.755);
+        --sidebar-foreground: oklch(0.984 0.003 247.858);
+        --sidebar-primary: #818CF8;
+        --sidebar-primary-foreground: #0F172A;
+        --sidebar-accent: oklch(0.279 0.041 260.031);
+        --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+        --sidebar-border: oklch(0.279 0.041 260.031);
+        --sidebar-ring: #818CF8;
+    }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-}
-
-h1, h2, h3 {
-  line-height: 1.25;
-  margin: 0 0 12px;
-}
-
-a {
-  color: var(--primary);
-}
-
-input, select, textarea, button {
-  font: inherit;
-  color: inherit;
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-}
-
-textarea {
-  resize: vertical;
-}
-
-button {
-  cursor: pointer;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 14px;
-  background: var(--surface);
-}
-
-button:disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-
-button.primary {
-  background: var(--primary);
-  color: var(--primary-text);
-  border-color: var(--primary);
-}
-
-.link-button {
-  border: none;
-  background: none;
-  color: var(--primary);
-  padding: 4px 0;
-}
-
-/* ---------- Khung trang ---------- */
-
-.auth-page {
-  max-width: 420px;
-  margin: 48px auto;
-  padding: 0 16px;
-}
-
-.brand {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 12px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
-.topbar nav {
-  display: flex;
-  gap: 16px;
-  flex: 1;
-}
-
-.topbar nav a {
-  text-decoration: none;
-  color: var(--muted);
-}
-
-.topbar nav a.active {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.brand-small {
-  font-weight: 700;
-}
-
-.page {
-  max-width: 820px;
-  margin: 24px auto;
-  padding: 0 16px;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-/* ---------- Form ---------- */
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.field-label {
-  font-weight: 600;
-}
-
-.field-hint, .muted {
-  color: var(--muted);
-}
-
-.field-error {
-  color: var(--error);
-  font-size: 14px;
-}
-
-.small {
-  font-size: 14px;
-  margin: 0;
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.notice {
-  padding: 10px 12px;
-  border-radius: 6px;
-}
-
-.notice-error {
-  background: var(--error-bg);
-  color: var(--error);
-}
-
-.notice-success {
-  background: var(--success-bg);
-  color: var(--success);
-}
-
-.notice-info {
-  background: var(--info-bg);
-}
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
-}
-
-.tab {
-  flex: 1;
-  border: none;
-  border-radius: 0;
-  background: none;
-  padding: 10px;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-}
-
-.tab.active {
-  color: var(--text);
-  font-weight: 600;
-  border-bottom-color: var(--primary);
-}
-
-/* ---------- Lưới lịch rảnh (S03) ---------- */
-
-.grid-scroll {
-  overflow-x: auto; /* màn hình hẹp: cuộn ngang trong bảng, không làm vỡ cả trang */
-  margin-bottom: 14px;
-}
-
-.availability {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 520px;
-}
-
-.availability th, .availability td {
-  border: 1px solid var(--border);
-  padding: 6px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.availability td.on {
-  background: var(--selected);
-}
-
-.availability input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-}
-
-/* ---------- Danh sách kỹ năng (S04) ---------- */
-
-.skill-rows {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.skill-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.skill-row select {
-  width: auto;
-}
-
-.skill-name {
-  flex: 1;
-  min-width: 0;
-}
-
-.actions .grow {
-  flex: 1;
-  min-width: 180px;
-  width: auto;
-}
-
-.actions + .actions {
-  margin-top: 12px;
-}
-
-/* ---------- Gợi ý ghép cặp (S05), hồ sơ người khác (S06), tìm kiếm (S10) ---------- */
-
-/* Menu có 4 mục từ tuần 4: màn hình 360 px thì xuống dòng thay vì cuộn ngang (NFR-08, TC184). */
-.topbar {
-  flex-wrap: wrap;
-  row-gap: 8px;
-}
-
-.topbar nav {
-  flex-wrap: wrap;
-}
-
-.match-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 12px;
-  margin-bottom: 8px;
-}
-
-.match-name {
-  flex: 1 1 100%;
-  margin: 0;
-  font-size: 20px;
-  overflow-wrap: anywhere; /* tên dài không đẩy thẻ rộng ra */
-}
-
-.badge {
-  font-size: 13px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--info-bg);
-}
-
-.match-line {
-  margin: 4px 0;
-  overflow-wrap: anywhere;
-}
-
-.match-sep {
-  margin: 0 8px;
-  color: var(--muted);
-}
-
-.match-card .actions {
-  margin-top: 12px;
-}
-
-.score-detail {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 12px;
-}
-
-.score-table {
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.score-table caption {
-  text-align: left;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.score-table th, .score-table td {
-  border: 1px solid var(--border);
-  padding: 4px 10px;
-  text-align: left;
-}
-
-.score-table td {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.plain-list {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.result-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-/* ---------- Quản trị danh mục kỹ năng (A01, tuần 5) ---------- */
-
-.card-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin-bottom: 12px;
-}
-
-.card-head h2 {
-  flex: 1 1 auto;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.edit-form {
-  margin-bottom: 12px;
-}
-
-.admin-rows {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* 360 px: nút xuống dòng thay vì đẩy trang rộng ra (NFR-08, TC264). */
-.admin-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-}
-
-.admin-row .skill-name {
-  flex: 1 1 160px;
-  overflow-wrap: anywhere; /* tên dài không có khoảng trắng vẫn xuống dòng */
-}
-
-.admin-row.is-hidden .skill-name {
-  color: var(--muted);
-}
-
-.admin-rows .notice {
-  margin-top: 6px;
-}
-
-.badge-hidden {
-  background: var(--border);
-  color: var(--text);
-}
-
-.relation-list {
-  margin-bottom: 20px;
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 20px 0;
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* D80: tiêu đề dùng Be Vietnam Pro. Preflight của Tailwind xóa cỡ chữ mặc định nên đặt lại ở đây. */
+  h1, h2, h3 {
+    @apply font-heading;
+  }
+  h1 {
+    @apply text-2xl font-bold;
+  }
+  h2 {
+    @apply text-xl font-semibold;
+  }
+  h3 {
+    @apply text-lg font-semibold;
+  }
 }

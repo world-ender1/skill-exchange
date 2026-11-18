@@ -1,17 +1,54 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { BookOpen, LogOut, Search, Sparkles, Tags, User } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
+import { Button } from '@/components/ui/button'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { apiRequest, toError } from '../api/client'
 import type { MyProfile, Role } from '../api/types'
 import { clearToken } from '../auth/token'
 import { Notice } from './Notice'
 
+const APP_NAME = 'Skill Exchange'
+
+type NavItem = { to: string; label: string; icon: LucideIcon }
+
+/** D81: mục menu và icon theo vai trò. Yêu cầu, Phiên thêm ở bước 10, 11 khi có S08, S09. */
+const STUDENT_NAV: NavItem[] = [
+  { to: '/profile', label: 'Hồ sơ', icon: User },
+  { to: '/skills', label: 'Kỹ năng', icon: BookOpen },
+  { to: '/matches', label: 'Gợi ý', icon: Sparkles },
+  { to: '/search', label: 'Tìm kiếm', icon: Search },
+]
+const ADMIN_NAV: NavItem[] = [
+  { to: '/admin/skills', label: 'Danh mục kỹ năng', icon: Tags },
+]
+
 /**
- * Khung chung của các trang sau khi đăng nhập: thanh điều hướng + nội dung trang.
+ * Khung chung của các trang sau khi đăng nhập: menu + nội dung trang.
  *
  * Vai trò đọc từ /api/me ở đây, một lần mỗi lần đăng nhập hoặc F5 (D76): Layout là route cha nên
  * chuyển giữa các trang con không dựng lại Layout, không gọi lại API. Vai trò được đưa xuống trang con
  * bằng <Outlet context>, RequireAdmin/RequireStudent/RoleHome đọc lại bằng useOutletContext<Role>().
+ *
+ * D81: từ 768 px menu là thanh bên; hẹp hơn thì thanh trên cùng có nút mở menu dạng Sheet
+ * (component Sidebar của shadcn/ui tự đổi cách hiện theo độ rộng màn hình).
  */
 export function Layout() {
   const navigate = useNavigate()
@@ -46,36 +83,93 @@ export function Layout() {
   }
 
   return (
-    <>
-      <header className="topbar">
-        <span className="brand-small">Skill Exchange</span>
-        <nav>
-          {/* Menu chỉ để dễ dùng; quyền vẫn do backend kiểm (sinh viên gọi /api/admin/** nhận 403). */}
-          {role === 'ADMIN' && <NavLink to="/admin/skills">Danh mục kỹ năng</NavLink>}
-          {role === 'STUDENT' && (
-            <>
-              <NavLink to="/profile">Hồ sơ</NavLink>
-              <NavLink to="/skills">Kỹ năng</NavLink>
-              <NavLink to="/matches">Gợi ý</NavLink>
-              <NavLink to="/search">Tìm kiếm</NavLink>
-            </>
+    <SidebarProvider>
+      <AppSidebar role={role} onLogout={logout} />
+      <SidebarInset>
+        {/* Chỉ hiện dưới 768 px: tên ứng dụng và nút mở menu. */}
+        <header className="flex h-14 items-center gap-2 border-b bg-card px-4 md:hidden">
+          <SidebarTrigger aria-label="Mở menu" />
+          <span className="font-heading text-lg font-bold">{APP_NAME}</span>
+        </header>
+        {/* SidebarInset đã là <main>, nên phần nội dung dùng <div>. */}
+        <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-8">
+          {loadError ? (
+            <div className="flex flex-col items-start gap-3">
+              <Notice kind="error">{loadError}</Notice>
+              <Button variant="outline" onClick={() => { setLoadError(null); setReloadKey((k) => k + 1) }}>
+                Thử lại
+              </Button>
+            </div>
+          ) : role === null ? (
+            <PageSkeleton />
+          ) : (
+            // Chưa biết vai trò thì chưa vẽ trang con: RequireAdmin/RequireStudent cần vai trò để quyết định.
+            <Outlet context={role} />
           )}
-        </nav>
-        <button type="button" className="link-button" onClick={logout}>Đăng xuất</button>
-      </header>
-      <main className="page">
-        {loadError ? (
-          <>
-            <Notice kind="error">{loadError}</Notice>
-            <p><button type="button" onClick={() => { setLoadError(null); setReloadKey((k) => k + 1) }}>Thử lại</button></p>
-          </>
-        ) : role === null ? (
-          <p>Đang tải…</p>
-        ) : (
-          // Chưa biết vai trò thì chưa vẽ trang con: RequireAdmin/RequireStudent cần vai trò để quyết định.
-          <Outlet context={role} />
-        )}
-      </main>
-    </>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
+}
+
+function AppSidebar({ role, onLogout }: { role: Role | null; onLogout: () => void }) {
+  const { isMobile, setOpenMobile } = useSidebar()
+  const { pathname } = useLocation()
+  // Đang tải vai trò thì menu chỉ có tên và "Đăng xuất". Menu chỉ để dễ dùng; quyền vẫn do backend kiểm.
+  const items = role === 'ADMIN' ? ADMIN_NAV : role === 'STUDENT' ? STUDENT_NAV : []
+
+  // Trên màn hẹp menu là Sheet phủ lên trang: chọn xong một mục thì đóng lại (TC304).
+  function closeOnMobile() {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
+
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <span className="px-2 py-1 font-heading text-lg font-bold">{APP_NAME}</span>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map(({ to, label, icon: Icon }) => (
+                <SidebarMenuItem key={to}>
+                  {/* asChild: SidebarMenuButton không tự vẽ <button> mà "mặc" kiểu của nó lên NavLink (thẻ <a>). */}
+                  <SidebarMenuButton asChild isActive={pathname === to || pathname.startsWith(`${to}/`)}>
+                    <NavLink to={to} onClick={closeOnMobile}>
+                      <Icon aria-hidden="true" />
+                      <span>{label}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={onLogout}>
+              <LogOut aria-hidden="true" />
+              <span>Đăng xuất</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  )
+}
+
+/** Khung xám giữ chỗ trong lúc đọc vai trò, thay chữ "Đang tải…" (kế hoạch bước 1). */
+function PageSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Đang tải" className="flex flex-col gap-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-40 w-full" />
+      <Skeleton className="h-40 w-full" />
+    </div>
   )
 }

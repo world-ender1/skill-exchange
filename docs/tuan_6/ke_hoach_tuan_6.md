@@ -64,14 +64,22 @@ Quy ước chung:
 
 ### Bước 1 – Nền giao diện (D78–D83, D85)
 
-- **Cài:** `tailwindcss`, `@tailwindcss/vite`, `@fontsource/be-vietnam-pro`, `@fontsource-variable/inter`; `npx shadcn@latest init` (Radix, `slate`, D83). Thêm component khi cần, bắt đầu với: `button`, `card`, `input`, `label`, `textarea`, `select`, `checkbox`, `tabs`, `badge`, `alert`, `skeleton`, `field`, `separator`, `sidebar`, `sheet`.
-- **Sửa:** `vite.config.ts` (plugin, alias `@/`), `tsconfig.app.json` và `tsconfig.json` (`paths`), `src/index.css` (Tailwind, biến màu D79, chế độ tối D82, font D80; phần CSS cũ giữ tới bước 3), `src/main.tsx` (import font), `src/components/Layout.tsx` (D81), `src/components/Field.tsx`, `src/components/Notice.tsx` (D85).
-- **Tạo:** `frontend/components.json`, `src/components/ui/*` (do CLI sinh), `src/lib/utils.ts` (CLI sinh).
+- **Cài:** `tailwindcss`, `@tailwindcss/vite`, `@fontsource/be-vietnam-pro`, `@fontsource-variable/inter`; `npx shadcn@4.23.0 init --template vite --base radix --preset b0` (D83). Thêm component khi cần, bắt đầu với: `button`, `card`, `input`, `label`, `textarea`, `select`, `checkbox`, `tabs`, `badge`, `alert`, `skeleton`, `field`, `separator`, `sidebar`, `sheet`.
+- **Sửa:** `vite.config.ts` (plugin, alias `@/`), `tsconfig.app.json` và `tsconfig.json` (`paths`), `src/index.css` (Tailwind, biến màu D79, chế độ tối D82, font D80), `src/components/Layout.tsx` (D81), `src/components/Field.tsx`, `src/components/Notice.tsx` (D85), `.oxlintrc.json`.
+- **Tạo:** `frontend/components.json`, `src/components/ui/*`, `src/hooks/use-mobile.ts`, `src/lib/utils.ts` (CLI sinh); `src/legacy.css` (CSS cũ, xóa ở bước 3).
 - **Ca:** TC301–TC305, TC307 (thủ công).
 - **Chốt ở bước này:**
   - Không sửa tay code trong `src/components/ui/`, trừ việc thêm kiểu `success` cho `Alert` (D85). Muốn đổi giao diện chung thì đổi biến màu.
-  - oxlint báo lỗi ở code CLI sinh ra thì tắt đúng luật đó cho riêng `src/components/ui/` trong `.oxlintrc.json`, không sửa code sinh ra.
+  - oxlint báo lỗi ở code CLI sinh ra thì tắt đúng luật đó cho riêng file sinh ra trong `.oxlintrc.json`, không sửa code sinh ra. Khi làm: chỉ có cảnh báo (không có lỗi), gồm `only-export-components` ở `button`, `badge`, `tabs`, `sidebar` và `set-state-in-effect` ở `src/hooks/use-mobile.ts` (cũng do CLI sinh); tắt hai luật này cho `src/components/ui/**` và `src/hooks/use-mobile.ts`.
   - Đang tải: dùng `Skeleton` có hình giống nội dung, kèm `aria-busy`, thay chữ "Đang tải…". Lỗi tải: `Alert` lỗi và nút "Thử lại" như hiện nay.
+  - **Màu nền `slate` không chọn được trong CLI** (phát hiện khi làm): CLI 4.23 liệt kê `neutral`, `stone`, `zinc`, `gray`, `mauve`, `olive`, `mist`, `taupe`, nhưng registry chỉ nhận `neutral | stone | zinc | mauve | olive | mist | taupe` (gửi `gray` nhận 400). Khởi tạo bằng preset mặc định của CLI (mã `b0`: kiểu `radix-nova`, màu nền `neutral`, icon `lucide`, font Inter); toàn bộ biến màu trong `index.css` viết tay theo bảng `slate` của Tailwind 4. `components.json` vì thế ghi `"baseColor": "neutral"`. Sửa ngược D79, D83, TC301.
+  - **Mã màu:** Tailwind 4 đổi bảng màu sang OKLCH, nên `indigo-600` của Tailwind 4 (`oklch(51.1% 0.262 276.966)`) không còn là `#4F46E5`. Giữ mã hex D79 đã duyệt cho màu chính (`#4F46E5`, `#818CF8`, chữ `#0F172A`); màu xám và màu trạng thái dùng số OKLCH của Tailwind 4, ghi kèm tên sắc độ trong `index.css`.
+  - **Đo tương phản** (script đổi OKLCH, hex sang độ sáng tương đối WCAG 2.x). Ba lựa chọn ban đầu trượt nên đổi: chữ phụ chế độ sáng `slate-500` trên nền `muted` `slate-100` chỉ 4.35:1 → dùng `slate-600`; viền ô nhập chế độ sáng `slate-400` 2.63:1 → `slate-500` (4.77:1); viền ô nhập chế độ tối `slate-600` trên `slate-900` 2.36:1 → `slate-500` (3.74:1). Các cặp đạt: nút chính sáng 6.29:1, tối 5.98:1; `green-700` 4.94, `amber-700` 5.05, `red-600` 4.76 trên nền trắng; `green-400` 10.05, `amber-400` 10.39, `red-400` 6.17 trên `slate-900`; chữ phụ tối `slate-400` 6.79 trên `slate-900`; sao `amber-600` 3.19 (icon, cần 3:1). Kiểu `success` của `Alert` không làm mờ chữ 90% như `destructive`, vì `green-700` mờ 90% trên nền trắng chỉ còn khoảng 4.2:1.
+  - **CSS cũ** chuyển nguyên sang `src/legacy.css`, nạp bằng `@import "./legacy.css" layer(base)` để mọi lớp tiện ích Tailwind thắng; bỏ biến màu riêng (tên `--primary`, `--border`, `--muted` trùng biến shadcn/ui mà nghĩa khác) và dùng thẳng biến mới; bộ chọn theo thẻ viết `:where(...):where(:not([data-slot]))` để không chạm component shadcn/ui (component nào cũng có `data-slot`) và giữ độ ưu tiên bằng 0 như cũ; bỏ các lớp đã có component thay (`topbar`, `notice`, `field`...); trả lại lề của `<p>` mà Preflight xóa. Bước 3 xóa file này.
+  - Font nạp bằng `@import` trong `index.css` (CLI tự thêm Inter vào đây), không import ở `main.tsx`.
+  - `Field` nối nhãn và lỗi với ô nhập bằng `useId()` + `cloneElement` (gắn `id`, `aria-invalid`, `aria-describedby` vào ô con), vì nhãn của shadcn/ui đứng cạnh ô chứ không bọc ô như `<label>` cũ; chỗ gọi ở các trang không đổi.
+  - CLI thêm dependency `cn` (gói chính chủ của shadcn, thay `clsx` + `tailwind-merge`) và `shadcn` (cho `@import "shadcn/tailwind.css"`).
+  - Code sinh ra của `Sidebar` có tiêu đề ẩn tiếng Anh ("Sidebar") cho `Sheet` trên màn hẹp: giữ nguyên theo luật không sửa `components/ui`. Nút mở menu có `aria-label` "Mở menu". Phím tắt Ctrl+B của `Sidebar` lưu trạng thái đóng/mở vào cookie `sidebar_state`; đây là trạng thái menu, không phải chế độ màu (D82 vẫn đúng).
 - **Tự kiểm:** tab Network không có yêu cầu tới `fonts.googleapis.com`; câu "Nguyễn Thị Hường – Kỹ năng" hiện đủ dấu ở cả hai font; DevTools giả chế độ tối thì cả trang đổi màu; menu chuyển thành `Sheet` dưới 768 px.
 - **Commit:** `feat(frontend): set up Tailwind CSS and shadcn/ui with app shell`
 
@@ -91,7 +99,7 @@ Quy ước chung:
 
 ### Bước 3 – Chuyển S05, S06, S10, A01; bỏ CSS cũ
 
-- **Sửa:** `MatchesPage.tsx`, `MatchCard.tsx`, `UserProfilePage.tsx`, `SearchPage.tsx`, `AdminSkillsPage.tsx`, `src/index.css` (xóa mọi class cũ, chỉ còn Tailwind, biến màu và font).
+- **Sửa:** `MatchesPage.tsx`, `MatchCard.tsx`, `UserProfilePage.tsx`, `SearchPage.tsx`, `AdminSkillsPage.tsx`, `src/index.css` (bỏ dòng nạp `legacy.css`). **Xóa:** `src/legacy.css`.
 - **Ca:** TC308–TC310 (thủ công); chạy lại TC301–TC307 trên cả 8 màn.
 - **Chốt ở bước này:**
   - S05: `Tabs` kèm số người. Thẻ ứng viên có avatar chữ cái đầu, % phù hợp cỡ chữ lớn và thanh tiến độ, các badge; mỗi lý do một dòng có icon; lịch trùng dạng chip. "Chi tiết điểm" mở bằng `Collapsible`: mỗi thành phần một dòng gồm nhãn, `Progress` thang 0–1 (spec 4.3: mọi thành phần trong [0, 1]) và số nguyên văn API (`tabular-nums`), cuối cùng là dòng D. Không làm tròn, không dùng biểu đồ tròn (NFR-09: cần so với bảng tính tay).

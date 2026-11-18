@@ -1,0 +1,338 @@
+/*
+ * CSS viết tay của tuần 3–5 (trước D78). Chỉ còn để các màn hình chưa chuyển sang shadcn/ui chạy được
+ * trong lúc làm phần A của tuần 6; xóa hẳn ở bước 3.
+ *
+ * Ba điều để file này không phá component mới:
+ * - index.css nạp file này vào layer "base", nên mọi lớp tiện ích của Tailwind (layer "utilities") luôn thắng.
+ * - Bộ chọn theo thẻ (button, input, a, h1...) chỉ áp cho phần tử KHÔNG có data-slot:
+ *   component shadcn/ui luôn gắn data-slot, phần tử viết tay của trang cũ thì không.
+ *   Bọc trong :where() để độ ưu tiên bằng 0, như bộ chọn theo thẻ của file cũ: lớp (.tab, .grow...) vẫn thắng.
+ * - Không khai báo biến màu riêng: tên cũ (--primary, --border, --muted...) trùng tên biến của shadcn/ui
+ *   mà nghĩa khác (--muted cũ là màu chữ, --muted của shadcn là màu nền). Dùng thẳng biến mới.
+ */
+
+:where(h1, h2, h3):where(:not([data-slot])) {
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+
+/* Preflight xóa lề của đoạn văn; trang cũ dựa vào lề mặc định của trình duyệt. */
+:where(p):where(:not([data-slot])) {
+  margin: 1em 0;
+}
+
+:where(a):where(:not([data-slot])) {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+:where(input, select, textarea):where(:not([data-slot])) {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--input);
+  border-radius: 6px;
+  background: var(--card);
+}
+
+:where(textarea):where(:not([data-slot])) {
+  resize: vertical;
+}
+
+:where(button):where(:not([data-slot])) {
+  cursor: pointer;
+  border: 1px solid var(--input);
+  border-radius: 6px;
+  padding: 8px 14px;
+  background: var(--card);
+}
+
+:where(button):where(:not([data-slot])):disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+button.primary:not([data-slot]) {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+/* ---------- Khung trang đăng nhập (S01, S02) ---------- */
+
+.auth-page {
+  max-width: 420px;
+  margin: 48px auto;
+  padding: 0 16px;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* ---------- Form ---------- */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.muted {
+  color: var(--muted-foreground);
+}
+
+.field-error {
+  color: var(--destructive);
+  font-size: 14px;
+}
+
+.small {
+  font-size: 14px;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.tab:not([data-slot]) {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  background: none;
+  padding: 10px;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+  color: var(--foreground);
+  font-weight: 600;
+  border-bottom-color: var(--primary);
+}
+
+/* ---------- Lưới lịch rảnh (S03) ---------- */
+
+.grid-scroll {
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+
+.availability {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 520px;
+}
+
+.availability th, .availability td {
+  border: 1px solid var(--border);
+  padding: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.availability td.on {
+  background: color-mix(in oklch, var(--primary) 15%, var(--card));
+}
+
+.availability input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Danh sách kỹ năng (S04) ---------- */
+
+.skill-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.skill-row select {
+  width: auto;
+}
+
+.skill-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.actions .grow {
+  flex: 1;
+  min-width: 180px;
+  width: auto;
+}
+
+.actions + .actions {
+  margin-top: 12px;
+}
+
+/* ---------- Gợi ý ghép cặp (S05), hồ sơ người khác (S06), tìm kiếm (S10) ---------- */
+
+.match-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin-bottom: 8px;
+}
+
+.match-name {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.match-line {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.match-sep {
+  margin: 0 8px;
+  color: var(--muted-foreground);
+}
+
+.match-card .actions {
+  margin-top: 12px;
+}
+
+.score-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.score-table {
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.score-table caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.score-table th, .score-table td {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  text-align: left;
+}
+
+.score-table td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.plain-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ---------- Quản trị danh mục kỹ năng (A01) ---------- */
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.card-head h2 {
+  flex: 1 1 auto;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.edit-form {
+  margin-bottom: 12px;
+}
+
+.admin-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.admin-row .skill-name {
+  flex: 1 1 160px;
+  overflow-wrap: anywhere;
+}
+
+.admin-row.is-hidden .skill-name {
+  color: var(--muted-foreground);
+}
+
+.admin-rows [data-slot='alert'] {
+  margin-top: 6px;
+}
+
+.badge-hidden {
+  background: var(--border);
+  color: var(--foreground);
+}
+
+.relation-list {
+  margin-bottom: 20px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
