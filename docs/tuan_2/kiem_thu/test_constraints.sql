@@ -85,18 +85,21 @@ SELECT pg_temp.expect_ok('A18 chiều ngược B→A vẫn gửi được dù A�
   $q$INSERT INTO exchange_requests(sender_id, receiver_id, type, sender_learn_skill_id,
        proposed_start_at, duration_minutes, mode) VALUES (2,1,'ONE_WAY',3,'2026-11-10 08:00+07',60,'ONLINE')$q$);
 
--- Phiên thứ 2 (C–B): bắt đầu rồi hủy → dùng cho CompletionRate và báo cáo sự cố
-SELECT pg_temp.expect_ok('A19 phiên 2: chấp nhận, bắt đầu',
-  $q$WITH r AS (UPDATE exchange_requests SET status='ACCEPTED' WHERE id=2 RETURNING *)
-     INSERT INTO exchange_sessions(request_id, start_at, duration_minutes, mode, status, started_at)
-     SELECT id, proposed_start_at, duration_minutes, mode, 'IN_PROGRESS', now() FROM r$q$);
-SELECT pg_temp.expect_ok('A20 báo cáo sự cố đang mở cho phiên 2',
+-- Phiên thứ 2 (C–B): bắt đầu, B bấm hoàn thành, C báo cáo, admin hủy → dùng cho CompletionRate và báo cáo sự cố.
+-- Báo cáo chỉ gửi được khi phiên WAITING_CONFIRMATION (quyết định tuần 6, D94); responded_at có ở mọi yêu cầu đã phản hồi (D90).
+SELECT pg_temp.expect_ok('A19 phiên 2: chấp nhận, bắt đầu, B bấm hoàn thành trước',
+  $q$WITH r AS (UPDATE exchange_requests SET status='ACCEPTED', responded_at=now() WHERE id=2 RETURNING *)
+     INSERT INTO exchange_sessions(request_id, start_at, duration_minutes, mode, status, started_at, first_completed_by)
+     SELECT id, proposed_start_at, duration_minutes, mode, 'WAITING_CONFIRMATION', now(), 2 FROM r$q$);
+SELECT pg_temp.expect_ok('A20 C báo cáo sự cố khi phiên 2 đang chờ xác nhận',
   $q$INSERT INTO incident_reports(session_id, reporter_id, reason) VALUES (2,3,'B không đến')$q$);
 SELECT pg_temp.expect_ok('A21 admin xử lý báo cáo → hủy phiên',
   $q$UPDATE incident_reports SET status='RESOLVED', resolution='SESSION_CANCELLED', resolved_by=4, resolved_at=now() WHERE id=1$q$);
-SELECT pg_temp.expect_ok('A22 phiên 2 bị hủy (sau khi đã bắt đầu)',
+SELECT pg_temp.expect_ok('A22 admin hủy phiên 2 đang chờ xác nhận (đã bắt đầu)',
   $q$UPDATE exchange_sessions SET status='CANCELLED', cancelled_by=4, cancel_reason='Admin xử lý báo cáo', cancelled_at=now() WHERE id=2$q$);
-SELECT pg_temp.expect_ok('A23 báo cáo mới cho phiên 2 sau khi báo cáo cũ đã đóng',
+-- A23 chỉ kiểm chỉ mục một phần: DB nhận báo cáo OPEN mới khi báo cáo cũ đã RESOLVED.
+-- Service không cho kịch bản này, vì phiên 2 đã kết thúc (D94). Các ca B dưới đây cần báo cáo OPEN này.
+SELECT pg_temp.expect_ok('A23 DB nhận báo cáo OPEN mới khi báo cáo cũ đã đóng (service chặn, D94)',
   $q$INSERT INTO incident_reports(session_id, reporter_id, reason) VALUES (2,2,'Báo cáo bổ sung')$q$);
 
 -- =====================================================================

@@ -251,12 +251,12 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | `proposed_start_at` | TIMESTAMPTZ | NOT NULL | Thời điểm đề xuất |
 | `duration_minutes` | SMALLINT | NOT NULL, CHECK 15–480 | |
 | `mode` | VARCHAR(10) | NOT NULL, CHECK ∈ {`ONLINE`, `OFFLINE`} | Không có `ANY`: buổi học phải chốt một hình thức |
-| `location_or_link` | VARCHAR(500) | NULL | Riêng tư tới khi được chấp nhận |
-| `message` | TEXT | NULL | Lời nhắn của người gửi |
+| `location_or_link` | VARCHAR(500) | NULL | API bắt buộc nhập khi tạo; người nhận chỉ thấy sau khi chấp nhận, người gửi luôn thấy (quyết định tuần 6, D89, D91) |
+| `message` | TEXT | NULL | Lời nhắn của người gửi, tối đa 1000 ký tự (D88) |
 | `status` | VARCHAR(20) | NOT NULL, mặc định `PENDING`, CHECK ∈ {`PENDING`, `ACCEPTED`, `REJECTED`, `CANCELLED`} | |
-| `response_note` | TEXT | NULL | Ghi chú khi từ chối |
+| `response_note` | TEXT | NULL | Ghi chú khi từ chối, tối đa 1000 ký tự (D88) |
 | `created_at` | TIMESTAMPTZ | NOT NULL | |
-| `responded_at` | TIMESTAMPTZ | NULL | Thời điểm chấp nhận/từ chối |
+| `responded_at` | TIMESTAMPTZ | NULL | Thời điểm chấp nhận, từ chối hoặc hủy: NULL khi `PENDING`, có giá trị ở mọi trạng thái khác. Service bảo đảm, DB không có CHECK (D90) |
 | `version` | INTEGER | NOT NULL, mặc định 0 | Khóa lạc quan, chống người gửi hủy đúng lúc người nhận chấp nhận (mục 5.1) |
 
 - **Ràng buộc nhất quán loại yêu cầu:** `CHECK ((type = 'TWO_WAY') = (receiver_learn_skill_id IS NOT NULL))`. Yêu cầu hai chiều bắt buộc có kỹ năng chiều ngược lại; yêu cầu một chiều thì không được có.
@@ -363,7 +363,7 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
 
 | Nhóm | Số ca | Mong đợi |
 | --- | --- | --- |
-| A. Dữ liệu hợp lệ: đi trọn kịch bản gửi yêu cầu → chấp nhận → bắt đầu → hoàn thành → đánh giá, và một phiên bị báo cáo sự cố rồi admin hủy | 23 | Được nhận |
+| A. Dữ liệu hợp lệ: đi trọn kịch bản gửi yêu cầu → chấp nhận → bắt đầu → hoàn thành → đánh giá, và một phiên đang chờ xác nhận bị báo cáo sự cố rồi admin hủy | 23 | Được nhận |
 | B. Dữ liệu sai: mỗi ràng buộc ít nhất một câu vi phạm (giá trị ngoài miền, trùng lặp, thiếu cột bắt buộc, sai nhất quán loại yêu cầu, gửi trùng `PENDING`, xóa dữ liệu đang được dùng...) | 44 | Bị chặn |
 | C. Truy vấn công thức: $Sim$, số khung rảnh trùng, $RatingNorm$, $CompletionRate$ (kể cả mẫu số bằng 0) | 6 | Đúng giá trị tính tay |
 
@@ -523,18 +523,21 @@ POST /api/requests
 Backend kiểm tra khi tạo yêu cầu:
 
 1. Người nhận đang `ACTIVE`, có `role = STUDENT` và khác người gửi.
-2. `senderLearnSkillId` có $Sim > 0$ với một kỹ năng dạy của người nhận. Nếu là `TWO_WAY` thì `receiverLearnSkillId` cũng phải có $Sim > 0$ với một kỹ năng dạy của người gửi.
+2. `senderLearnSkillId` thuộc danh sách muốn học của người gửi và có $Sim > 0$ với một kỹ năng dạy của người nhận. Nếu là `TWO_WAY` thì `receiverLearnSkillId` cũng phải thuộc danh sách muốn học của người nhận và có $Sim > 0$ với một kỹ năng dạy của người gửi.
 3. `proposedStartAt` ở tương lai.
-4. Chưa có yêu cầu `PENDING` nào giữa hai người theo cùng chiều (spec mục 6.2).
+4. `locationOrLink` không rỗng.
+5. Chưa có yêu cầu `PENDING` nào giữa hai người theo cùng chiều (spec mục 6.2).
+
+Thứ tự kiểm, mã lỗi, câu báo lỗi và dạng response của các API mục 4.6–4.8: quyết định tuần 6, D87–D94 (bảng 2.1, 2.2).
 
 ### 4.7. Phiên trao đổi – `exchange`
 
 | Phương thức | Đường dẫn | Quyền | Mô tả | FR |
 | --- | --- | --- | --- | --- |
 | GET | `/api/sessions?status=` | Active | Các phiên của tôi | FR-06 |
-| GET | `/api/sessions/{id}` | Participant, Admin | Chi tiết phiên, **kèm thông tin liên hệ và địa điểm/link** của bên kia | FR-06, NFR-02 |
+| GET | `/api/sessions/{id}` | Participant, Admin (admin làm ở tuần 7 cùng A02, D86) | Chi tiết phiên, **kèm thông tin liên hệ và địa điểm/link** của bên kia | FR-06, NFR-02 |
 | POST | `/api/sessions/{id}/start` | Participant | `SCHEDULED` → `IN_PROGRESS` (spec mục 6.2) | FR-06 |
-| POST | `/api/sessions/{id}/complete` | Participant | Lần 1: → `WAITING_CONFIRMATION`. Lần 2 (bên còn lại): → `COMPLETED` | FR-06 |
+| POST | `/api/sessions/{id}/complete` | Participant | Lần 1: → `WAITING_CONFIRMATION`. Lần 2 (bên còn lại, phiên không có báo cáo `OPEN`): → `COMPLETED` | FR-06 |
 | POST | `/api/sessions/{id}/cancel` | Participant | Hủy kèm `reason` bắt buộc; chỉ từ `SCHEDULED` hoặc `IN_PROGRESS` | FR-06 |
 
 ### 4.8. Đánh giá và báo cáo sự cố – `review`, `admin`
@@ -542,7 +545,7 @@ Backend kiểm tra khi tạo yêu cầu:
 | Phương thức | Đường dẫn | Quyền | Mô tả | FR |
 | --- | --- | --- | --- | --- |
 | POST | `/api/sessions/{id}/reviews` | Participant | Đánh giá `{rating, comment}`; chỉ khi phiên `COMPLETED`, mỗi người một lần | FR-07 |
-| POST | `/api/sessions/{id}/reports` | Participant | Gửi báo cáo sự cố `{reason}` | FR-09 |
+| POST | `/api/sessions/{id}/reports` | Participant | Gửi báo cáo sự cố `{reason}`; chỉ khi phiên `WAITING_CONFIRMATION`, mỗi phiên một báo cáo `OPEN` (D94) | FR-09 |
 
 ### 4.9. Quản trị – `admin`
 
@@ -569,11 +572,14 @@ Dạng body và response, cách kiểm tra trùng tên (không phân biệt hoa 
 | Tạo yêu cầu | ✔ | – | – | ✖ |
 | Chấp nhận / từ chối | ✖ | ✔ | ✖ | ✖ |
 | Hủy yêu cầu `PENDING` | ✔ | ✖ | ✖ | ✖ |
-| Xem liên hệ, địa điểm/link | ✔ sau `ACCEPTED` | ✔ sau `ACCEPTED` | ✖ | ✔ |
+| Xem liên hệ của bên kia | ✔ sau `ACCEPTED` | ✔ sau `ACCEPTED` | ✖ | ✔ |
+| Xem địa điểm/link | ✔ (do mình nhập, D91) | ✔ sau `ACCEPTED` | ✖ | ✔ |
 | Bắt đầu / hoàn thành / hủy phiên | ✔ | ✔ | ✖ | ✖ |
 | Đánh giá | ✔ | ✔ | ✖ | ✖ |
-| Báo cáo sự cố | ✔ | ✔ | ✖ | – |
+| Báo cáo sự cố (phiên `WAITING_CONFIRMATION`) | ✔ | ✔ | ✖ | – |
 | Xử lý báo cáo | ✖ | ✖ | ✖ | ✔ |
+
+Admin xem liên hệ, địa điểm/link khi tra cứu vi phạm: làm ở tuần 7 cùng A02 (D86). Bảng trạng thái × hành động đầy đủ: quyết định tuần 6, mục 2.3.
 
 ## 5. Sơ đồ trạng thái
 
@@ -595,11 +601,11 @@ stateDiagram-v2
 | Từ | Sang | Ai | API | Điều kiện / tác động phụ |
 | --- | --- | --- | --- | --- |
 | – | `PENDING` | Sender | `POST /requests` | Các kiểm tra ở mục 4.6 |
-| `PENDING` | `ACCEPTED` | Receiver | `POST /requests/{id}/accept` | Tạo phiên `SCHEDULED` trong **cùng giao dịch** (transaction); mở quyền xem liên hệ |
-| `PENDING` | `REJECTED` | Receiver | `POST /requests/{id}/reject` | Lưu `response_note` |
-| `PENDING` | `CANCELLED` | Sender | `POST /requests/{id}/cancel` | |
+| `PENDING` | `ACCEPTED` | Receiver | `POST /requests/{id}/accept` | Tạo phiên `SCHEDULED` trong **cùng giao dịch** (transaction); mở quyền xem liên hệ; ghi `responded_at`. Đã tới `proposed_start_at` hoặc người gửi không còn `ACTIVE`: 409 (D90) |
+| `PENDING` | `REJECTED` | Receiver | `POST /requests/{id}/reject` | Lưu `response_note`, `responded_at` |
+| `PENDING` | `CANCELLED` | Sender | `POST /requests/{id}/cancel` | Ghi `responded_at` (D90) |
 
-`ACCEPTED`, `REJECTED` và `CANCELLED` là trạng thái cuối. Mọi thao tác khác trả về **409**.
+`ACCEPTED`, `REJECTED` và `CANCELLED` là trạng thái cuối. Mọi thao tác khác trả về **409**; người gọi sai vai trò (người gửi bấm chấp nhận, người nhận bấm hủy) nhận 403 trước khi xét trạng thái (D87).
 
 **Chống thao tác đồng thời:** người gửi bấm "Hủy" đúng lúc người nhận bấm "Chấp nhận". Cột `version` của `exchange_requests` làm thao tác đến sau thất bại (409), nên không xảy ra trường hợp yêu cầu đã hủy mà vẫn sinh ra phiên.
 
@@ -622,10 +628,10 @@ stateDiagram-v2
 | Từ | Sang | Ai | API | Điều kiện / tác động phụ |
 | --- | --- | --- | --- | --- |
 | `SCHEDULED` | `IN_PROGRESS` | Participant | `POST /sessions/{id}/start` | Chỉ từ 15 phút trước `start_at` (spec mục 6.2); ghi `started_at` |
-| `SCHEDULED` | `CANCELLED` | Participant | `POST /sessions/{id}/cancel` | Lý do bắt buộc; `started_at` vẫn NULL nên **không** tính vào CompletionRate |
+| `SCHEDULED` | `CANCELLED` | Participant | `POST /sessions/{id}/cancel` | Lý do bắt buộc; được ở mọi thời điểm, kể cả sau giờ hẹn (D93); `started_at` vẫn NULL nên **không** tính vào CompletionRate |
 | `IN_PROGRESS` | `WAITING_CONFIRMATION` | Participant | `POST /sessions/{id}/complete` | Ghi `first_completed_by` |
 | `IN_PROGRESS` | `CANCELLED` | Participant | `POST /sessions/{id}/cancel` | Lý do bắt buộc; **có** tính vào mẫu số CompletionRate (phiên đã bắt đầu và đã kết thúc) |
-| `WAITING_CONFIRMATION` | `COMPLETED` | Bên còn lại | `POST /sessions/{id}/complete` | Người gọi phải khác `first_completed_by`; mở quyền đánh giá |
+| `WAITING_CONFIRMATION` | `COMPLETED` | Bên còn lại | `POST /sessions/{id}/complete` | Người gọi phải khác `first_completed_by` và phiên không có báo cáo `OPEN` (D93, D94); mở quyền đánh giá |
 | `WAITING_CONFIRMATION` | `COMPLETED` / `CANCELLED` | Admin | `POST /admin/reports/{id}/resolve` | Chỉ khi có báo cáo `OPEN`; báo cáo chuyển sang `RESOLVED` |
 
 **Các chuyển trạng thái bị cấm** (trả về 409, cần có unit test):
@@ -634,6 +640,8 @@ stateDiagram-v2
 - Hủy phiên đang `WAITING_CONFIRMATION` (spec 6.2: không tự động hoặc tùy tiện hủy khi có bất đồng; chỉ admin chốt).
 - Mọi thao tác trên phiên `COMPLETED` hoặc `CANCELLED`, ngoại trừ đánh giá phiên `COMPLETED`.
 - Bắt đầu phiên quá sớm so với `start_at`.
+- Xác nhận hoàn thành khi phiên có báo cáo `OPEN` (D93).
+- Gửi báo cáo khi phiên không ở `WAITING_CONFIRMATION`, hoặc khi phiên đã có báo cáo `OPEN` (D94).
 
 **Chống thao tác đồng thời:** nếu hai người cùng bấm "Hoàn thành" một lúc, cột `version` (optimistic locking) làm request thứ hai thất bại thay vì ghi đè. Client tải lại và nhận trạng thái mới.
 
@@ -759,7 +767,7 @@ Cột "Kiểm thử" trỏ tới nhóm unit test ở spec mục 7.1 (N1–N5) ho
 | FR-14 Lịch sử trao đổi (nên có) | `exchange_requests`, `exchange_sessions` | Dùng lại `/requests`, `/sessions` | S08, S09 | chưa có | 7 nếu kịp |
 | FR-23 Quên mật khẩu (nên có) | `user_tokens` (`RESET_PASSWORD`) | Chưa thiết kế | – | – | 8 nếu kịp |
 | NFR-01 Bảo mật | `password_hash`, `user_tokens.token_hash` | JWT, kiểm tra quyền mọi API | – | `tuan_3/kiem_thu` nhóm C, N5 | 3 trở đi; kiểm thử tổng ở 8 |
-| NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ và địa điểm/link chỉ trả về trong `/me`, `/sessions/{id}`; email trường không có trong `/users/{id}` | S06, S09 | N5 | 4, 6 |
+| NFR-02 Riêng tư | `email`, `phone`, `contact_info`, `location_or_link` | Liên hệ chỉ trả về trong `/me`, `/sessions/{id}`; địa điểm/link trả trong `/sessions/{id}` và trong `/requests*` cho người gửi, cho người nhận sau `ACCEPTED` (D91); email trường không có trong `/users/{id}` | S06, S08, S09 | N5 | 4, 6 |
 | NFR-03 Hiệu năng | – | `/matches`, module `evaluation` | – | Đo trong bộ nhớ ở tuần 5 (quyết định tuần 5, D61); end-to-end `/matches` ở tuần 8 (rà soát R30) | 5, 8 |
 | NFR-04 Tính đúng | – | Lõi matching | – | N2 | 4 |
 | NFR-05 Bảo trì | – | Tách lọc cứng và chấm điểm, trọng số tập trung | – | Xem xét code | 4 |
@@ -775,7 +783,7 @@ Khi viết thiết kế tuần 2, spec tuần 1 chưa quy định các điểm d
 | Mã | Nội dung | Đã chốt ở |
 | --- | --- | --- |
 | G1 | Phiên chuyển sang `IN_PROGRESS` khi một bên bấm "Bắt đầu", chỉ được bấm từ 15 phút trước giờ hẹn. Không dùng tác vụ chạy định kỳ | Spec 6.2 |
-| G2 | Yêu cầu `PENDING` và phiên `IN_PROGRESS` chưa có thời hạn tự hết hạn trong MVP | Spec 6.2 |
+| G2 | Yêu cầu `PENDING`, phiên `SCHEDULED` và phiên `IN_PROGRESS` chưa có thời hạn tự hết hạn trong MVP | Spec 6.2, quyết định tuần 6 (D90, D93) |
 | G3 | Khi một bên hủy phiên đang diễn ra, phiên tính vào mẫu số CompletionRate của **cả hai** bên | Spec 4.3, 6.2 |
 | G4 | Mỗi người chỉ có một yêu cầu `PENDING` tới cùng một người nhận | Spec 6.2 |
 | G5 | JWT có hạn 24 giờ, chưa dùng refresh token | Quyết định tuần 3, D14 |

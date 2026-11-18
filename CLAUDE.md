@@ -71,7 +71,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Danh sách lịch rảnh/kỹ năng của tôi: `PUT` thay cả danh sách
 - Chỉ sinh viên đã xác thực (`status = ACTIVE` và `role = STUDENT`) mới được dùng matching, tìm kiếm và xem hồ sơ người khác; admin chỉ dùng API quản trị và không xuất hiện trong gợi ý, tìm kiếm
 - Đuôi email trường lấy từ cấu hình, không ghi cứng
-- `phone`, `contact_info`, `location_or_link` là riêng tư: chỉ trả trong `/api/me` và phiên đã `ACCEPTED` (NFR-02)
+- `phone`, `contact_info` là riêng tư: chỉ trả trong `/api/me` và chi tiết phiên `GET /api/sessions/{id}` cho hai người tham gia; API yêu cầu không bao giờ trả chúng. `location_or_link` trả cho người gửi, cho người nhận khi yêu cầu đã `ACCEPTED`, và trong chi tiết phiên (NFR-02, D91, D92). Admin xem khi tra cứu vi phạm: tuần 7 (D86)
 
 ## Quy tắc làm việc với AI
 - Khi tôi nói "đề xuất" hoặc "lập kế hoạch": KHÔNG tạo/sửa file

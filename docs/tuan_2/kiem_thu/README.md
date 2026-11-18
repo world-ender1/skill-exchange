@@ -27,13 +27,13 @@ docker compose exec -T db psql -U skillexchange -d postgres -c "DROP DATABASE de
 
 | Nhóm | Số ca | Ý nghĩa |
 | --- | --- | --- |
-| A. Dữ liệu hợp lệ | 23 | Đi trọn kịch bản: tạo kỹ năng, hồ sơ → gửi yêu cầu → chấp nhận → bắt đầu → hoàn thành → đánh giá; thêm một phiên bị báo cáo sự cố và admin hủy. **Phải được nhận**, chứng minh thiết kế không chặn nhầm. |
+| A. Dữ liệu hợp lệ | 23 | Đi trọn kịch bản: tạo kỹ năng, hồ sơ → gửi yêu cầu → chấp nhận → bắt đầu → hoàn thành → đánh giá; thêm một phiên đang chờ xác nhận bị báo cáo sự cố và admin hủy (A23 chỉ kiểm chỉ mục một phần ở mức DB; service không cho báo cáo phiên đã kết thúc, quyết định tuần 6, D94). **Phải được nhận**, chứng minh thiết kế không chặn nhầm. |
 | B. Dữ liệu sai | 44 | Mỗi ràng buộc ít nhất một câu vi phạm: giá trị ngoài miền, trùng lặp, thiếu cột bắt buộc, sai nhất quán loại yêu cầu, gửi trùng `PENDING` (G4), hai báo cáo đang mở, xóa dữ liệu đang được dùng... **Phải bị chặn.** |
 | C. Truy vấn công thức | 6 | Tính $Sim$, số khung rảnh trùng, $RatingNorm$, $CompletionRate$ (kể cả trường hợp mẫu số bằng 0) trên dữ liệu nhóm A, so với giá trị tính tay. |
 
 ## Kết quả
 
-**73/73 PASS** (lần chạy đầu 2026-10-24, PostgreSQL 17). Chạy lại 2026-10-29 sau khi sửa truy vấn CompletionRate (C05, C06) và 2026-11-08 ở tuần 4 (lược đồ không đổi, vẫn chỉ có `V1__init.sql` và `V2__seed_skills.sql`): vẫn 73/73, `ket_qua.txt` giống hệt từng dòng.
+**73/73 PASS** (lần chạy đầu 2026-10-24, PostgreSQL 17). Chạy lại 2026-10-29 sau khi sửa truy vấn CompletionRate (C05, C06) và 2026-11-08 ở tuần 4 (lược đồ không đổi, vẫn chỉ có `V1__init.sql` và `V2__seed_skills.sql`): vẫn 73/73, `ket_qua.txt` giống hệt từng dòng. Chạy lại 2026-11-18 sau khi sửa A19–A23 theo quyết định tuần 6: phiên 2 chuyển sang `WAITING_CONFIRMATION` trước khi bị báo cáo (D94), yêu cầu 2 có `responded_at` (D90). Vẫn 73/73; ngoài nhãn của A19, A20, A22, A23 (và độ rộng cột nhãn), mọi kết quả giống lần trước.
 
 Lần chạy đầu có **1 ca FAIL (B42)**: báo cáo sự cố đang `OPEN` nhưng vẫn ghi được `resolution`. Nguyên nhân là ràng buộc viết dạng `(status = 'RESOLVED') = (đủ 3 cột)`: khi chỉ điền 1 trong 3 cột thì hai vế cùng sai nên vẫn "bằng nhau". Đã sửa thành hai ràng buộc riêng: `RESOLVED` ⇒ đủ 3 cột; `OPEN` ⇒ cả 3 cột trống. Đây là ví dụ kiểm thử bắt được lỗi mà đọc bằng mắt khó thấy.
 

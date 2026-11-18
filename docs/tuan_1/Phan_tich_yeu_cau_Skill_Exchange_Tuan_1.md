@@ -329,7 +329,7 @@ stateDiagram-v2
         state "CANCELLED" as CANCELLED_SES
         ACCEPTED --> SCHEDULED : Hệ thống tạo phiên theo lịch đề xuất trong yêu cầu
         SCHEDULED --> IN_PROGRESS : Một bên bấm "Bắt đầu" (từ 15 phút trước giờ hẹn)
-        SCHEDULED --> CANCELLED_SES : Một bên hủy trước giờ hẹn (kèm lý do)
+        SCHEDULED --> CANCELLED_SES : Một bên hủy, ở mọi thời điểm (kèm lý do)
         
         IN_PROGRESS --> WAITING_CONFIRMATION : Một bên xác nhận hoàn thành
         IN_PROGRESS --> CANCELLED_SES : Hủy phiên do sự cố trong khi đang diễn ra
@@ -358,10 +358,10 @@ Yêu cầu và phiên đều có trạng thái tên `CANCELLED` nhưng thuộc h
 | Thực thể | Trạng thái | Tác nhân | Quy tắc nghiệp vụ & Điều kiện |
 | :--- | :--- | :--- | :--- |
 | **Yêu cầu (Request)** | `PENDING` | Sender | Yêu cầu ghi rõ loại, kỹ năng từng chiều và lịch đề xuất (mục 6.4). Chờ người nhận phản hồi; Sender có thể hủy. |
-| | `ACCEPTED` | Receiver | Chấp nhận yêu cầu, đồng nghĩa đồng ý lịch đề xuất; hệ thống tạo ngay phiên `SCHEDULED` với thời điểm, thời lượng, hình thức, địa điểm/link lấy từ yêu cầu và mở quyền xem liên hệ. |
+| | `ACCEPTED` | Receiver | Chấp nhận yêu cầu, đồng nghĩa đồng ý lịch đề xuất; hệ thống tạo ngay phiên `SCHEDULED` với thời điểm, thời lượng, hình thức, địa điểm/link lấy từ yêu cầu và mở quyền xem liên hệ. Không chấp nhận được khi đã tới thời điểm đề xuất hoặc người gửi không còn hoạt động (quyết định tuần 6, D90). |
 | | `REJECTED` | Receiver | Từ chối yêu cầu. |
 | | `CANCELLED` | Sender | Chỉ hủy được khi còn ở `PENDING`. |
-| **Phiên (Session)** | `SCHEDULED` | Hệ thống | Lịch và hình thức lấy từ yêu cầu đã chấp nhận; có thể hủy trước giờ bắt đầu (không bị phạt tỷ lệ hoàn thành). |
+| **Phiên (Session)** | `SCHEDULED` | Hệ thống | Lịch và hình thức lấy từ yêu cầu đã chấp nhận; hủy được ở mọi thời điểm, kể cả sau giờ hẹn, và không bị phạt tỷ lệ hoàn thành (D93). |
 | | `IN_PROGRESS` | Bên A hoặc Bên B | Một bên bấm "Bắt đầu", chỉ được bấm từ 15 phút trước giờ hẹn; hệ thống không tự chuyển trạng thái (không có tác vụ chạy định kỳ). |
 | | `WAITING_CONFIRMATION` | Bên hoàn thành trước | Một bên đánh dấu hoàn thành; chờ bên còn lại xác nhận. |
 | | `COMPLETED` | Bên còn lại hoặc Admin | Cả hai bên cùng xác nhận, hoặc admin chốt qua báo cáo sự cố; phiên chính thức kết thúc thành công. |
@@ -369,14 +369,14 @@ Yêu cầu và phiên đều có trạng thái tên `CANCELLED` nhưng thuộc h
 
 *Quy tắc bổ sung:*
 - Mỗi người chỉ có tối đa một yêu cầu `PENDING` tới cùng một người nhận; gửi trùng bị từ chối.
-- Yêu cầu `PENDING` và phiên `IN_PROGRESS` không tự hết hạn trong MVP.
+- Yêu cầu `PENDING`, phiên `SCHEDULED` và phiên `IN_PROGRESS` không tự hết hạn trong MVP. Yêu cầu `PENDING` đã tới thời điểm đề xuất thì không chấp nhận được nữa, nhưng vẫn hủy, từ chối được (D90).
 - Người tham gia không được tự hủy phiên đang `WAITING_CONFIRMATION`; chỉ admin chốt được phiên ở trạng thái này.
 - `ACCEPTED`, `REJECTED`, `CANCELLED` (yêu cầu) và `COMPLETED`, `CANCELLED` (phiên) là trạng thái cuối. Mọi thao tác khác trên chúng bị từ chối, trừ đánh giá phiên `COMPLETED`.
 - *Hạn chế đã biết:* hủy phiên đang diễn ra làm giảm $CompletionRate$ của cả bên bị hủy. Chấp nhận trong MVP để giữ công thức đơn giản; ghi vào phần hạn chế của báo cáo.
 
 *Quy tắc giải quyết bất đồng (Dispute Handling):*
 - Nếu một bên bấm hoàn thành nhưng bên kia từ chối xác nhận hoặc không phản hồi: **Không tự động chuyển phiên sang `CANCELLED`**.
-- Hệ thống giữ nguyên trạng thái `WAITING_CONFIRMATION` và cho phép người dùng gửi **Báo cáo sự cố (Report)** để Quản trị viên xem xét can thiệp.
+- Hệ thống giữ nguyên trạng thái `WAITING_CONFIRMATION` và cho phép người dùng gửi **Báo cáo sự cố (Report)** để Quản trị viên xem xét can thiệp. Báo cáo chỉ gửi được khi phiên đang `WAITING_CONFIRMATION`, mỗi phiên tối đa một báo cáo đang mở; khi có báo cáo đang mở, bên còn lại không xác nhận hoàn thành được nữa, chỉ admin chốt (D93, D94).
 - Quản trị viên xem xét báo cáo và chốt phiên sang `COMPLETED` (xác định buổi học đã diễn ra) hoặc `CANCELLED` (buổi học không diễn ra), kèm lý do. Đây là chuyển trạng thái duy nhất do admin thực hiện (FR-09).
 
 ### 6.3. Quy tắc Đánh giá và Phân quyền Backend
@@ -394,12 +394,13 @@ Yêu cầu và phiên đều có trạng thái tên `CANCELLED` nhưng thuộc h
 | Gửi yêu cầu trao đổi | ✔ | ✖ | ✖ | ✖ | ✖ |
 | Chấp nhận / Từ chối yêu cầu | ✖ | ✔ | ✖ | ✖ | ✖ |
 | Hủy yêu cầu khi đang PENDING | ✔ | ✖ | ✖ | ✖ | ✖ |
-| Xem thông tin liên hệ (SĐT, liên hệ cá nhân) và địa điểm/link | ✖ (Khi Pending) | ✖ (Khi Pending) | ✔ (Từ khi ACCEPTED, kể cả sau khi phiên kết thúc) | ✖ | ✔ (Tra cứu vi phạm) |
+| Xem thông tin liên hệ (SĐT, liên hệ cá nhân) của bên kia | ✖ (Khi Pending) | ✖ (Khi Pending) | ✔ (Từ khi ACCEPTED, kể cả sau khi phiên kết thúc) | ✖ | ✔ (Tra cứu vi phạm) |
+| Xem địa điểm/link buổi học | ✔ (Do chính mình nhập, D91) | ✖ (Khi Pending) | ✔ (Từ khi ACCEPTED, kể cả sau khi phiên kết thúc) | ✖ | ✔ (Tra cứu vi phạm) |
 | Bắt đầu / hủy phiên | ✔ | ✔ | ✔ | ✖ | ✖ |
 | Đánh dấu hoàn thành lần 1 | ✔ | ✔ | ✔ (Bất kỳ ai xong trước) | ✖ | ✖ |
 | Xác nhận hoàn thành lần 2 | ✖ (Bên đã bấm) | ✖ (Bên đã bấm) | ✔ (Chỉ bên còn lại) | ✖ | ✖ |
 | Đánh giá (phiên `COMPLETED`) | ✔ | ✔ | ✔ (Mỗi người 1 lần) | ✖ | ✖ |
-| Gửi báo cáo sự cố phiên | ✔ | ✔ | ✔ | ✖ | – |
+| Gửi báo cáo sự cố phiên (khi phiên `WAITING_CONFIRMATION`, D94) | ✔ | ✔ | ✔ | ✖ | – |
 | Xử lý báo cáo sự cố (chốt phiên) | ✖ | ✖ | ✖ | ✖ | ✔ |
 | Khóa / mở khóa tài khoản | ✖ | ✖ | ✖ | ✖ | ✔ |
 
@@ -410,9 +411,9 @@ Tài khoản bị khóa hoặc chưa xác thực email không xuất hiện tron
 - **Một yêu cầu = một phiên = một buổi gặp.** Muốn học tiếp thì gửi yêu cầu mới; chuỗi nhiều buổi trong một thỏa thuận là chức năng mở rộng.
 - **Loại yêu cầu:** `TWO_WAY` (gửi từ nhóm ghép hai chiều) hoặc `ONE_WAY` (mentoring một chiều).
 - **Kỹ năng:** kỹ năng người gửi muốn học (bắt buộc) và kỹ năng người nhận muốn học (chỉ có với `TWO_WAY`). Backend kiểm tra mỗi kỹ năng có $Sim > 0$ với danh sách kỹ năng dạy của bên kia.
-- **Lịch đề xuất:** thời điểm bắt đầu, thời lượng, hình thức (chỉ `ONLINE` hoặc `OFFLINE`, không dùng `ANY`), địa điểm hoặc link học online. Giao diện gợi ý các khung giờ trùng nhau (4.6) nhưng không bắt buộc chọn trong đó.
+- **Lịch đề xuất:** thời điểm bắt đầu, thời lượng, hình thức (chỉ `ONLINE` hoặc `OFFLINE`, không dùng `ANY`), địa điểm hoặc link học online (bắt buộc, D89). Giao diện gợi ý các khung giờ trùng nhau (4.6) nhưng không bắt buộc chọn trong đó.
 - Người nhận chấp nhận nghĩa là đồng ý lịch đề xuất; hệ thống tạo phiên `SCHEDULED` bằng chính các giá trị này. Không hợp lịch thì người nhận từ chối kèm ghi chú, người gửi có thể gửi yêu cầu mới.
-- Địa điểm và link học online chỉ hiển thị cho hai bên sau khi yêu cầu được chấp nhận, cùng quy tắc với thông tin liên hệ.
+- Người nhận chỉ thấy địa điểm và link học online sau khi chấp nhận yêu cầu; người gửi luôn xem lại được nội dung do chính mình nhập (D91). Số điện thoại, liên hệ cá nhân chỉ hiện ở chi tiết phiên (D92).
 - Một phiên được tính vào $CompletionRate$ của cả hai bên; mỗi bên đánh giá bên kia tối đa một lần (6.3).
 
 ## 7. Yêu cầu phi chức năng và kiểm thử
@@ -420,7 +421,7 @@ Tài khoản bị khóa hoặc chưa xác thực email không xuất hiện tron
 | Mã | Yêu cầu |
 | --- | --- |
 | NFR-01 Bảo mật | Băm mật khẩu; kiểm tra đăng nhập, quyền sở hữu tài nguyên và quyền truy cập ở backend cho mọi API nhạy cảm, theo ma trận phân quyền ở mục 6.3. |
-| NFR-02 Riêng tư | Email trường chỉ dùng để xác thực danh tính sinh viên, không hiển thị trên hồ sơ công khai. Số điện thoại, liên hệ cá nhân (email cá nhân, mạng xã hội) và địa điểm/link buổi học không công khai; chỉ hiển thị cho hai bên từ khi yêu cầu được chấp nhận, và cho admin khi tra cứu vi phạm. |
+| NFR-02 Riêng tư | Email trường chỉ dùng để xác thực danh tính sinh viên, không hiển thị trên hồ sơ công khai. Số điện thoại, liên hệ cá nhân (email cá nhân, mạng xã hội) và địa điểm/link buổi học không công khai; chỉ hiển thị cho hai bên từ khi yêu cầu được chấp nhận, và cho admin khi tra cứu vi phạm. Người nhập luôn xem lại được thông tin của chính mình: hồ sơ của tôi, địa điểm/link trong yêu cầu mình gửi (D91). |
 | NFR-03 Hiệu năng | Mục tiêu ban đầu: tạo và xếp hạng gợi ý Top-5 ≤ 2 giây trên 1.000 hồ sơ giả lập trong môi trường phát triển; ghi cấu hình máy khi đo. |
 | NFR-04 Tính đúng | Điểm thành phần và tổng điểm thuộc [0,1]; xử lý an toàn dữ liệu thiếu (không chia cho 0, không phát sinh NaN); loại bỏ ứng viên vi phạm điều kiện cứng. |
 | NFR-05 Bảo trì | Tách biệt mô-đun lọc cứng (Filtering) và chấm điểm (Ranking); tập trung cấu hình trọng số để dễ phân tích độ nhạy. |
@@ -466,9 +467,10 @@ Unit test được viết cùng lúc với phần code tương ứng, không ch�
    - Người đã bấm hoàn thành bấm xác nhận lần hai.
    - Người tham gia hủy phiên đang `WAITING_CONFIRMATION`.
    - Thao tác trên yêu cầu/phiên đã ở trạng thái cuối (trừ đánh giá phiên `COMPLETED`).
-   - Bắt đầu phiên sớm hơn 15 phút trước giờ hẹn.
+   - Bắt đầu phiên sớm hơn 15 phút trước giờ hẹn; chấp nhận yêu cầu khi đã tới thời điểm đề xuất.
+   - Gửi báo cáo khi phiên không ở `WAITING_CONFIRMATION` hoặc đã có báo cáo đang mở; xác nhận hoàn thành khi phiên có báo cáo đang mở.
    - Người không phải receiver chấp nhận/từ chối; người không phải sender hủy yêu cầu; người ngoài thao tác trên phiên.
-   - Yêu cầu đang `PENDING` không trả về thông tin liên hệ và địa điểm/link; sau `ACCEPTED` mới trả về cho hai bên.
+   - API yêu cầu không bao giờ trả thông tin liên hệ; yêu cầu đang `PENDING` không trả địa điểm/link cho người nhận (người gửi vẫn thấy nội dung mình nhập); sau `ACCEPTED` địa điểm/link trả cho hai bên, liên hệ trả ở chi tiết phiên (D91, D92).
    - Hồ sơ công khai không bao giờ chứa email trường, số điện thoại, liên hệ cá nhân.
 
 ## 8. Bảng đối chiếu nền tảng tương tự và phân tích hạn chế

@@ -1,0 +1,193 @@
+# KẾ HOẠCH TUẦN 6
+
+Lập ngày 2026-11-18. Áp dụng `docs/tuan_6/Quyet_dinh_tuan_6.md`: D78–D85 (giao diện, đã chốt) và D86 trở đi (yêu cầu, phiên, báo cáo sự cố; chốt ở Bước 0). Ca kiểm thử: `docs/tuan_6/kiem_thu/ca_kiem_thu.md` (TC301 trở đi, viết ở Bước 0).
+
+**Phạm vi** (spec 9, dòng tuần 6): FR-05 (yêu cầu kèm lịch đề xuất), FR-06 (vòng đời phiên, xác nhận hoàn thành), quyền xem liên hệ và địa điểm/link, FR-09 phần người dùng (gửi báo cáo sự cố); unit test nhóm 5 của spec 7.1, trừ phần đánh giá. Thêm việc ngoài FR: chuyển giao diện sang Tailwind CSS + shadcn/ui (D78).
+
+**Không làm tuần này:** đánh giá (FR-07), admin xử lý báo cáo (A02, FR-09 phần admin), khóa tài khoản (FR-08), thông báo trong ứng dụng (FR-13). Tất cả ở tuần 7, trừ FR-13 (Nên có).
+
+Quy ước chung:
+- **Bước 0 là cổng:** chưa có D86 trở đi và ca kiểm thử thì không code bước nào (CLAUDE.md: viết ca từ tài liệu trước khi code).
+- **Phần A (bước 1–3, giao diện)** làm trên nhánh `feat/ui-tailwind` và gộp vào `main` sau bước 3: giữa chừng, màn hình chưa chuyển bị vỡ vì Preflight (D78). Phần B (bước 4–8, backend) không phụ thuộc phần A; nếu phần A kéo dài thì làm song song được. Phần C (bước 9–11) cần cả A và B.
+- Backend: package `exchange`. Test tích hợp kế thừa `IntegrationTestBase`, giả giờ bằng `MutableClock`; mỗi test có `@DisplayName("TCxxx ...")`.
+- **Bước 6–8 làm TDD hai lượt** như lõi tuần 4: lượt TEST viết test, chạy thấy đỏ, người học đọc từng ô của bảng trạng thái × hành động; lượt CODE viết code cho xanh, không sửa test. Gọi `/buoc-tuan` cho các bước này thì skill dừng sau lượt TEST.
+- Sau mỗi bước backend: `git diff --stat -- backend/src/test` để chắc test đã duyệt không bị sửa; `.\mvnw.cmd test` xanh toàn bộ, kể cả test tuần 3–5. Lõi `matching/` không đổi.
+- Sau mỗi bước frontend: `npm run build`, `npm run lint` không lỗi; xem ở 360 px và ở chế độ tối.
+
+## 1. Việc làm trước (không phải code, tự làm)
+
+| Trước bước | Việc |
+| --- | --- |
+| 0 | Trả lời Q1–Q11 ở Bước 0 |
+| 1 | Đọc D78–D85. Chụp màn hình 8 màn hiện tại (S01–S06, S10, A01) ở 1280 px và 360 px để so sau khi chuyển |
+| 4 | Đọc `exchange_requests`, `exchange_sessions`, `incident_reports` trong `V1__init.sql` (CHECK, unique một phần); đọc mục khóa lạc quan của skill `jpa-patterns` |
+| 6 | Tự điền bảng trạng thái × hành động (phụ lục của `docs/ra_soat/Bao_cao_ra_soat.md`) theo D86 trở đi, trên giấy, rồi mới xem ca |
+| 9 | Có ít nhất 2 tài khoản sinh viên `ACTIVE` ghép được với nhau (để thử bằng tay) |
+
+## 2. Các bước
+
+### Bước 0 – Chốt quyết định và viết ca kiểm thử (tài liệu, không code)
+
+**Trạng thái:** xong 2026-11-18. Người dùng duyệt Q1–Q11 và các mục "chốt theo tiền lệ" theo gợi ý; kết quả là D86–D96.
+
+- **Làm:**
+  1. Chốt R33–R39 (đợt 4 của rà soát, phần tuần 6) và Q1–Q11 dưới đây thành D86 trở đi trong `Quyet_dinh_tuan_6.md`. Gồm: bảng DTO request/response của TK 4.6–4.8 (R38), mã lỗi và thứ tự kiểm (R36), câu `detail` của từng lỗi, bảng trạng thái × hành động đầy đủ (không còn ô `[Rxx]`).
+  2. Sửa ngược trong cùng commit: spec 6.2 (hủy phiên `SCHEDULED`, R34), 6.3 và 6.4 (theo Q1), 7.1 nhóm 5; NFR-02; TK 3.3 (`responded_at`, R39), 3.6 và TC2 A19–A23 (R33, R39; chạy lại bộ ca ràng buộc), 4.6–4.8, 4.10, 5.1–5.2 (R33, R34), 7 (truy vết NFR-02), 8 (G2); CLAUDE.md dòng "`phone`, `contact_info`, `location_or_link` là riêng tư" (R35: phiên không có trạng thái `ACCEPTED`, câu này thiếu quyền của admin); bảng trạng thái của rà soát (đợt 4).
+  3. Viết `docs/tuan_6/kiem_thu/ca_kiem_thu.md` (TC301 trở đi): ca thủ công cho D78–D85 và S07–S09; ca tự động cho từng ô của bảng trạng thái × hành động, spec 7.1 nhóm 5 (trừ đánh giá) và từng dòng mã lỗi của R36.
+  4. Quay lại file này: điền dòng "Ca" của bước 1–11 và mục 3.
+
+- **Câu hỏi cần chốt.** Gợi ý theo tiêu chí "ít ảnh hưởng nhất tới việc đã làm" như tuần 5.
+
+  | Mã | Nguồn | Câu hỏi | Gợi ý | Lý do |
+  | --- | --- | --- | --- | --- |
+  | Q1 | R35, NFR-02 | Khi yêu cầu còn `PENDING`, ai thấy địa điểm/link? | Người nhận chỉ thấy sau khi chấp nhận (giữ NFR-02). Người gửi xem lại được địa điểm/link do chính mình nhập, giống `/api/me` trả số điện thoại của chính mình. `GET /api/requests/{id}` không bao giờ trả `phone`, `contactInfo`; sau `ACCEPTED` trả `sessionId` | Ngày 2026-10-29 đã duyệt phương án 2 của R35 (cả hai bên thấy ngay khi `PENDING`) theo gợi ý. Nhưng phương án đó nới NFR-02 ("chỉ hiển thị cho hai bên từ khi yêu cầu được chấp nhận") và spec 7.1 nhóm 5, nên phải hỏi lại. Gợi ý này giữ NFR-02, spec 6.4 và wireframe S07. Người nhận không hợp địa điểm thì hủy phiên `SCHEDULED`, không bị trừ CompletionRate (R34) |
+  | Q2 | R39 | Thêm CHECK `responded_at` bằng migration mới? | Không. Service tự ghi `responded_at` khi `accept`, `reject`, `cancel`; ghi quy tắc vào TK 3.3 | `MatchesApiTest` (tuần 4) chèn yêu cầu `ACCEPTED` không có `responded_at`; thêm CHECK thì test tuần 4 đỏ, phải sửa test đã duyệt |
+  | Q3 | Spec 6.4 | `locationOrLink` có bắt buộc? | Bắt buộc với cả `ONLINE` và `OFFLINE`: cắt khoảng trắng hai đầu, rỗng thì 400, tối đa 500 ký tự (cột DB) | Spec 6.4 xếp địa điểm/link vào "lịch đề xuất". Phiên chép nguyên từ yêu cầu và không có API sửa, nên trống lúc gửi là trống mãi |
+  | Q4 | TK 3.3 | Độ dài và tính bắt buộc của lời nhắn, ghi chú từ chối, lý do hủy phiên, lý do báo cáo (DB đều là `TEXT`)? | Cắt khoảng trắng hai đầu (D16), tối đa 1000 ký tự, dài hơn thì 400. Lời nhắn và ghi chú từ chối không bắt buộc (rỗng lưu `NULL`); hai lý do bắt buộc, rỗng thì 400 | 1000 bằng giới hạn của `bio` và lời nhận xét đánh giá (R45). Hai lý do bắt buộc theo spec 6.2 và FR-09 |
+  | Q5 | TK 4.6 | Có kiểm hình thức của yêu cầu với hình thức học của người nhận? | Không | TK 4.6 không có kiểm tra này. Người nhận thấy hình thức trước khi chấp nhận và từ chối được |
+  | Q6 | – | Có chặn một người có hai phiên hoặc yêu cầu chồng giờ nhau? | Không; ghi vào phần hạn chế | Spec và TK không có quy tắc; muốn kiểm phải định nghĩa "chồng giờ" theo thời lượng và theo những trạng thái nào |
+  | Q7 | TK 6.3 (S07) | Bấm một khung trùng gợi ý (ví dụ "Tối T3") thì điền giờ nào? | Ngày thứ Ba gần nhất mà giờ đó còn ở tương lai; giờ: Sáng 08:00, Chiều 14:00, Tối 19:00 (giờ máy người dùng); sửa được. Khung trùng tính ở giao diện từ `/api/me/availability` và lịch rảnh trong `/api/users/{id}`, không thêm API | Spec 4.6 không gán giờ cho buổi; wireframe S07 dùng 19:00 cho buổi tối |
+  | Q8 | TK 6.1, 6.3 | S07 nằm ở đâu, chọn sẵn gì? | Trang riêng `/users/:id/request`, mở từ nút "Gửi yêu cầu" ở S05 và S06. Loại mặc định `ONE_WAY`; mở từ tab "Trao đổi hai chiều" của S05 thì mặc định `TWO_WAY`. Ô "Bạn muốn học" lấy danh sách học của tôi, ô "Bạn sẽ dạy" lấy danh sách học của người nhận (R36); điều kiện Sim > 0 do backend kiểm | Form 8 ô không vừa hộp thoại ở 360 px; trang riêng có đường dẫn để quay lại. Giao diện không đọc được quan hệ kỹ năng (API của admin) nên không tự lọc Sim > 0 |
+  | Q9 | TK 6.3 (S05) | Menu có số yêu cầu đang chờ ("Yêu cầu (2)" trong wireframe)? | Không làm ở tuần 6 | Đây là thông báo (FR-13, Nên có). Muốn làm phải gọi thêm API mỗi lần chuyển trang, khác cách `Layout` đọc dữ liệu một lần (D76) |
+  | Q10 | TK 6.1 | Đường dẫn của S08, S09? | `/requests` cho S08, không có trang chi tiết yêu cầu riêng (thẻ đã đủ thông tin; yêu cầu `ACCEPTED` có nút "Xem phiên"). `/sessions` (danh sách) và `/sessions/:id` (chi tiết, wireframe S09). `GET /api/requests/{id}` vẫn làm và có test theo TK 4.6 | Một yêu cầu = một phiên (spec 6.4), nên phần chi tiết nằm ở phiên |
+  | Q11 | Rà soát §10 | R40, R41 (phần tài khoản), R44, R45, R52, R53, R54 thuộc đợt 4 nhưng chỉ dùng từ tuần 7: chốt luôn ở Bước 0 hay dời? | Dời sang "đợt 4b, trước tuần 7"; Bước 0 sửa dòng lịch của rà soát. Tuần 6, admin gọi `/api/sessions/**` nhận 403 như các API quyền *Active* (D44); admin xem phiên làm cùng A02 | Giữ Bước 0 gọn. R40 và R53 còn phương án "tùy chọn"/"hoặc", cần hỏi riêng |
+
+- **Chốt theo tiền lệ** (không hỏi lại; bạn phản đối mục nào thì nói):
+  - R33 phương án 1, R34 (cả bốn ý), R36 (bảng mã lỗi), R37 phương án 1, R38 (DTO): đã duyệt theo gợi ý ngày 2026-10-29, là phương án ít ảnh hưởng hơn và không đụng yêu cầu Bắt buộc nào. Theo R37: các thao tác trên phiên không xét trạng thái tài khoản bên kia, chỉ `accept` trả 409 khi bên kia không còn `ACTIVE`.
+  - Thứ tự kiểm: 401/403 (D44) → 400 → 404 → 409, như D74.
+  - Mọi mốc thời gian mới (`created_at`, `responded_at`, `started_at`, `completed_at`, `cancelled_at`, `created_at` của báo cáo) lấy từ `Clock`, mở rộng D18, để test giả được giờ cho luật 15 phút và luật "quá giờ đề xuất".
+  - `proposedStartAt` phải sau thời điểm hiện tại, không có giới hạn trên. `durationMinutes` 15–480 kiểm ở service (400) trước khi xuống DB.
+  - Kỹ năng đã ẩn nhưng còn trong danh sách học vẫn gửi yêu cầu được (như D75: ẩn chỉ ngừng cho chọn mới).
+  - Danh sách xếp `created_at` giảm dần rồi `id` giảm dần, chưa phân trang (R38).
+
+- **Commit:** `docs: add week-6 decisions (D86-)` (gồm phần sửa ngược); `docs: add week-6 test cases`.
+
+### Bước 1 – Nền giao diện (D78–D83, D85)
+
+- **Cài:** `tailwindcss`, `@tailwindcss/vite`, `@fontsource/be-vietnam-pro`, `@fontsource-variable/inter`; `npx shadcn@latest init` (Radix, `slate`, D83). Thêm component khi cần, bắt đầu với: `button`, `card`, `input`, `label`, `textarea`, `select`, `checkbox`, `tabs`, `badge`, `alert`, `skeleton`, `field`, `separator`, `sidebar`, `sheet`.
+- **Sửa:** `vite.config.ts` (plugin, alias `@/`), `tsconfig.app.json` và `tsconfig.json` (`paths`), `src/index.css` (Tailwind, biến màu D79, chế độ tối D82, font D80; phần CSS cũ giữ tới bước 3), `src/main.tsx` (import font), `src/components/Layout.tsx` (D81), `src/components/Field.tsx`, `src/components/Notice.tsx` (D85).
+- **Tạo:** `frontend/components.json`, `src/components/ui/*` (do CLI sinh), `src/lib/utils.ts` (CLI sinh).
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này:**
+  - Không sửa tay code trong `src/components/ui/`, trừ việc thêm kiểu `success` cho `Alert` (D85). Muốn đổi giao diện chung thì đổi biến màu.
+  - oxlint báo lỗi ở code CLI sinh ra thì tắt đúng luật đó cho riêng `src/components/ui/` trong `.oxlintrc.json`, không sửa code sinh ra.
+  - Đang tải: dùng `Skeleton` có hình giống nội dung, kèm `aria-busy`, thay chữ "Đang tải…". Lỗi tải: `Alert` lỗi và nút "Thử lại" như hiện nay.
+- **Tự kiểm:** tab Network không có yêu cầu tới `fonts.googleapis.com`; câu "Nguyễn Thị Hường – Kỹ năng" hiện đủ dấu ở cả hai font; DevTools giả chế độ tối thì cả trang đổi màu; menu chuyển thành `Sheet` dưới 768 px.
+- **Commit:** `feat(frontend): set up Tailwind CSS and shadcn/ui with app shell`
+
+### Bước 2 – Chuyển S01–S04 (D84)
+
+- **Sửa:** `LoginPage.tsx`, `VerifyEmailPage.tsx`, `ProfilePage.tsx`, `SkillsPage.tsx`.
+- **Tạo:** `src/components/AvailabilityGrid.tsx` (lưới D84, có chế độ chỉ đọc để S06 dùng ở bước 3).
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này** (bố cục đã duyệt ngày 2026-11-18):
+  - S01: thẻ giữa trang, tên ứng dụng phía trên, hai tab bằng `Tabs`.
+  - S02: thẻ có icon trạng thái (`Loader2` quay khi đang xác thực, `CircleCheck`, `CircleX`).
+  - S03: thẻ thông tin chia 2 cột từ 640 px; số điện thoại và liên hệ gom thành một nhóm có icon `Lock` và ghi chú "riêng tư"; lưới lịch rảnh D84.
+  - S04: hai thẻ Dạy và Muốn học cạnh nhau từ 1024 px. Ô thêm kỹ năng là combobox (`Popover` + `Command`) gõ để lọc, gom theo nhóm; kỹ năng không chọn được vẫn hiện mờ kèm lý do như hiện nay. Bộ đếm là `Badge` "n/10". Nút bỏ là icon `X` có `aria-label` "Bỏ <tên kỹ năng>".
+  - Không đổi lời gọi API, state và câu thông báo.
+- **Tự kiểm:** đi trọn S01 → S04 như TC31 tuần 3; lưới lịch ở 360 px không cuộn ngang và tick được bằng bàn phím (Tab, Space).
+- **Commit:** `feat(frontend): restyle auth, profile and skills pages`
+
+### Bước 3 – Chuyển S05, S06, S10, A01; bỏ CSS cũ
+
+- **Sửa:** `MatchesPage.tsx`, `MatchCard.tsx`, `UserProfilePage.tsx`, `SearchPage.tsx`, `AdminSkillsPage.tsx`, `src/index.css` (xóa mọi class cũ, chỉ còn Tailwind, biến màu và font).
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này:**
+  - S05: `Tabs` kèm số người. Thẻ ứng viên có avatar chữ cái đầu, % phù hợp cỡ chữ lớn và thanh tiến độ, các badge; mỗi lý do một dòng có icon; lịch trùng dạng chip. "Chi tiết điểm" mở bằng `Collapsible`: mỗi thành phần một dòng gồm nhãn, `Progress` thang 0–1 (spec 4.3: mọi thành phần trong [0, 1]) và số nguyên văn API (`tabular-nums`), cuối cùng là dòng D. Không làm tròn, không dùng biểu đồ tròn (NFR-09: cần so với bảng tính tay).
+  - S06: phần đầu có avatar, tên, hình thức học và chỗ cho nút "Gửi yêu cầu" (bước 9); hai thẻ Dạy, Muốn học; lịch rảnh là `AvailabilityGrid` chỉ đọc.
+  - S10: một hàng tìm kiếm (ô tên có icon `Search`, combobox kỹ năng, nút Tìm); kết quả là lưới thẻ, 2 cột từ 640 px; không có ai thì hiện lời gợi ý, không để trống.
+  - A01: mỗi nhóm một thẻ; ẩn/hiện kỹ năng bằng `Switch` có nhãn "Đang dùng"; xóa cặp liên quan vẫn không hỏi xác nhận (bước 10 tuần 5).
+- **Tự kiểm:** chạy hết các ca thủ công của D78–D85; so với ảnh chụp ở mục 1: không mất chữ, nút hay thông báo nào; `grep` không còn class cũ (`match-card`, `admin-row`, `skill-rows`...).
+- **Commit:** `feat(frontend): restyle matching, search and admin pages`. Sau đó gộp `feat/ui-tailwind` vào `main`.
+
+### Bước 4 – Entity và Repository cho yêu cầu, phiên, báo cáo
+
+- **Tạo** trong `exchange`: Entity `ExchangeRequest`, `ExchangeSession`, `IncidentReport`; enum `RequestType`, `RequestStatus`, `SessionStatus`, `MeetingMode` (`ONLINE`, `OFFLINE`), `ReportStatus`; ba Repository.
+- **Migration:** không có nếu Q2 theo gợi ý.
+- **Test:** `ExchangeMappingTest`: lưu và đọc lại mỗi Entity; vi phạm CHECK của DB (ví dụ `TWO_WAY` thiếu kỹ năng chiều ngược) ra lỗi, chứng tỏ Entity khớp bảng.
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này:**
+  - Kiểu theo D30: `duration_minutes` → `Short`, `TIMESTAMPTZ` → `Instant`, `version` → `Integer` + `@Version`, cột có `CHECK IN` → enum `@Enumerated(EnumType.STRING)`.
+  - Khóa ngoại ánh xạ như các Entity tuần 3 trong `user/`, `skill/`; danh sách đọc bằng truy vấn kéo sẵn tên người và tên kỹ năng, không để N+1 (skill `jpa-patterns`).
+  - Báo cáo sự cố phía người dùng nằm ở `exchange`, không ở `review` như tiêu đề TK 4.8: `complete` phải kiểm báo cáo mở trong cùng transaction (R33). Phần admin (A02) ở `admin`, tuần 7.
+- **Tự kiểm:** đổi `duration_minutes` sang `Integer` thì app không khởi động (`ddl-auto: validate`).
+- **Commit:** `feat(exchange): add request, session and report entities`
+
+### Bước 5 – Tạo yêu cầu: `POST /api/requests` (FR-05; R36; TK 4.6)
+
+- **Tạo:** `ExchangeRequestController`, `ExchangeRequestService`, DTO `CreateRequestRequest`, `RequestResponse` (theo bảng DTO của Bước 0).
+- **Sửa:** `common/SecurityConfig` (`/api/requests/**`, `/api/sessions/**` cần `ACTIVE_STUDENT`, D44).
+- **Ca:** (điền ở Bước 0).
+- **Phải phủ:** từng dòng của bảng R36; Q3, Q4; gửi cho admin hoặc người bị khóa thì 404; trùng `PENDING` cùng chiều thì 409, kể cả khi DB báo lỗi unique (D24); chiều ngược lại thì được.
+- **Chốt ở bước này:** Sim > 0 tính bằng `SkillSimilarity` của lõi matching (Java thuần, D34) dựng từ `skill_relations`; dùng lại hàm đọc quan hệ của `MatchingDataRepository`, không viết câu SQL thứ hai cho cùng bảng.
+- **Tự kiểm:** ghi lệnh thử vào `hoc_vibe_coding/http/tuan_6.http`; bỏ kiểm "kỹ năng thuộc danh sách học" thì ca R36 tương ứng phải đỏ.
+- **Commit:** `feat(exchange): add create request API`
+
+### Bước 6 – Hộp yêu cầu và phản hồi (TDD hai lượt; TK 4.6, 5.1; R34, R35, R37, R39)
+
+- **API:** `GET /api/requests?box=sent|received&status=`, `GET /api/requests/{id}`, `POST /api/requests/{id}/accept`, `/reject` (`note` tùy chọn), `/cancel`.
+- **Sửa:** `common/GlobalExceptionHandler` (lỗi khóa lạc quan `ObjectOptimisticLockingFailureException` → 409).
+- **Ca:** (điền ở Bước 0).
+- **Phải phủ:** bảng "Yêu cầu" của phụ lục rà soát, đủ mọi ô; `accept` tạo phiên `SCHEDULED` với giờ, thời lượng, hình thức, địa điểm chép từ yêu cầu, **trong cùng transaction**; `accept` sau `proposed_start_at` thì 409 (R34); `accept` khi người gửi không còn `ACTIVE` thì 409 (R37); `responded_at` được ghi (R39); địa điểm/link và liên hệ theo Q1.
+- **Tự kiểm:** bỏ `@Version` thì ca "hủy đúng lúc chấp nhận" phải đỏ; ném lỗi sau khi lưu phiên thì yêu cầu vẫn `PENDING` (transaction rollback).
+- **Commit:** `feat(exchange): add request inbox and responses`
+
+### Bước 7 – Vòng đời phiên (TDD hai lượt; TK 4.7, 5.2; R34, R35, R38)
+
+- **API:** `GET /api/sessions?status=`, `GET /api/sessions/{id}` (kèm `phone`, `contactInfo` của bên kia và địa điểm/link, NFR-02), `POST /api/sessions/{id}/start`, `/complete`, `/cancel` (`reason` bắt buộc).
+- **Ca:** (điền ở Bước 0).
+- **Phải phủ:** bảng "Phiên" của phụ lục rà soát, trừ cột đánh giá và cột admin; `start` từ đúng 15 phút trước `start_at` (giả giờ bằng `MutableClock`: 15 phút 0 giây được, sớm hơn 1 giây thì 409), không có cận trên (R34); `complete` lần 1 ghi `first_completed_by`, lần 2 phải là bên còn lại; hủy từ `IN_PROGRESS` giữ `started_at` (được tính vào CompletionRate); hủy `WAITING_CONFIRMATION` thì 409; người ngoài 403; mọi ca bị cấm không đổi dữ liệu (spec 7.1 nhóm 5).
+- **Tự kiểm:** đổi 15 phút thành 0 hoặc dùng `Instant.now()` thay `Clock` thì ca biên phải đỏ. Gọi `GET /api/matches` sau khi có phiên hoàn thành và phiên hủy: Reputation đổi khác 0.5 (D32 đọc dữ liệu thật).
+- **Commit:** `feat(exchange): add session lifecycle API`
+
+### Bước 8 – Gửi báo cáo sự cố (TDD hai lượt; FR-09 phần người dùng; R33)
+
+- **API:** `POST /api/sessions/{id}/reports` `{reason}`.
+- **Sửa:** `complete` trả 409 khi phiên có báo cáo `OPEN`; `GET /api/sessions/{id}` trả `openReport` (R38).
+- **Ca:** (điền ở Bước 0).
+- **Phải phủ:** chỉ nhận khi `WAITING_CONFIRMATION`, trạng thái khác thì 409; mỗi phiên một báo cáo mở, người gửi sau nhận 409 (kể cả lỗi unique từ DB); người ngoài 403; lý do rỗng 400 (Q4).
+- **Tự kiểm:** bỏ kiểm báo cáo mở trong `complete` thì ca tương ứng phải đỏ.
+- **Commit:** `feat(exchange): add incident report API`
+
+### Bước 9 – S07 Gửi yêu cầu (Q7, Q8; wireframe TK 6.3)
+
+- **Tạo:** trang S07 theo đường dẫn của Q8. **Sửa:** `MatchCard.tsx`, `UserProfilePage.tsx` (nút "Gửi yêu cầu"; ẩn khi `hasPendingRequest`, giữ badge "Đã gửi yêu cầu"), `App.tsx`, `api/types.ts`.
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này:** chọn loại bằng `RadioGroup`; ngày và giờ dùng ô `date`, `time` của trình duyệt (không thêm thư viện lịch); chip khung trùng theo Q7; hình thức chỉ `ONLINE`/`OFFLINE`; dưới ô địa điểm/link ghi ai được xem theo Q1. Gửi xong chuyển sang S08, tab "Đã gửi". Lỗi theo ô hiện dưới ô (D24).
+- **Tự kiểm:** gửi yêu cầu hai chiều từ S05 ở 360 px; gửi trùng nhận thông báo 409.
+- **Commit:** `feat(frontend): add send request page`
+
+### Bước 10 – S08 Hộp yêu cầu (Q10)
+
+- **Tạo:** trang `/requests`. **Sửa:** `Layout.tsx` (mục "Yêu cầu", D81), `App.tsx`, `api/types.ts`.
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này:** hai tab "Đã nhận", "Đã gửi"; ô lọc trạng thái mặc định "Tất cả". Mỗi thẻ: người kia (link hồ sơ), loại, kỹ năng hai chiều, giờ, thời lượng, hình thức, địa điểm/link theo Q1, lời nhắn, ghi chú từ chối, `Badge` trạng thái (`PENDING` màu `warning`, `ACCEPTED` `success`, `REJECTED` `destructive`, `CANCELLED` màu xám). Nút theo trạng thái và vai trò: Chấp nhận, Từ chối (hộp thoại nhập ghi chú tùy chọn), Hủy; yêu cầu `ACCEPTED` có "Xem phiên". Gặp 409 thì hiện `detail` và tải lại danh sách.
+- **Tự kiểm:** hai trình duyệt, hai tài khoản: một bên hủy, bên kia bấm chấp nhận thì nhận 409 và thấy trạng thái mới.
+- **Commit:** `feat(frontend): add request inbox page`
+
+### Bước 11 – S09 Phiên của tôi và chi tiết phiên (Q10; wireframe TK 6.3)
+
+- **Tạo:** trang `/sessions`, `/sessions/:id`. **Sửa:** `Layout.tsx` (mục "Phiên"), `App.tsx`, `api/types.ts`.
+- **Ca:** (điền ở Bước 0).
+- **Chốt ở bước này:** chi tiết có thanh tiến trình trạng thái (Đã lên lịch → Đang diễn ra → Chờ xác nhận → Hoàn thành; Đã hủy hiện riêng kèm lý do), giờ, hình thức, địa điểm/link, liên hệ bên kia. Nút theo trạng thái và vai trò, đúng bảng của Bước 0: Bắt đầu (trước mốc 15 phút thì khóa, kèm chữ "Mở lúc HH:mm"), Hoàn thành, Xác nhận hoàn thành, Hủy (hộp thoại nhập lý do), Báo cáo sự cố (hộp thoại nhập lý do; chỉ khi `WAITING_CONFIRMATION` và chưa có báo cáo mở). Nút chỉ ẩn để dễ dùng, quyền do backend kiểm (spec 6.3). Gặp 409 thì hiện `detail` và tải lại phiên. Chưa có nút đánh giá (tuần 7).
+- **Tự kiểm:** đi trọn luồng hai tài khoản: gửi → chấp nhận → cả hai thấy liên hệ → bắt đầu → một bên hoàn thành → bên kia báo cáo, rồi thử bấm xác nhận thì nhận 409.
+- **Commit:** `feat(frontend): add sessions pages`
+
+## 3. Đối chiếu ca kiểm thử
+
+Điền ở Bước 0, sau khi viết ca: mỗi ca thuộc đúng một bước.
+
+| Bước | Ca |
+| --- | --- |
+| 1–3 | (điền ở Bước 0) |
+| 4–8 | (điền ở Bước 0) |
+| 9–11 | (điền ở Bước 0) |
+
+## 4. Sau bước 11 – Kiểm tra cả tuần
+
+- `.\mvnw.cmd test` xanh toàn bộ; `npm run build`, `npm run lint` không lỗi.
+- Lõi `matching/` không đổi so với cuối tuần 5.
+- Truy vết ca → test; làm hỏng code để chắc test đỏ (các mục "Tự kiểm").
+- Đối chiếu code với D78 trở đi; viết `docs/tuan_6/kiem_thu/README.md`.
+- Nội dung báo cáo tuần 6 có mục "Điều chỉnh so với báo cáo trước": giao diện mới (D78–D85) và các quy tắc đợt 4 làm đổi spec (R33, R34, Q1).

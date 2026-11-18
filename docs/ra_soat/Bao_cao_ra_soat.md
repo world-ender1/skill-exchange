@@ -603,7 +603,7 @@ Các mục còn lại (cột "Chốt: Duyệt") sẽ làm theo đề xuất nế
 1. **Đợt 1, ngay (chặn tuần 3):** R01–R17, R56. Sửa QĐ tuần 3 (thêm D25 trở đi), TK §4.2–4.3, §6.1, TC3, CLAUDE.md.
 2. **Đợt 2, trước tuần 4:** R18–R23, R46, R51, R55.
 3. **Đợt 3, trước tuần 5:** R24–R32. Đóng toàn bộ Spec §5.5.
-4. **Đợt 4, trước tuần 6:** R33–R45, R52–R54. Có thể gom vào "Quyết định tuần 6". Phần danh mục kỹ năng của R41, R42 đã làm ở đợt 3 vì A01 dời lên tuần 5 (R46).
+4. **Đợt 4, trước tuần 6:** R33–R45, R52–R54. Có thể gom vào "Quyết định tuần 6". Phần danh mục kỹ năng của R41, R42 đã làm ở đợt 3 vì A01 dời lên tuần 5 (R46). *Chia lại 2026-11-18 (quyết định tuần 6, D86):* **đợt 4a, trước tuần 6:** R33–R39; **đợt 4b, trước tuần 7:** R40, R41 (phần tài khoản), R44, R45, R52–R54, vì các mục này chỉ dùng từ tuần 7. R42, R43 đã làm ở đợt 3, đợt 2.
 5. **Đợt 5, trước tuần 8:** R47–R50.
 
 Mỗi mục được chốt: sửa tài liệu mới nhất, grep và sửa ngược mọi tài liệu cũ nhắc tới nó trong cùng commit.
@@ -615,7 +615,9 @@ Mỗi mục được chốt: sửa tài liệu mới nhất, grep và sửa ngư
 | 1 | Đã sửa 2026-10-29 | Quyết định tuần 3 (sửa D3, D4, D5, D7–D10, D13, D15, D16, D18, D19, D21, D24; thêm D25–D30), TK §4.1–4.4, §6.1 (S01, S02), §8 (G8, G9), ca kiểm thử tuần 3 (90 ca), CLAUDE.md, `.env.example`. **Còn mở:** ~~danh sách seed kỹ năng của D3 chưa duyệt~~ (đã duyệt ở `docs/tuan_3/ke_hoach_tuan_3.md`, nạp bằng `V2__seed_skills.sql`); thêm Mailpit vào `docker-compose.yml` làm khi code (R15). Phần R13 về tên kỹ năng trùng hoa thường dời sang tuần 7 (admin), sau đó lên tuần 5 cùng A01 (quyết định tuần 5, D74). Bổ sung sau: D18 thêm ngoại lệ `Clock` cho mốc thời gian của token (D7 cần đồng hồ giả lập khi test); 2026-10-31 thêm D39–D42 (DB test riêng, dạng và thứ tự danh sách trả về, `resend-verification` với email sai định dạng) và TC91–TC93 |
 | 2 | Đã sửa 2026-10-29 | R18–R23, R46, R51, R55, cộng thêm R32 và R43 (unit test tuần 4 cần). Spec 4.1–4.4, 6.3, 7.1, 9 và phụ lục A.1; TK §2, 3.3, 3.5, 4.1, 4.3, 4.5, 4.6, 5.2, 6.1, 7, 8; tạo `docs/tuan_4/Quyet_dinh_tuan_4.md` (D31–D38); TC2 truy vấn C05/C06 (chạy lại 2026-10-29: 73/73 PASS); CLAUDE.md. **Không sửa** Proposal §7: đây là tài liệu đã nộp, phần điều chỉnh kế hoạch được ghi ở spec mục 9 |
 | 3 | Đã sửa 2026-11-11 | R24–R32 và các điểm mở ở Spec 5.5 (N6, C4, T3, T5, T6): tạo `docs/tuan_5/Quyet_dinh_tuan_5.md` (D52–D77); Spec 5.1–5.5, A.2, A.3, 7.1, 9; TK 3.5, 7; TCKQ §3.2; CLAUDE.md. Gợi ý ở §9 được viết từ 2026-10-29, trước quyết định C5 (2026-11-01); khi chốt, người dùng giao tiêu chí "ít ảnh hưởng nhất tới việc đã làm" (`docs/tuan_5/Can_chot_truoc_tuan_5.md`), nên vài mục khác bảng §9: **R24, R26** báo cáo hai bản (cách tính của spec giữ nguyên, thêm bản theo gợi ý; D58, D59); **R28** giữ cấu hình "Ưu tiên uy tín" và ghi rõ nó đo gì (nhánh thứ hai của gợi ý chi tiết; D67); **R31** chọn bootstrap + Wilcoxon + trung bình ± độ lệch chuẩn, giữ nguyên TCKQ:29 (D62); **R27** không sửa Prop:49, vì proposal là tài liệu đã nộp (D77). R25 giữ như gợi ý (D54). R13 (phần trùng tên kỹ năng), R41 (phần API danh mục kỹ năng) và R42 làm ở tuần 5 cùng A01 (D73–D75; TK 4.9, 6.2) |
-| 4–5 | Chưa sửa | R47 (deploy cloud) chưa có gợi ý, cần người dùng chọn. Phần kỹ năng của R13, R41, R42 đã làm ở đợt 3 |
+| 4a | Đã sửa 2026-11-18 | R33–R39: tạo D86–D96 trong `docs/tuan_6/Quyet_dinh_tuan_6.md` (kèm bảng câu báo lỗi, dạng response, bảng trạng thái × hành động); Spec 6.1–6.4, NFR-02, 7.1; TK 3.3, 3.6, 4.6–4.8, 4.10, 5.1, 5.2, 8 (G2); TC2 A19–A23 (chạy lại: 73/73); CLAUDE.md. Gợi ý ở §9 giữ nguyên, trừ **R35**: không cho người nhận thấy địa điểm/link khi yêu cầu còn `PENDING` (phương án 2 nới NFR-02, thuộc diện ngoại lệ thứ bậc nên hỏi lại; người dùng chọn giữ NFR-02, người gửi xem lại được nội dung mình nhập, D91). **R39:** không thêm CHECK `responded_at` vào DB, vì test tuần 4 `MatchesApiTest` chèn yêu cầu `ACCEPTED` không có cột này (D90) |
+| 4b | Chưa sửa | R40, R41 (phần tài khoản), R44, R45, R52–R54: chốt trước tuần 7 (D86). R40 và R53 còn phương án "tùy chọn"/"hoặc", cần hỏi riêng |
+| 5 | Chưa sửa | R47 (deploy cloud) chưa có gợi ý, cần người dùng chọn. Phần kỹ năng của R13, R41, R42 đã làm ở đợt 3 |
 
 ---
 
@@ -625,23 +627,24 @@ Mỗi mục được chốt: sửa tài liệu mới nhất, grep và sửa ngư
 - **P** = người tham gia; **3rd** = người dùng khác; **Adm** = admin.
 - Tài khoản `LOCKED` hoặc `PENDING_VERIFICATION` nhận 403 với mọi API trong bảng.
 - **[Rxx]** = ô chưa xác định, chờ chốt mục tương ứng.
+- *Cập nhật 2026-11-18:* các ô của R33–R37 đã điền theo quyết định tuần 6; bảng đầy đủ, có cả 403 do sai vai trò, ở `docs/tuan_6/Quyet_dinh_tuan_6.md` mục 2.3 và là bảng dùng để viết test.
 
 ### Yêu cầu
 
 | Trạng thái | accept | reject | cancel | GET /requests/{id} |
 | --- | --- | --- | --- | --- |
-| PENDING | Người nhận → ACCEPTED + phiên SCHEDULED trong cùng transaction. Người khác: 403. Quá giờ đề xuất [R34]. Bên kia bị khóa [R37] | Người nhận → REJECTED. Người khác: 403 | Người gửi → CANCELLED. Người khác: 403 | P: 200, địa điểm/link [R35]. 3rd/Adm: 403 |
-| ACCEPTED / REJECTED / CANCELLED | 409 | 409 | 409 | P: 200 |
+| PENDING | Người nhận → ACCEPTED + phiên SCHEDULED trong cùng transaction. Người khác: 403. Đã tới giờ đề xuất: 409 (R34, D90). Người gửi không còn `ACTIVE`: 409 (R37, D90) | Người nhận → REJECTED. Người khác: 403 | Người gửi → CANCELLED. Người khác: 403 | Người gửi: 200, có địa điểm/link. Người nhận: 200, địa điểm/link `null` (R35, D91). 3rd/Adm: 403 |
+| ACCEPTED / REJECTED / CANCELLED | Đúng vai trò: 409; sai vai trò: 403 (D87) | Như cột trước | Như cột trước | P: 200; người nhận thấy địa điểm/link chỉ khi ACCEPTED |
 
-Tạo yêu cầu: chỉ `STUDENT` + `ACTIVE` [R18]. Mã lỗi theo [R36]. Trùng `PENDING` cùng chiều: 409. Chiều ngược lại: được phép.
+Tạo yêu cầu: chỉ `STUDENT` + `ACTIVE` (D44). Mã lỗi theo R36 (D89). Trùng `PENDING` cùng chiều: 409. Chiều ngược lại: được phép.
 
 ### Phiên
 
 | Trạng thái | start | complete | cancel (P, kèm lý do) | report (P) | review (P) | admin resolve |
 | --- | --- | --- | --- | --- | --- | --- |
-| SCHEDULED | P, từ 15 phút trước giờ hẹn → IN_PROGRESS; sớm hơn: 409 | 409 | → CANCELLED, không tính CR [R34] | [R33] | 409 | [R33] |
-| IN_PROGRESS | 409 | P → WAITING_CONFIRMATION | → CANCELLED, tính CR của cả hai bên | [R33] | 409 | 409 theo TK [R33] |
-| WAITING_CONFIRMATION | 409 | Bên còn lại → COMPLETED; người đã bấm: 409; khi có báo cáo mở [R33] | 409 | P → báo cáo OPEN; đã có báo cáo mở: 409 | 409 | Adm + báo cáo OPEN → COMPLETED/CANCELLED [R40] |
+| SCHEDULED | P, từ 15 phút trước giờ hẹn → IN_PROGRESS, không cận trên (R34); sớm hơn: 409 | 409 | → CANCELLED ở mọi thời điểm, không tính CR (R34) | 409 (R33) | 409 | 409 (R33) |
+| IN_PROGRESS | 409 | P → WAITING_CONFIRMATION | → CANCELLED, tính CR của cả hai bên | 409 (R33) | 409 | 409 (R33) |
+| WAITING_CONFIRMATION | 409 | Bên còn lại → COMPLETED; người đã bấm: 409; có báo cáo OPEN: 409 (R33, D93) | 409 | P → báo cáo OPEN; đã có báo cáo mở: 409 | 409 | Adm + báo cáo OPEN → COMPLETED/CANCELLED [R40] |
 | COMPLETED | 409 | 409 | 409 | 409 | P → 201, mỗi người 1 lần; lần 2: 409 | – |
 | CANCELLED | 409 | 409 | 409 | 409 | 409 | – |
 
