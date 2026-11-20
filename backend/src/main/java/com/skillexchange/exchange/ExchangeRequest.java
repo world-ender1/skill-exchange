@@ -113,6 +113,32 @@ public class ExchangeRequest {
         return request;
     }
 
+    // ---------- Phản hồi (D90) ----------
+    // Package-private: chỉ ExchangeRequestService (cùng package) đổi trạng thái, sau khi đã kiểm quyền, trạng thái
+    // PENDING và thời điểm. Hibernate thấy field đổi nên tự sinh câu UPDATE ... WHERE id = ? AND version = ?.
+
+    /** Người nhận chấp nhận. Phiên SCHEDULED do service tạo trong cùng transaction. */
+    void accept(Instant now) {
+        respond(RequestStatus.ACCEPTED, now);
+    }
+
+    /** Người nhận từ chối; note đã cắt khoảng trắng, có thể null. */
+    void reject(String note, Instant now) {
+        this.responseNote = note;
+        respond(RequestStatus.REJECTED, now);
+    }
+
+    /** Người gửi hủy. Được cả khi đã quá giờ đề xuất: yêu cầu không tự hết hạn (R34). */
+    void cancel(Instant now) {
+        respond(RequestStatus.CANCELLED, now);
+    }
+
+    /** Mọi trạng thái khác PENDING đều có responded_at (R39): ghi ở một chỗ để không quên. */
+    private void respond(RequestStatus newStatus, Instant now) {
+        this.status = newStatus;
+        this.respondedAt = now;
+    }
+
     public Long getId() {
         return id;
     }

@@ -169,7 +169,7 @@ Theo V2: Java–Kotlin liên quan ($Sim$ = 0.5); Python, Figma, Guitar không li
 
 | # | Chỗ chưa rõ | Ca liên quan | Cách xử lý trong bộ ca |
 | --- | --- | --- | --- |
-| ⚠1 | Hai ca song song (TC334, TC349) không ép được lần nào cũng xảy ra tranh chấp thật: có lần hai lệnh chạy nối tiếp | TC334, TC349 | Điều kiện mong đợi đúng cho mọi thứ tự chạy, nên ca không chập chờn. Lặp 20 lần để tăng khả năng gặp tranh chấp; nếu muốn chắc chắn có tranh chấp thì thêm test đơn vị cho phần bắt lỗi khóa lạc quan ở bước 6 |
+| ⚠1 | Hai ca song song (TC334, TC349) không ép được lần nào cũng xảy ra tranh chấp thật: có lần hai lệnh chạy nối tiếp | TC334, TC349 | Điều kiện mong đợi đúng cho mọi thứ tự chạy, nên ca không chập chờn. Lặp 20 lần để tăng khả năng gặp tranh chấp. Phần của TC334: bước 6 thêm test tích hợp `D90` (`d90_staleAcceptIsRejectedByVersion`) tạo tranh chấp chắc chắn: một kết nối JDBC riêng giữ khóa dòng chưa commit, đợi `accept` đứng chờ khóa trong `pg_stat_activity` rồi mới commit (kế hoạch bước 6, "Chốt ở bước này"). Phần của TC349 chốt ở bước 7 |
 | ⚠2 | Gửi `cancel`, `reports` không có body: D88 chỉ nói `reason` bắt buộc | TC346 | Không body là JSON không đọc được (400 `detail`, không có `errors`), theo cách xử lý hiện có; `{}` mới ra 400 `errors` `reason`. Ca chỉ so mã 400 cho trường hợp không body |
 | ⚠3 | TC327 cần một cách làm lệnh tạo phiên thất bại mà không sửa code | TC327 | Chèn trước một phiên trùng `request_id` bằng SQL: dữ liệu này không thể có qua API, chỉ dùng để chứng minh hai việc nằm trong một transaction |
 | ⚠4 | Màu badge trạng thái yêu cầu không nằm trong D79, D95 | TC359 | Theo "Chốt ở bước này" của kế hoạch bước 10 |

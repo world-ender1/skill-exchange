@@ -174,7 +174,20 @@ Quy ước chung:
 - **Sửa:** `common/GlobalExceptionHandler` (lỗi khóa lạc quan `ObjectOptimisticLockingFailureException` → 409).
 - **Ca:** TC326–TC337.
 - **Phải phủ:** bảng "Yêu cầu" của phụ lục rà soát, đủ mọi ô; `accept` tạo phiên `SCHEDULED` với giờ, thời lượng, hình thức, địa điểm chép từ yêu cầu, **trong cùng transaction**; `accept` sau `proposed_start_at` thì 409 (R34); `accept` khi người gửi không còn `ACTIVE` thì 409 (R37); `responded_at` được ghi (R39); địa điểm/link và liên hệ theo Q1.
-- **Tự kiểm:** bỏ `@Version` thì ca "hủy đúng lúc chấp nhận" phải đỏ; ném lỗi sau khi lưu phiên thì yêu cầu vẫn `PENDING` (transaction rollback).
+- **Chốt ở bước này:**
+  - `box` chỉ nhận đúng chữ thường `sent`, `received` như TK 4.6; giá trị khác trả 400 "Tham số box có giá trị không hợp lệ: <giá trị>", cùng câu với D38. `status` là enum `RequestStatus` nên giá trị lạ đi qua cách xử lý D38 sẵn có.
+  - `reject` nhận cả ba dạng: không có body, `{}`, `{"note": ...}`. `note` toàn khoảng trắng lưu `NULL`, dài đúng 1000 ký tự thì được (D88). Thêm test `D88` cho hai biên này, TC332 chỉ có 1001 ký tự.
+  - Thứ tự kiểm của các API theo `{id}`: 400 (`{id}` không phải số, body) → 404 → 403 không tham gia → 403 sai vai trò → 409 (D87). Trong `accept`, ba lỗi 409 xét theo thứ tự `PENDING` → thời điểm → người gửi `ACTIVE` (D90); thêm test `D90` ghim thứ tự này (yêu cầu đã hủy và đã quá giờ ra câu "không còn ở trạng thái chờ"; người gửi bị khóa và đã quá giờ ra câu "đã tới thời điểm").
+  - TC332 "ba yêu cầu `PENDING` tới Bình": tạo nối tiếp (An gửi R0, Bình từ chối, An gửi lại...), vì mỗi chiều chỉ có một `PENDING` (D89 bước 8); lúc Bình từ chối, yêu cầu đang `PENDING` đúng như ca.
+  - **Khóa lạc quan có test chắc chắn xảy ra tranh chấp** (⚠1 của ca kiểm thử): TC334 có thể không lần nào gặp tranh chấp thật. Thêm test `D90`: một kết nối JDBC riêng hủy yêu cầu bằng SQL (tăng `version`) nhưng **chưa commit**, nên dòng bị khóa; gọi `accept` ở luồng khác; đợi tới khi `pg_stat_activity` cho thấy lệnh `accept` đang chờ khóa (nghĩa là nó đã đọc bản `PENDING` cũ và đang ghi); commit. `accept` phải nhận 409 "Dữ liệu vừa được thay đổi, hãy tải lại", không có phiên. Bỏ `@Version` thì `accept` ghi đè và nhận 200, nên test này là phần "Tự kiểm" chạy chắc chắn.
+  - TC327 so `detail` với câu chung của lưới D24 "Dữ liệu xung đột với dữ liệu đã có".
+  - `accept` trả record `{requestId, sessionId}` (bảng 2.2), không phải `RequestItem`.
+  - Dữ liệu mẫu và lời gọi API dùng chung cho test bước 6–8 đặt ở `ExchangeTestData` (thư mục test, như `TestAccounts`). `CreateRequestApiTest` giữ bản riêng vì là test đã duyệt, không sửa.
+- **Tự kiểm:** bỏ `@Version` thì ca "hủy đúng lúc chấp nhận" phải đỏ; ném lỗi sau khi lưu phiên thì yêu cầu vẫn `PENDING` (transaction rollback). Khi làm (`RequestInboxApiTest`, 16 test: TC326–TC337, D87, D88, hai test D90; làm hỏng rồi trả lại):
+  - bỏ khóa lạc quan (thay `@Version` bằng `@Column(insertable = false, updatable = false)`, vì cột `version` NOT NULL nên không xóa trơn được) → test D90 khóa đỏ (200 thay vì 409), TC334 đỏ ngay lần 1 (`[200, 200]`: một thao tác bị ghi đè mất);
+  - ném lỗi ngay sau khi lưu phiên → TC326 đỏ (500); trong DB yêu cầu vẫn `PENDING`, `version` 0, không có phiên, dù câu UPDATE yêu cầu đã flush trước khi tạo phiên;
+  - nhận `accept` đúng lúc `proposed_start_at` (`isAfter` thay `!isBefore`) → TC330 đỏ (200 thay vì 409), test D90 thứ tự đỏ (ra câu "Người gửi không còn hoạt động");
+  - kiểm `PENDING` trước vai trò trong `accept` → TC329 đỏ (409 thay vì 403).
 - **Commit:** `feat(exchange): add request inbox and responses`
 
 ### Bước 7 – Vòng đời phiên (TDD hai lượt; TK 4.7, 5.2; R34, R35, R38)

@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -185,6 +186,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     ResponseEntity<ProblemDetail> handleConflict(ConflictException ex) {
         return problem(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    /**
+     * Khóa lạc quan (@Version, TK 5.1, D90): hai người cùng đổi một dòng, người ghi sau thấy version đã khác nên
+     * câu UPDATE ... WHERE version = ? không khớp dòng nào. Lỗi nổ ra lúc Hibernate ghi xuống DB (flush hoặc
+     * commit), không phải ở dòng code đổi trạng thái, nên service không tự bắt mà để tới đây.
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ProblemDetail> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return problem(HttpStatus.CONFLICT, "Dữ liệu vừa được thay đổi, hãy tải lại");
     }
 
     // Lưới an toàn cho ràng buộc DB:
