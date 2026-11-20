@@ -6,11 +6,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.hamcrest.Matchers.hasSize;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
@@ -45,6 +49,7 @@ class ExchangeTestData {
     static final String CHI = "chi@student.example.edu.vn";
     static final String GIANG = "giang@student.example.edu.vn";
     static final String DUNG = "dung@student.example.edu.vn";
+    static final String EM = "em@student.example.edu.vn";
     static final String ADMIN = "qtv@student.example.edu.vn";
 
     static final String INVALID = "Dữ liệu không hợp lệ";
@@ -112,6 +117,20 @@ class ExchangeTestData {
     String adminToken() throws Exception {
         accounts.create(ADMIN, "Quản trị viên", UserStatus.ACTIVE, Role.ADMIN);
         return accounts.login(ADMIN);
+    }
+
+    /** Chỉ tạo tài khoản admin, trả id (ví dụ làm người chốt báo cáo bằng SQL). Không gọi cùng adminToken(). */
+    long adminId() {
+        return accounts.create(ADMIN, "Quản trị viên", UserStatus.ACTIVE, Role.ADMIN);
+    }
+
+    /** Em: dạy Java (2). Vé cấp lúc Em còn ACTIVE, rồi Em bị khóa bằng SQL: vé đúng chữ ký nhưng filter chặn (D13). */
+    String emTokenThenLocked() throws Exception {
+        long id = accounts.activeStudent(EM, "Em");
+        String token = accounts.login(EM);
+        accounts.putTeachSkills(token, accounts.teach("Java", 2));
+        jdbcTemplate.update("UPDATE users SET status = 'LOCKED' WHERE id = ?", id);
+        return token;
     }
 
     /**
@@ -205,6 +224,57 @@ class ExchangeTestData {
         return mockMvc.perform(post(path).header(HttpHeaders.AUTHORIZATION, "Bearer " + token));
     }
 
+    /** Lệnh POST với body JSON viết sẵn, ví dụ "{}". */
+    ResultActions postJson(String token, String path, String json) throws Exception {
+        return mockMvc.perform(post(path)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json));
+    }
+
+    // ---------- Gọi API phiên (bước 7) ----------
+
+    /** Người nhận chấp nhận yêu cầu, phải ra 200; trả id phiên vừa sinh ra. */
+    long acceptToSession(Student receiver, long requestId) throws Exception {
+        String response = accept(receiver.token(), requestId)
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return ((Number) JsonPath.read(response, "$.sessionId")).longValue();
+    }
+
+    /**
+     * Một phiên SCHEDULED mới (start_at = S): sender gửi R0 cho receiver ở đồng hồ hiện tại, receiver chấp nhận ngay.
+     * Đồng hồ phải còn trước S. Gọi nhiều lần được: R0 trước đã ACCEPTED nên không còn PENDING chặn (D89 bước 8).
+     */
+    long session(Student sender, Student receiver) throws Exception {
+        return acceptToSession(receiver, create(sender, r0(receiver.id())));
+    }
+
+    /** GET /api/sessions + query, ví dụ "?status=SCHEDULED" hoặc "". */
+    ResultActions listSessions(String token, String query) throws Exception {
+        return mockMvc.perform(get("/api/sessions" + query)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token));
+    }
+
+    /** GET /api/sessions/{id}. id kiểu Object để test truyền được cả "abc". */
+    ResultActions getSession(String token, Object id) throws Exception {
+        return mockMvc.perform(get("/api/sessions/" + id)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token));
+    }
+
+    ResultActions start(String token, Object id) throws Exception {
+        return postWithoutBody(token, "/api/sessions/" + id + "/start");
+    }
+
+    ResultActions complete(String token, Object id) throws Exception {
+        return postWithoutBody(token, "/api/sessions/" + id + "/complete");
+    }
+
+    /** Hủy phiên với body {"reason": ...}. */
+    ResultActions cancelSession(String token, Object id, String reason) throws Exception {
+        return postJson(token, "/api/sessions/" + id + "/cancel", "{\"reason\": " + quote(reason) + "}");
+    }
+
     // ---------- Đọc DB ----------
 
     /**
@@ -232,6 +302,52 @@ class ExchangeTestData {
     int sessionCount(long requestId) {
         return jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM exchange_sessions WHERE request_id = ?", Integer.class, requestId);
+    }
+
+    /**
+     * "Dữ liệu không đổi" của một phiên: mọi cột (trạng thái, các mốc thời gian, người bấm, lý do, version) và số
+     * báo cáo sự cố của phiên. So trước và sau một lệnh bị từ chối (spec 7.1 nhóm 5).
+     */
+    Map<String, Object> sessionSnapshot(long sessionId) {
+        return jdbcTemplate.queryForMap("""
+                SELECT s.*, (SELECT count(*) FROM incident_reports r WHERE r.session_id = s.id) AS reports
+                FROM exchange_sessions s WHERE s.id = ?
+                """, sessionId);
+    }
+
+    String sessionStatus(long sessionId) {
+        return jdbcTemplate.queryForObject("SELECT status FROM exchange_sessions WHERE id = ?", String.class, sessionId);
+    }
+
+    /**
+     * Đợi tới khi có một kết nối của DB test đang chờ khóa dòng (lệnh đang chạy đã đọc xong và đang ghi), hoặc lệnh
+     * đã kết thúc mà không phải chờ (code sai: để phần kiểm kết quả báo đỏ). Tối đa 10 giây.
+     * Bản dùng chung của hàm cùng tên trong RequestInboxApiTest (test đã duyệt nên giữ bản riêng).
+     */
+    void waitUntilSomeoneWaitsForRowLock(Future<?> running) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (System.nanoTime() < deadline && !running.isDone()) {
+            Integer waiting = jdbcTemplate.queryForObject("""
+                    SELECT count(*) FROM pg_stat_activity
+                    WHERE datname = current_database() AND wait_event_type = 'Lock'
+                    """, Integer.class);
+            if (waiting > 0) {
+                return;
+            }
+            Thread.sleep(20);
+        }
+    }
+
+    // ---------- Đọc response ----------
+
+    static String body(ResultActions result) throws Exception {
+        return result.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /** Các id của một mảng JSON, theo thứ tự. */
+    static List<Long> ids(String jsonArray) {
+        List<Number> raw = JsonPath.read(jsonArray, "$[*].id");
+        return raw.stream().map(Number::longValue).toList();
     }
 
     // ---------- Kiểm response ----------

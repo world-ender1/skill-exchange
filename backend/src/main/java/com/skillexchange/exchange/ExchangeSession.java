@@ -16,7 +16,7 @@ import jakarta.persistence.Version;
  * Phiên trao đổi – bảng exchange_sessions (TK 3.3, FR-06). Một yêu cầu được chấp nhận sinh đúng một phiên
  * (request_id UNIQUE trong DB). Hai người tham gia là người gửi và người nhận của yêu cầu gốc.
  *
- * Khóa ngoại giữ dạng Long như ExchangeRequest. Chuyển trạng thái (bắt đầu, hoàn thành, hủy) thêm ở bước 7;
+ * Khóa ngoại giữ dạng Long như ExchangeRequest. Chuyển trạng thái (bắt đầu, hoàn thành, hủy) ở bước 7;
  * CHECK của DB bảo đảm mỗi trạng thái có đủ cột (ví dụ CANCELLED phải có cancel_reason, cancelled_at).
  */
 @Entity
@@ -93,6 +93,39 @@ public class ExchangeSession {
         session.locationOrLink = request.getLocationOrLink();
         session.createdAt = createdAt;
         return session;
+    }
+
+    // ---------- Chuyển trạng thái (D93) ----------
+    // Như ExchangeRequest: service đã kiểm người gọi, trạng thái và thời điểm (409 theo bảng 2.3) trước khi gọi;
+    // ở đây chỉ gán. Hibernate thấy field đổi nên tự sinh câu UPDATE ... WHERE id = ? AND version = ?.
+
+    /** SCHEDULED → IN_PROGRESS. Từ đây phiên được tính vào mẫu số CompletionRate, kể cả khi bị hủy sau đó. */
+    void start(Instant now) {
+        this.status = SessionStatus.IN_PROGRESS;
+        this.startedAt = now;
+    }
+
+    /** IN_PROGRESS → WAITING_CONFIRMATION: người bấm "Hoàn thành" trước, chờ bên kia xác nhận. */
+    void markCompletedBy(long userId) {
+        this.status = SessionStatus.WAITING_CONFIRMATION;
+        this.firstCompletedBy = userId;
+    }
+
+    /** WAITING_CONFIRMATION → COMPLETED: bên còn lại xác nhận. first_completed_by giữ nguyên. */
+    void confirmCompleted(Instant now) {
+        this.status = SessionStatus.COMPLETED;
+        this.completedAt = now;
+    }
+
+    /**
+     * SCHEDULED hoặc IN_PROGRESS → CANCELLED. Cố ý KHÔNG xóa started_at: phiên hủy sau khi đã bắt đầu vẫn tính
+     * vào mẫu số CompletionRate của cả hai bên (TK 3.3, D93). reason đã được cắt khoảng trắng (D88).
+     */
+    void cancel(long userId, String reason, Instant now) {
+        this.status = SessionStatus.CANCELLED;
+        this.cancelledBy = userId;
+        this.cancelReason = reason;
+        this.cancelledAt = now;
     }
 
     public Long getId() {

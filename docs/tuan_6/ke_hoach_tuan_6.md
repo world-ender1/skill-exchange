@@ -193,17 +193,35 @@ Quy ước chung:
 ### Bước 7 – Vòng đời phiên (TDD hai lượt; TK 4.7, 5.2; R34, R35, R38)
 
 - **API:** `GET /api/sessions?status=`, `GET /api/sessions/{id}` (kèm `phone`, `contactInfo` của bên kia và địa điểm/link, NFR-02), `POST /api/sessions/{id}/start`, `/complete`, `/cancel` (`reason` bắt buộc).
-- **Ca:** TC338–TC350, TC355.
-- **Chốt ở bước này:** `SessionDetail` đọc đủ `myReviewed`, `openReport`, `resolution` từ DB ngay ở bước này (D92), không để giá trị cứng chờ bước 8: TC355 dựng đánh giá, báo cáo bằng SQL nên không cần API báo cáo.
+- **Ca:** TC338–TC350 (TC348 trừ phần `reports`), TC355.
+- **Chốt ở bước này:**
+  - `SessionDetail` đọc đủ `myReviewed`, `openReport`, `resolution` từ DB ngay ở bước này (D92), không để giá trị cứng chờ bước 8: TC355 dựng đánh giá, báo cáo bằng SQL nên không cần API báo cáo.
+  - **TC348 chia hai bước:** phần `start`, `complete`, `cancel` và `{id}` sai làm ở bước này; phần Chi gọi `reports` làm ở bước 8, vì API báo cáo chưa có (gọi bây giờ ra 404 vì không có đường dẫn, không kiểm được quyền). Sửa ngược bước 8 và mục 3.
+  - `complete` ở bước này chưa kiểm báo cáo `OPEN`: kiểm đó thêm ở bước 8 cùng TC354 (dòng "Sửa" của bước 8).
+  - Hai lỗi 409 của `start` xét theo thứ tự: trạng thái `SCHEDULED` trước, mốc 15 phút sau (như `accept` xét `PENDING` trước thời điểm). TC347 ghim thứ tự này: phiên bị hủy lúc còn sớm hơn mốc 15 phút, `start` ra câu "Chỉ bắt đầu được phiên đã lên lịch".
+  - Người tham gia phiên = người gửi và người nhận của yêu cầu gốc; `myRole`, `partner` tính theo người gọi. `cancelledBy`: `cancelled_by` là mình → `ME`, là bên kia → `PARTNER`, người khác (admin chốt, tuần 7) → `ADMIN`. `myCompleted` vẫn `true` sau khi phiên `COMPLETED` (D92: "mình là `first_completed_by`").
+  - Body `{reason}` của `cancel` và của `reports` (bước 8) dùng chung một DTO `ReasonRequest`: cắt khoảng trắng hai đầu, rỗng sau khi cắt thì coi như thiếu → "Chưa nhập lý do"; dài hơn 1000 → "Lý do dài tối đa 1000 ký tự" (D88). Không có body: 400 "Nội dung JSON không đọc được" (⚠2).
+  - Danh sách và chi tiết đọc bằng một câu JPQL (JOIN yêu cầu, hai người, hai kỹ năng, kể cả kỹ năng đã ẩn) như `findRowById` của bước 5. Chi tiết thêm ba câu nhỏ: báo cáo `OPEN` của phiên; báo cáo `RESOLVED` mới nhất (`resolved_at` rồi `id` giảm dần); mình đã có đánh giá cho phiên chưa. Bảng `reviews` chưa có Entity (tuần 7) nên câu cuối là native query `EXISTS`; tuần 7 có Entity `Review` thì đổi sang JPQL.
+  - `start`, `complete`, `cancel` ghi xuống DB (`flush`) rồi đọc lại `SessionDetail` trong cùng transaction, như `flushAndRead` của bước 6: lỗi khóa lạc quan nổ ra trước khi dựng response.
+  - **Khóa lạc quan có test chắc chắn tranh chấp** (phần TC349 của ⚠1): thêm test `D93` theo mẫu `d90_staleAcceptIsRejectedByVersion`. Phiên `IN_PROGRESS`; một kết nối JDBC riêng làm thay lệnh "hoàn thành" của Bình (`WAITING_CONFIRMATION`, `first_completed_by` = Bình, tăng `version`) nhưng chưa commit; An gọi `complete`; đợi tới khi lệnh của An chờ khóa trong `pg_stat_activity`; commit. An phải nhận 409 "Dữ liệu vừa được thay đổi, hãy tải lại", phiên vẫn `WAITING_CONFIRMATION` với `first_completed_by` = Bình. Bỏ `@Version` thì An ghi đè thành người bấm trước và nhận 200.
+  - TC345 có ba bộ dữ liệu riêng nên là ba test (`tc345a_`, `tc345b_`, `tc345c_`): `IntegrationTestBase` xóa dữ liệu trước mỗi test.
+  - Thêm test cho phần D mà TC chưa phủ: `D87` (không vé 401; admin, tài khoản chưa xác thực 403 ở filter với cả năm API phiên), `D88` (lý do dài đúng 1000 ký tự sau khi cắt được nhận), `D92` (báo cáo `OPEN` chèn bằng SQL: `openReport` đúng ba khóa, `reportedByMe` theo người xem; hai báo cáo `RESOLVED` thì lấy cái `resolved_at` muộn hơn).
+  - `ExchangeTestData` thêm lời gọi API phiên, `sessionSnapshot` (cho "dữ liệu không đổi" của phiên: mọi cột và số báo cáo), Em (vé cấp trước khi bị khóa) và hàm đợi lệnh chờ khóa; `RequestInboxApiTest` giữ bản riêng của hàm đợi vì là test đã duyệt.
 - **Phải phủ:** bảng "Phiên" của phụ lục rà soát, trừ cột đánh giá và cột admin; `start` từ đúng 15 phút trước `start_at` (giả giờ bằng `MutableClock`: 15 phút 0 giây được, sớm hơn 1 giây thì 409), không có cận trên (R34); `complete` lần 1 ghi `first_completed_by`, lần 2 phải là bên còn lại; hủy từ `IN_PROGRESS` giữ `started_at` (được tính vào CompletionRate); hủy `WAITING_CONFIRMATION` thì 409; người ngoài 403; mọi ca bị cấm không đổi dữ liệu (spec 7.1 nhóm 5).
-- **Tự kiểm:** đổi 15 phút thành 0 hoặc dùng `Instant.now()` thay `Clock` thì ca biên phải đỏ. Gọi `GET /api/matches` sau khi có phiên hoàn thành và phiên hủy: Reputation đổi khác 0.5 (D32 đọc dữ liệu thật).
+- **Tự kiểm:** đổi 15 phút thành 0 hoặc dùng `Instant.now()` thay `Clock` thì ca biên phải đỏ. Gọi `GET /api/matches` sau khi có phiên hoàn thành và phiên hủy: Reputation đổi khác 0.5 (D32 đọc dữ liệu thật). Khi làm (`SessionLifecycleApiTest`, 20 test: TC338–TC350 với TC345 tách ba, TC355, D87, D88, D92, D93; làm hỏng rồi trả lại):
+  - 15 phút thành 0 → TC341 đỏ (409 thay vì 200 đúng mốc S − 15 phút);
+  - `start` dùng `Instant.now()` → TC341 đỏ (200 thay vì 409 lúc S − 15 phút − 1 giây), TC342 và TC346 đỏ (`startedAt` là giờ thật của máy);
+  - bỏ khóa lạc quan (thay `@Version` bằng `@Column(insertable = false, updatable = false)` như bước 6) → test D93 đỏ (200 thay vì 409), TC349 đỏ ngay lần 1 (`[200, 200] WAITING_CONFIRMATION`: một lần bấm bị ghi đè mất). Xóa trơn `@Version` thì `accept` chèn `version` NULL, lưới D24 trả 409 và 18 test đỏ vì không tạo được phiên, không nói gì về khóa lạc quan;
+  - `start` xét mốc 15 phút trước trạng thái → TC347 đỏ (ra câu "Chỉ bắt đầu được từ 15 phút trước giờ hẹn");
+  - hủy thì xóa `started_at` → TC345b đỏ (Reputation 0.5 thay vì 0.35), TC346 đỏ (`startedAt` null): phần Reputation của "Tự kiểm" được TC345a–c làm qua `GET /api/matches?type=TWO_WAY` (0.5; 0.35; 0.65);
+  - bỏ `/api/sessions/**` khỏi luật `ACTIVE_STUDENT` của `SecurityConfig` → TC338 và D87 đỏ (200 thay vì 403): hai test giữ cửa này xanh sẵn từ lượt TEST vì luật đã có từ bước 5.
 - **Commit:** `feat(exchange): add session lifecycle API`
 
 ### Bước 8 – Gửi báo cáo sự cố (TDD hai lượt; FR-09 phần người dùng; R33)
 
 - **API:** `POST /api/sessions/{id}/reports` `{reason}`.
 - **Sửa:** `complete` trả 409 khi phiên có báo cáo `OPEN` (D93; `openReport` của chi tiết phiên đã có từ bước 7).
-- **Ca:** TC351–TC354.
+- **Ca:** TC351–TC354; phần `reports` của TC348 (Chi gọi `reports` → 403 "Bạn không tham gia phiên này"; chốt ở bước 7).
 - **Phải phủ:** chỉ nhận khi `WAITING_CONFIRMATION`, trạng thái khác thì 409; mỗi phiên một báo cáo mở, người gửi sau nhận 409 (kể cả lỗi unique từ DB); người ngoài 403; lý do rỗng 400 (Q4).
 - **Tự kiểm:** bỏ kiểm báo cáo mở trong `complete` thì ca tương ứng phải đỏ.
 - **Commit:** `feat(exchange): add incident report API`
@@ -234,7 +252,7 @@ Quy ước chung:
 
 ## 3. Đối chiếu ca kiểm thử
 
-Đã đối chiếu 61 ca: mọi ca thuộc đúng một bước.
+Đã đối chiếu 61 ca: mọi ca thuộc đúng một bước, trừ TC348 chia cho bước 7 và 8 (phần `reports` cần API của bước 8; chốt ở bước 7).
 
 | Bước | Ca |
 | --- | --- |
@@ -244,8 +262,8 @@ Quy ước chung:
 | 4 | – |
 | 5 | TC311–TC325 |
 | 6 | TC326–TC337 |
-| 7 | TC338–TC350, TC355 |
-| 8 | TC351–TC354 |
+| 7 | TC338–TC350 (TC348 trừ phần `reports`), TC355 |
+| 8 | TC351–TC354, phần `reports` của TC348 |
 | 9 | TC356–TC358 (thủ công) |
 | 10 | TC359 (thủ công) |
 | 11 | TC360, TC361 (thủ công) |
