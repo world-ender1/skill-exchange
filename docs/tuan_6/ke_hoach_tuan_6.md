@@ -223,7 +223,25 @@ Quy ước chung:
 - **Sửa:** `complete` trả 409 khi phiên có báo cáo `OPEN` (D93; `openReport` của chi tiết phiên đã có từ bước 7).
 - **Ca:** TC351–TC354; phần `reports` của TC348 (Chi gọi `reports` → 403 "Bạn không tham gia phiên này"; chốt ở bước 7).
 - **Phải phủ:** chỉ nhận khi `WAITING_CONFIRMATION`, trạng thái khác thì 409; mỗi phiên một báo cáo mở, người gửi sau nhận 409 (kể cả lỗi unique từ DB); người ngoài 403; lý do rỗng 400 (Q4).
-- **Tự kiểm:** bỏ kiểm báo cáo mở trong `complete` thì ca tương ứng phải đỏ.
+- **Chốt ở bước này:**
+  - **Gửi báo cáo ép tăng `version` của phiên** (khóa lạc quan ép tăng, như D90, D93; người dùng chọn 2026-11-21). Phát hiện khi viết test: ở mức cô lập READ COMMITTED của PostgreSQL, "kiểm báo cáo mở trong cùng transaction" (R33) chưa đủ. An gửi báo cáo và Bình xác nhận hoàn thành chạy chồng nhau thì lệnh `complete` không thấy báo cáo chưa commit, còn lệnh gửi báo cáo chỉ ghi `incident_reports` nên không đụng `version` của phiên: cả hai thành công, phiên `COMPLETED` mà báo cáo vẫn `OPEN`, đúng "kịch bản treo" của R33 (admin chỉ chốt được phiên `WAITING_CONFIRMATION`). Ép tăng `version` khi gửi báo cáo thì lệnh ghi sau thua khóa lạc quan, nhận 409 "Dữ liệu vừa được thay đổi, hãy tải lại"; `complete` không đổi. Báo cáo thành công làm `version` của phiên tăng 1; báo cáo bị từ chối không đổi gì (rollback). Sửa ngược D94, bảng 2.1 (dòng khóa lạc quan), ⚠1 của ca kiểm thử, skill `jpa-patterns`.
+  - Thêm test `D94` tranh chấp chắc chắn theo mẫu `d93_staleCompleteIsRejectedByVersion`: phiên `WAITING_CONFIRMATION` (An bấm trước); một kết nối JDBC riêng làm thay lệnh "xác nhận hoàn thành" của Bình (`COMPLETED`, tăng `version`) nhưng chưa commit; An gọi `reports`; đợi lệnh của An chờ khóa trong `pg_stat_activity`; commit. An nhận 409 "Dữ liệu vừa được thay đổi, hãy tải lại", phiên `COMPLETED`, không có báo cáo.
+  - **"Kể cả lỗi unique từ DB"** có test `D94` tranh chấp chắc chắn: kết nối riêng chèn báo cáo `OPEN` của Bình nhưng chưa commit (An không thấy nên qua bước kiểm báo cáo mở); An gọi `reports`, lệnh chèn đứng chờ ở chỉ mục `uq_reports_one_open`; commit. An nhận 409 với câu chung của lưới D24 "Dữ liệu xung đột với dữ liệu đã có", vẫn đúng một báo cáo (của Bình). Kết nối riêng chỉ chèn, không tăng `version` phiên: đúng thời điểm đó của lệnh báo cáo thật, vì khóa lạc quan ép tăng ghi `version` lúc commit.
+  - Hai lỗi 409 của `reports` xét theo thứ tự viết trong D94: trạng thái `WAITING_CONFIRMATION` trước, báo cáo `OPEN` sau. Qua API không dựng được phiên ngoài `WAITING_CONFIRMATION` mà có báo cáo `OPEN`, nên thứ tự này không quan sát được và không có test riêng.
+  - Thứ tự hai lỗi 409 của `complete` từ `WAITING_CONFIRMATION` (D93: người bấm trước rồi mới tới báo cáo `OPEN`) có test `D93`: phiên có báo cáo `OPEN`, An (người bấm trước) gọi `complete` thì ra câu "Bạn đã xác nhận hoàn thành, đang chờ bên kia".
+  - TC354: báo cáo `OPEN` do An gửi qua API (ca không ghi "bằng SQL"); hai lệnh `cancel` ra câu của bảng 2.1 "Phiên đang chờ xác nhận, không hủy được...".
+  - Mọi lệnh báo cáo bị từ chối so "dữ liệu không đổi" bằng `sessionSnapshot` (mọi cột của phiên, kể cả `version`, và số báo cáo).
+  - 201 không có header `Location`, như `POST /api/requests` (bước 5); body đúng bốn khóa `{id, sessionId, status, createdAt}` (bảng 2.2).
+  - Test ở lớp mới `IncidentReportApiTest`; phần `reports` của TC348 cũng ở đây (`SessionLifecycleApiTest` là test đã duyệt, không sửa). Thêm test cho phần D mà TC chưa phủ: `D87` (không vé 401; admin, tài khoản chưa xác thực 403 ở filter; `{id}` 99999 → 404, "abc" → 400; 99999 với lý do rỗng → 400 trước 404), `D88` (lý do dài đúng 1000 ký tự sau khi cắt được nhận; không có body → 400 "Nội dung JSON không đọc được", ⚠2). `ExchangeTestData` thêm lời gọi `report`.
+- **Tự kiểm:** bỏ kiểm báo cáo mở trong `complete` thì ca tương ứng phải đỏ. Khi làm (`IncidentReportApiTest`, 10 test: TC351–TC354, TC348 phần `reports`, D87, D88, D93, hai test D94; làm hỏng rồi trả lại, mỗi lần một chỗ):
+  - bỏ kiểm báo cáo mở trong `complete` → TC354 đỏ (Bình xác nhận được: 200 thay vì 409);
+  - bỏ ép tăng `version` (đọc phiên bằng `findById` thường) → test D94 tranh chấp với `complete` đỏ (201 thay vì 409: báo cáo treo trên phiên `COMPLETED`); chín test kia vẫn xanh, chỉ test tranh chấp chắc chắn bắt được lỗi này;
+  - `report` kiểm trạng thái trước người tham gia → TC348 đỏ (Chi nhận 409 thay vì 403);
+  - bỏ kiểm "đã có báo cáo OPEN" trong `report` → TC353 đỏ: vẫn 409 nhưng là câu chung của lưới D24 "Dữ liệu xung đột với dữ liệu đã có" (chỉ mục `uq_reports_one_open` chặn thay);
+  - `complete` xét báo cáo `OPEN` trước người bấm trước → test D93 đỏ (ra câu "Phiên đang có báo cáo sự cố...");
+  - `report` dùng `Instant.now()` thay `Clock` → TC351 đỏ (`createdAt` là giờ thật của máy);
+  - `report` nhận cả phiên `IN_PROGRESS` → TC352 đỏ (201 thay vì 409);
+  - Log SQL (`-Dlogging.level.org.hibernate.SQL=DEBUG`) của một lệnh báo cáo: `SELECT` phiên không có `FOR UPDATE`, rồi `INSERT` báo cáo, rồi lúc commit mới `update exchange_sessions set version=? where id=? and version=?`.
 - **Commit:** `feat(exchange): add incident report API`
 
 ### Bước 9 – S07 Gửi yêu cầu (Q7, Q8; wireframe TK 6.3)

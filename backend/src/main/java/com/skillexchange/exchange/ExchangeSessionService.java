@@ -14,6 +14,7 @@ import com.skillexchange.common.NotFoundException;
 
 /**
  * Phiên trao đổi (FR-06, TK 4.7, 5.2). Bước 7: danh sách, chi tiết (D92), bắt đầu, hoàn thành, hủy (D93).
+ * Bước 8: gửi báo cáo sự cố (D94, FR-09 phần người dùng); báo cáo OPEN chặn xác nhận hoàn thành (R33).
  *
  * Quyền Active của người gọi đã kiểm ở tầng filter (D44, D87). Các API theo {id} kiểm theo thứ tự D87:
  * 404 → 403 không tham gia → 409; lỗi 400 ({id} không phải số, body sai) Spring đã trả trước khi tới đây.
@@ -32,6 +33,9 @@ public class ExchangeSessionService {
     private static final String CANNOT_CANCEL_WAITING =
             "Phiên đang chờ xác nhận, không hủy được; hãy gửi báo cáo sự cố nếu có bất đồng";
     private static final String ENDED = "Phiên đã kết thúc";
+    private static final String BLOCKED_BY_REPORT = "Phiên đang có báo cáo sự cố chờ quản trị viên xử lý";
+    private static final String ONLY_WAITING = "Chỉ gửi được báo cáo khi phiên đang chờ xác nhận hoàn thành";
+    private static final String ALREADY_OPEN = "Phiên đã có báo cáo sự cố đang chờ xử lý";
 
     /** Được bắt đầu sớm nhất 15 phút trước giờ hẹn; không có cận trên (D93, R34). */
     private static final Duration EARLIEST_START_BEFORE = Duration.ofMinutes(15);
@@ -104,7 +108,11 @@ public class ExchangeSessionService {
                 if (session.getFirstCompletedBy() == viewerId) {
                     throw new ConflictException(ALREADY_COMPLETED);
                 }
-                // Bước 8 thêm ở đây: phiên có báo cáo OPEN thì 409 (R33), xét sau câu trên (D93).
+                // Có báo cáo OPEN thì chỉ admin chốt được phiên (R33), xét sau câu trên (D93). Báo cáo đang gửi mà
+                // chưa commit thì câu này không thấy; khi đó khóa lạc quan chặn (report ép tăng version, D94).
+                if (reportRepository.existsBySessionIdAndStatus(sessionId, ReportStatus.OPEN)) {
+                    throw new ConflictException(BLOCKED_BY_REPORT);
+                }
                 session.confirmCompleted(clock.instant());
             }
             default -> throw new ConflictException(CANNOT_COMPLETE);    // SCHEDULED, COMPLETED, CANCELLED
@@ -127,21 +135,56 @@ public class ExchangeSessionService {
         return flushAndRead(session, viewerId);
     }
 
+    // ================= Báo cáo sự cố (D94, R33) =================
+
+    /**
+     * POST /api/sessions/{id}/reports. reason đã cắt khoảng trắng và kiểm độ dài (ReasonRequest). Cả hai người tham
+     * gia đều gửi được, kể cả người đã bấm hoàn thành. Hai lỗi 409 xét theo thứ tự của D94: trạng thái trước,
+     * báo cáo OPEN sau.
+     *
+     * Phiên được đọc kèm ép tăng version: báo cáo thành công làm version của phiên tăng 1 lúc commit. Nhờ vậy báo
+     * cáo và lệnh xác nhận hoàn thành chạy chồng nhau thì lệnh ghi sau nhận 409 khóa lạc quan, không bao giờ có
+     * phiên COMPLETED mà còn báo cáo OPEN. Hai báo cáo chạy chồng thì cái sau đụng chỉ mục uq_reports_one_open,
+     * lưới D24 trả 409.
+     */
+    @Transactional
+    public ReportResponse report(long viewerId, long sessionId, String reason) {
+        ExchangeSession session = sessionRepository.findByIdIncrementingVersion(sessionId)
+                .orElseThrow(() -> new NotFoundException(SESSION_NOT_FOUND));
+        requireParticipant(session, viewerId);
+        if (session.getStatus() != SessionStatus.WAITING_CONFIRMATION) {
+            throw new ConflictException(ONLY_WAITING);
+        }
+        if (reportRepository.existsBySessionIdAndStatus(sessionId, ReportStatus.OPEN)) {   // do ai gửi cũng vậy
+            throw new ConflictException(ALREADY_OPEN);
+        }
+
+        // IDENTITY: save chạy INSERT ngay để có id. Lỗi unique (báo cáo khác vừa commit) nổ ra ở dòng này.
+        IncidentReport report = reportRepository.save(
+                IncidentReport.open(sessionId, viewerId, reason, clock.instant()));
+        return ReportResponse.from(report);
+    }
+
     // ================= Tiện ích =================
 
     /**
-     * 404 nếu không có phiên, 403 nếu người gọi không phải người gửi hay người nhận của yêu cầu gốc.
+     * 404 nếu không có phiên, 403 nếu người gọi không tham gia phiên.
      * Trả Entity (không phải SessionRow) vì ba thao tác cần đổi field rồi để Hibernate ghi kèm kiểm version.
      */
     private ExchangeSession findForParticipant(long sessionId, long viewerId) {
         ExchangeSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new NotFoundException(SESSION_NOT_FOUND));
+        requireParticipant(session, viewerId);
+        return session;
+    }
+
+    /** 403 nếu người gọi không phải người gửi hay người nhận của yêu cầu gốc. */
+    private void requireParticipant(ExchangeSession session, long viewerId) {
         // request_id là khóa ngoại NOT NULL nên yêu cầu gốc luôn có.
         ExchangeRequest request = requestRepository.findById(session.getRequestId()).orElseThrow();
         if (viewerId != request.getSenderId() && viewerId != request.getReceiverId()) {
             throw new ForbiddenException(NOT_PARTICIPANT);
         }
-        return session;
     }
 
     /**

@@ -4,8 +4,11 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/** Truy cập incident_reports. Bước 7: hai câu đọc cho chi tiết phiên (D92); gửi báo cáo ở bước 8. */
+/** Truy cập incident_reports. Bước 7: hai câu đọc cho chi tiết phiên (D92); bước 8: gửi báo cáo, chặn hoàn thành. */
 public interface IncidentReportRepository extends JpaRepository<IncidentReport, Long> {
+
+    /** Phiên có báo cáo ở trạng thái này không. existsBy... = SELECT ... LIMIT 1, chỉ trả true/false. */
+    boolean existsBySessionIdAndStatus(Long sessionId, ReportStatus status);
 
     /**
      * Báo cáo theo phiên và trạng thái. Với OPEN có tối đa một dòng (chỉ mục uq_reports_one_open của DB),

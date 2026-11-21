@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
  * Nằm ở package exchange chứ không ở review như tiêu đề TK 4.8: xác nhận hoàn thành phải kiểm "phiên có báo cáo
  * OPEN không" trong cùng transaction với việc đổi trạng thái phiên (R33, D93). Phần admin xử lý (A02) ở tuần 7.
  * Bảng không có cột version: mỗi phiên tối đa một báo cáo OPEN là chỉ mục một phần của DB (uq_reports_one_open).
+ * Tranh chấp với lệnh xác nhận hoàn thành do version của phiên lo: gửi báo cáo ép tăng nó (D94, bước 8).
  */
 @Entity
 @Table(name = "incident_reports")

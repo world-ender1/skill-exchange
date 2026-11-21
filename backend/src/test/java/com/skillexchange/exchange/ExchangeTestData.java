@@ -275,6 +275,13 @@ class ExchangeTestData {
         return postJson(token, "/api/sessions/" + id + "/cancel", "{\"reason\": " + quote(reason) + "}");
     }
 
+    // ---------- Gọi API báo cáo sự cố (bước 8) ----------
+
+    /** POST /api/sessions/{id}/reports với body {"reason": ...}. id kiểu Object để test truyền được cả "abc". */
+    ResultActions report(String token, Object sessionId, String reason) throws Exception {
+        return postJson(token, "/api/sessions/" + sessionId + "/reports", "{\"reason\": " + quote(reason) + "}");
+    }
+
     // ---------- Đọc DB ----------
 
     /**

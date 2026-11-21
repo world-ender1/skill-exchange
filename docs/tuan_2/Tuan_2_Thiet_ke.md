@@ -277,7 +277,7 @@ Khóa chính gồm cả ba cột. Mỗi người có tối đa 21 dòng. Số kh
 | `cancelled_by` | BIGINT | FK → users, NULL | |
 | `cancel_reason` | TEXT | NULL | Bắt buộc khi hủy |
 | `cancelled_at` | TIMESTAMPTZ | NULL | |
-| `version` | INTEGER | NOT NULL, mặc định 0 | Khóa lạc quan (optimistic locking), chống hai người cùng bấm một lúc |
+| `version` | INTEGER | NOT NULL, mặc định 0 | Khóa lạc quan (optimistic locking), chống hai người cùng bấm một lúc; gửi báo cáo sự cố cũng tăng cột này (D94) |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Thời điểm tạo phiên (= lúc chấp nhận yêu cầu) |
 
 - Hai người tham gia phiên là `sender_id` và `receiver_id` của yêu cầu gốc.
@@ -643,7 +643,7 @@ stateDiagram-v2
 - Xác nhận hoàn thành khi phiên có báo cáo `OPEN` (D93).
 - Gửi báo cáo khi phiên không ở `WAITING_CONFIRMATION`, hoặc khi phiên đã có báo cáo `OPEN` (D94).
 
-**Chống thao tác đồng thời:** nếu hai người cùng bấm "Hoàn thành" một lúc, cột `version` (optimistic locking) làm request thứ hai thất bại thay vì ghi đè. Client tải lại và nhận trạng thái mới.
+**Chống thao tác đồng thời:** nếu hai người cùng bấm "Hoàn thành" một lúc, cột `version` (optimistic locking) làm request thứ hai thất bại thay vì ghi đè. Client tải lại và nhận trạng thái mới. Gửi báo cáo sự cố cũng tăng `version` của phiên (D94), nên báo cáo và xác nhận hoàn thành chạy chồng nhau thì lệnh đến sau thất bại (409); không xảy ra trường hợp phiên `COMPLETED` mà còn báo cáo `OPEN`.
 
 ## 6. Prototype giao diện
 

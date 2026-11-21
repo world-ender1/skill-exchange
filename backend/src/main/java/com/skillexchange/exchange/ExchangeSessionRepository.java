@@ -4,10 +4,16 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** Truy cập exchange_sessions: tạo phiên khi chấp nhận yêu cầu (bước 6), danh sách và chi tiết (bước 7). */
+import jakarta.persistence.LockModeType;
+
+/**
+ * Truy cập exchange_sessions: tạo phiên khi chấp nhận yêu cầu (bước 6), danh sách và chi tiết (bước 7), đọc phiên
+ * kèm ép tăng version khi gửi báo cáo (bước 8).
+ */
 public interface ExchangeSessionRepository extends JpaRepository<ExchangeSession, Long> {
 
     /**
@@ -36,6 +42,16 @@ public interface ExchangeSessionRepository extends JpaRepository<ExchangeSession
 
     @Query(SESSION_ROW_QUERY + "WHERE s.id = :id")
     Optional<SessionRow> findRowById(@Param("id") Long id);
+
+    /**
+     * Đọc phiên như findById, kèm khóa lạc quan ép tăng (D94, bước 8): ngay trước khi transaction commit, Hibernate
+     * chạy UPDATE exchange_sessions SET version = version + 1 WHERE id = ? AND version = ? dù không field nào đổi.
+     * Gửi báo cáo chỉ chèn vào incident_reports; nhờ câu này nó cũng "ghi vào phiên", nên chạy chồng với lệnh xác
+     * nhận hoàn thành thì một trong hai thua khóa lạc quan (409). Transaction rollback thì câu UPDATE không chạy.
+     */
+    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+    @Query("SELECT s FROM ExchangeSession s WHERE s.id = :id")
+    Optional<ExchangeSession> findByIdIncrementingVersion(@Param("id") Long id);
 
     /**
      * Các phiên userId tham gia (gửi hoặc nhận yêu cầu gốc) (D92). status null nghĩa là mọi trạng thái.

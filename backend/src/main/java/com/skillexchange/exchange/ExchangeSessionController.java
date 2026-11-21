@@ -2,6 +2,7 @@ package com.skillexchange.exchange;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -58,6 +60,17 @@ public class ExchangeSessionController {
     public SessionDetail cancel(@AuthenticationPrincipal Jwt jwt, @PathVariable long id,
                                 @Valid @RequestBody ReasonRequest body) {
         return sessionService.cancel(userId(jwt), id, body.reason());
+    }
+
+    /**
+     * Gửi báo cáo sự cố (D94). Body {reason} như cancel (D88). 201 không có header Location, như POST /api/requests:
+     * chưa có API đọc một báo cáo để trỏ tới.
+     */
+    @PostMapping("/{id}/reports")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReportResponse report(@AuthenticationPrincipal Jwt jwt, @PathVariable long id,
+                                 @Valid @RequestBody ReasonRequest body) {
+        return sessionService.report(userId(jwt), id, body.reason());
     }
 
     /** "Tôi là ai" lấy từ claim sub của vé, không bao giờ từ tham số hay body. */
