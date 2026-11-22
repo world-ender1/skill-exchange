@@ -185,7 +185,7 @@ Thêm sau đoạn tuần 5:
 
 | Tuần | Nội dung chính | Link |
 | --- | --- | --- |
-| 6 | Giao diện Tailwind CSS + shadcn/ui; API và màn hình yêu cầu trao đổi, phiên, báo cáo sự cố (S07–S09) | https://github.com/world-ender1/skill-exchange/compare/baa1831...COMMIT_BAO_CAO |
+| 6 | Giao diện Tailwind CSS + shadcn/ui; API và màn hình yêu cầu trao đổi, phiên, báo cáo sự cố (S07–S09) | https://github.com/world-ender1/skill-exchange/compare/baa1831...afe2f99 |
 
 ## 5.3. Cài đặt các chức năng chính (bổ sung)
 

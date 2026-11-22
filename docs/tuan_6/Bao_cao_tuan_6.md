@@ -17,7 +17,7 @@ Repo: https://github.com/world-ender1/skill-exchange
 | Màn hình S07 Gửi yêu cầu, S08 Hộp yêu cầu, S09 Phiên của tôi và chi tiết phiên | [532f7f3](https://github.com/world-ender1/skill-exchange/commit/532f7f3), [c7fd9f1](https://github.com/world-ender1/skill-exchange/commit/c7fd9f1), [427d313](https://github.com/world-ender1/skill-exchange/commit/427d313) |
 | Kiểm tra cả tuần: 497/497 test đạt; 38 lần làm hỏng code; ba lượt review độc lập; 16 ca thủ công trên trình duyệt. Sửa 5 lỗi giao diện tìm ra (tương phản màu trạng thái, thiếu nút "Thử lại", tên dài kéo rộng trang 360 px, mất tiêu đề `h1`/`h2`, `aria-current` thừa) và sửa tài liệu theo code | [2b71563](https://github.com/world-ender1/skill-exchange/commit/2b71563), [e341fac](https://github.com/world-ender1/skill-exchange/commit/e341fac), [3539e90](https://github.com/world-ender1/skill-exchange/commit/3539e90) |
 | Sửa câu thông báo sau khi đăng ký (S01) | [4d940cb](https://github.com/world-ender1/skill-exchange/commit/4d940cb) |
-| Báo cáo tuần 6 | COMMIT_BAO_CAO |
+| Báo cáo tuần 6 | [afe2f99](https://github.com/world-ender1/skill-exchange/commit/afe2f99) |
 
 ## 2. Kết quả chính
 
