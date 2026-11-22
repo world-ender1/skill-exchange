@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { apiRequest, toError } from '../api/client'
 import type { AcceptResponse, RequestItem, RequestStatus } from '../api/types'
 import { Field } from '../components/Field'
+import { InfoLine, LinkOrText } from '../components/InfoLine'
 import { LoadError } from '../components/LoadError'
 import { Notice } from '../components/Notice'
 import { PageSkeleton } from '../components/PageSkeleton'
@@ -278,10 +279,7 @@ function RequestCard({ item, busy, onAccept, onCancel, onRejectFinished }: Reque
   )
 }
 
-/**
- * Địa điểm/link theo Q1 (D91): người gửi luôn thấy; người nhận chỉ thấy khi ACCEPTED, trước đó API trả null.
- * Chỉ biến thành link khi bắt đầu bằng http:// hoặc https://, để chuỗi "javascript:..." không thành link chạy được.
- */
+/** Địa điểm/link theo Q1 (D91): người gửi luôn thấy; người nhận chỉ thấy khi ACCEPTED, trước đó API trả null. */
 function LocationLine({ item }: { item: RequestItem }) {
   const value = item.locationOrLink
   if (value === null) {
@@ -296,23 +294,8 @@ function LocationLine({ item }: { item: RequestItem }) {
   }
   return (
     <InfoLine icon={<MapPin />} label="Địa điểm/link">
-      {/^https?:\/\//i.test(value)
-        ? <a href={value} target="_blank" rel="noopener noreferrer"
-             className="break-all text-primary underline-offset-4 hover:underline">{value}</a>
-        : value}
+      <LinkOrText value={value} />
     </InfoLine>
-  )
-}
-
-/** Một dòng thông tin có icon, cùng kiểu với dòng lý do của thẻ S05. */
-function InfoLine({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
-  return (
-    <p className="flex items-start gap-2 text-sm break-words">
-      <span className="mt-0.5 text-muted-foreground [&_svg]:size-4" aria-hidden="true">{icon}</span>
-      <span className="min-w-0">
-        <span className="font-medium">{label}:</span> {children}
-      </span>
-    </p>
   )
 }
 

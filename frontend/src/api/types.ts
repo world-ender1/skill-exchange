@@ -217,3 +217,78 @@ export type AcceptResponse = {
   requestId: number
   sessionId: number
 }
+
+// ---------- Tuần 6: phiên trao đổi (TK 4.7, D92–D94) ----------
+
+export type SessionStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'WAITING_CONFIRMATION' | 'COMPLETED' | 'CANCELLED'
+
+/**
+ * Một phiên trong GET /api/sessions (SessionItem, bảng 2.2). Không có địa điểm/link và liên hệ: chỉ chi tiết
+ * phiên mới có (D92, NFR-02).
+ */
+export type SessionItem = {
+  id: number
+  requestId: number
+  type: RequestType
+  status: SessionStatus
+  myRole: RequestRole
+  partner: PersonRef
+  senderLearnSkill: SkillRef
+  receiverLearnSkill: SkillRef | null
+  startAt: string
+  durationMinutes: number
+  mode: MeetingMode
+  createdAt: string
+}
+
+/** Bên kia của phiên kèm liên hệ hiện tại trong hồ sơ của họ; chưa khai thì null (D92). */
+export type SessionPartner = PersonRef & {
+  phone: string | null
+  contactInfo: string | null
+}
+
+/** Ai hủy phiên, nhìn từ phía người xem; backend đã đổi id người hủy thành ba giá trị này (D92). */
+export type CancelledBy = 'ME' | 'PARTNER' | 'ADMIN'
+
+/** Báo cáo OPEN của phiên: không có lý do, vì lý do chỉ dành cho admin (D92). */
+export type OpenReport = {
+  id: number
+  reportedByMe: boolean
+  createdAt: string
+}
+
+export type ReportResolution = 'SESSION_COMPLETED' | 'SESSION_CANCELLED'
+
+/** Kết quả admin chốt báo cáo (tuần 7 mới có dữ liệu thật). */
+export type SessionResolution = {
+  result: ReportResolution
+  adminNote: string | null
+  resolvedAt: string
+}
+
+/**
+ * GET /api/sessions/{id}, cũng là response của start, complete, cancel (SessionDetail, bảng 2.2; D92, D93).
+ * = các khóa của SessionItem (partner có thêm liên hệ) + các khóa riêng của chi tiết.
+ */
+export type SessionDetail = Omit<SessionItem, 'partner'> & {
+  partner: SessionPartner
+  // Cột DB cho phép NULL (dữ liệu chèn tay của test cũ); phiên tạo qua API luôn có (Q3).
+  locationOrLink: string | null
+  startedAt: string | null
+  completedAt: string | null
+  myCompleted: boolean
+  cancelledBy: CancelledBy | null
+  cancelReason: string | null
+  cancelledAt: string | null
+  myReviewed: boolean
+  openReport: OpenReport | null
+  resolution: SessionResolution | null
+}
+
+/** Response 201 của POST /api/sessions/{id}/reports (D94): không trả lại lý do. */
+export type ReportResponse = {
+  id: number
+  sessionId: number
+  status: 'OPEN'
+  createdAt: string
+}
