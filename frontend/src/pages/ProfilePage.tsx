@@ -111,7 +111,7 @@ function ProfileForm({ initial, onSaved }: { initial: MyProfile; onSaved: (profi
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Thông tin cá nhân</CardTitle>
+        <CardTitle className="text-lg"><h2 className="text-lg">Thông tin cá nhân</h2></CardTitle>
       </CardHeader>
       <CardContent>
         <form id="profile-form" onSubmit={handleSubmit} noValidate className="grid gap-4 sm:grid-cols-2">
@@ -217,7 +217,7 @@ function AvailabilityCard({ initial }: { initial: AvailabilitySlot[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Lịch rảnh</CardTitle>
+        <CardTitle className="text-lg"><h2 className="text-lg">Lịch rảnh</h2></CardTitle>
         <CardDescription>Tick các buổi bạn thường rảnh để được gợi ý người có lịch trùng.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

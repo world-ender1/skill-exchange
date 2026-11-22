@@ -57,7 +57,8 @@ export function VerifyEmailPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             {STATE_ICON[state]}
-            Xác thực email
+            {/* Tiêu đề cấp 2 như bản trước tuần 6 (h1 là tên ứng dụng trong AuthShell). */}
+            <h2 className="text-lg">Xác thực email</h2>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">

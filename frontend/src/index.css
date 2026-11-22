@@ -78,9 +78,11 @@
     --muted-foreground: oklch(0.446 0.043 257.281);   /* slate-600: slate-500 trên slate-100 chỉ 4.35:1 */
     --accent: oklch(0.968 0.007 247.896);
     --accent-foreground: oklch(0.208 0.042 265.755);
-    --destructive: oklch(0.577 0.245 27.325);         /* red-600 */
-    --success: oklch(0.527 0.154 150.069);            /* green-700 */
-    --warning: oklch(0.555 0.163 48.998);             /* amber-700 */
+    /* Ba màu trạng thái đậm hơn một bậc so với bản đầu (red-600, green-700, amber-700): chữ màu trên nền nhạt
+       cùng màu 10% của Badge và nút destructive chỉ đạt 3.97–4.37:1 (đo ở kiểm tra cả tuần 6, TC302). */
+    --destructive: oklch(0.505 0.213 27.518);         /* red-700: 5.35:1 trên nền đỏ 10% */
+    --success: oklch(0.448 0.119 151.328);            /* green-800: 6.12:1 trên nền xanh 10% */
+    --warning: oklch(0.473 0.137 46.201);             /* amber-800: 6.08:1 trên nền hổ phách 10% */
     --border: oklch(0.929 0.013 255.508);             /* slate-200: viền trang trí */
     --input: oklch(0.554 0.046 257.417);              /* slate-500: viền ô nhập 4.8:1 */
     --ring: #4F46E5;
@@ -116,7 +118,7 @@
         --muted-foreground: oklch(0.704 0.04 256.788); /* slate-400 */
         --accent: oklch(0.279 0.041 260.031);
         --accent-foreground: oklch(0.984 0.003 247.858);
-        --destructive: oklch(0.704 0.191 22.216);     /* red-400 */
+        --destructive: oklch(0.808 0.114 19.571);     /* red-300: red-400 trên nền nút destructive chỉ 4.24:1 */
         --success: oklch(0.792 0.209 151.711);        /* green-400 */
         --warning: oklch(0.828 0.189 84.429);         /* amber-400 */
         --border: oklch(0.279 0.041 260.031);         /* slate-800 */

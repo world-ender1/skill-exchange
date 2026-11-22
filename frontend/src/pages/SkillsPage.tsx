@@ -192,7 +192,7 @@ function SkillListEditor(props: EditorProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardTitle className="text-lg"><h2 className="text-lg">{title}</h2></CardTitle>
         <CardAction>
           <Badge variant="secondary" className="tabular-nums">{rows.length}/{MAX_SKILLS}</Badge>
         </CardAction>

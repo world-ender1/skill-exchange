@@ -9,7 +9,7 @@ import { apiRequest, toError } from '../api/client'
 import type { MyProfile, PublicProfile } from '../api/types'
 import { slotKey } from '../availability'
 import { AvailabilityGrid } from '../components/AvailabilityGrid'
-import { Notice } from '../components/Notice'
+import { LoadError } from '../components/LoadError'
 import { PageSkeleton } from '../components/PageSkeleton'
 import { UserAvatar } from '../components/UserAvatar'
 import { formatLevel, formatMode } from '../format'
@@ -25,6 +25,8 @@ export function UserProfilePage() {
   const [result, setResult] = useState<
     { id: string; profile?: PublicProfile; myId?: number; error?: string } | null
   >(null)
+  // Tăng để tải lại sau lỗi (nút "Thử lại", kế hoạch tuần 6 bước 1).
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -45,14 +47,14 @@ export function UserProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [id])
+  }, [id, reloadKey])
 
   // Khi đổi sang hồ sơ khác, kết quả cũ (id khác) coi như chưa tải.
   if (!result || result.id !== (id ?? '')) {
     return <PageSkeleton label="Đang tải hồ sơ" />
   }
   if (result.error || !result.profile) {
-    return <Notice kind="error">{result.error}</Notice>
+    return <LoadError message={result.error ?? ''} onRetry={() => { setResult(null); setReloadKey((k) => k + 1) }} />
   }
 
   const profile = result.profile
@@ -91,7 +93,7 @@ export function UserProfilePage() {
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Có thể dạy</CardTitle>
+            <CardTitle className="text-lg"><h2 className="text-lg">Có thể dạy</h2></CardTitle>
             <CardDescription>Trình độ do người dùng tự khai báo.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -110,7 +112,7 @@ export function UserProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Muốn học</CardTitle>
+            <CardTitle className="text-lg"><h2 className="text-lg">Muốn học</h2></CardTitle>
           </CardHeader>
           <CardContent>
             {profile.learnSkills.length === 0
@@ -131,7 +133,7 @@ export function UserProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Lịch rảnh</CardTitle>
+          <CardTitle className="text-lg"><h2 className="text-lg">Lịch rảnh</h2></CardTitle>
         </CardHeader>
         <CardContent>
           {profile.availability.length === 0

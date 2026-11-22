@@ -10,7 +10,7 @@ const alertVariants = cva(
         default: "bg-card text-card-foreground",
         destructive:
           "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
-        // Thêm cho dự án (D85). Không làm mờ /90 như destructive: green-700 mờ 90% trên nền trắng chỉ còn 4.2:1 (D79 cần 4.5:1).
+        // Thêm cho dự án (D85). Không làm mờ /90 như destructive: chữ mờ thì tương phản giảm (bản đầu green-700 mờ 90% chỉ còn 4.2:1, D79 cần 4.5:1).
         success:
           "bg-card text-success *:data-[slot=alert-description]:text-success *:[svg]:text-current",
       },

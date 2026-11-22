@@ -92,7 +92,7 @@ export function AdminSkillsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Thêm mới</CardTitle>
+          <CardTitle className="text-lg"><h2 className="text-lg">Thêm mới</h2></CardTitle>
         </CardHeader>
         {/* Từ 768 px hai form nằm cạnh nhau; hẹp hơn thì xếp chồng, ngăn bằng đường kẻ. */}
         <CardContent className="grid gap-6 md:grid-cols-[1fr_auto_1fr]">

@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { apiRequest, toError } from '../api/client'
 import type { MatchList, MatchType } from '../api/types'
 import { MatchCard } from '../components/MatchCard'
+import { LoadError } from '../components/LoadError'
 import { Notice } from '../components/Notice'
 import { PageSkeleton } from '../components/PageSkeleton'
 import { TextLink } from '../components/TextLink'
@@ -21,6 +22,8 @@ export function MatchesPage() {
   const [data, setData] = useState<Loaded | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [active, setActive] = useState<MatchType>('TWO_WAY')
+  // Tăng để tải lại sau lỗi (nút "Thử lại", kế hoạch tuần 6 bước 1).
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -42,10 +45,10 @@ export function MatchesPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [reloadKey])
 
   if (error) {
-    return <Notice kind="error">{error}</Notice>
+    return <LoadError message={error} onRetry={() => { setError(null); setReloadKey((k) => k + 1) }} />
   }
   if (!data) {
     return <PageSkeleton label="Đang tìm người phù hợp" />

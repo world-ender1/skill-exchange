@@ -342,7 +342,8 @@ function SessionProgress({ status }: { status: SessionStatus }) {
     <ol aria-label="Tiến trình phiên" className="grid grid-cols-4">
       {PROGRESS_STEPS.map((step, index) => {
         const done = index < current || finished
-        const isCurrent = index === current
+        // Phiên đã hoàn thành thì cả 4 bước đều đã qua, không còn bước "hiện tại" để gắn aria-current.
+        const isCurrent = index === current && !finished
         return (
           <li key={step} aria-current={isCurrent ? 'step' : undefined}
               className="relative flex flex-col items-center gap-1.5 px-1 text-center">

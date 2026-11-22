@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { apiRequest, toError } from '../api/client'
 import type { Skill, UserSearchResult } from '../api/types'
 import { Field } from '../components/Field'
+import { LoadError } from '../components/LoadError'
 import { Notice } from '../components/Notice'
 import { SkillCombobox } from '../components/SkillCombobox'
 import { TextLink } from '../components/TextLink'
@@ -26,13 +27,25 @@ export function SearchPage() {
   const [results, setResults] = useState<UserSearchResult[] | null>(null)
   const [error, setError] = useState<{ detail: string; q?: string } | null>(null)
   const [searching, setSearching] = useState(false)
+  // Lỗi tải danh sách kỹ năng (ô chọn) tách khỏi lỗi tìm kiếm: lỗi tải có nút "Thử lại" (kế hoạch tuần 6 bước 1),
+  // lỗi tìm kiếm thì bấm "Tìm" lại.
+  const [skillsError, setSkillsError] = useState<string | null>(null)
+  const [skillsReloadKey, setSkillsReloadKey] = useState(0)
 
   useEffect(() => {
+    let cancelled = false
     // /api/skills chỉ trả kỹ năng đang hoạt động (D40), nên ô chọn không có kỹ năng đã ẩn (TC183).
     apiRequest<Skill[]>('/api/skills')
-      .then(setSkills)
-      .catch((e: unknown) => setError({ detail: toError(e).message }))
-  }, [])
+      .then((list) => {
+        if (!cancelled) setSkills(list)
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setSkillsError(toError(e).message)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [skillsReloadKey])
 
   async function search(event: FormEvent) {
     event.preventDefault()
@@ -79,6 +92,9 @@ export function SearchPage() {
         </CardContent>
       </Card>
 
+      {skillsError && (
+        <LoadError message={skillsError} onRetry={() => { setSkillsError(null); setSkillsReloadKey((k) => k + 1) }} />
+      )}
       {error && !error.q && <Notice kind="error">{error.detail}</Notice>}
 
       {results && (results.length === 0
@@ -92,7 +108,9 @@ export function SearchPage() {
         : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {results.map((user) => (
-              <li key={user.id}>
+              // min-w-0: ô lưới mặc định không co nhỏ hơn từ dài nhất, nên tên 100 ký tự không có dấu cách
+              // đẩy trang 360 px rộng ra (TC308); break-words của tiêu đề chỉ có tác dụng khi ô được co.
+              <li key={user.id} className="min-w-0">
                 <Card className="h-full">
                   <CardContent className="flex flex-col gap-3">
                     <div className="flex items-center gap-3">
