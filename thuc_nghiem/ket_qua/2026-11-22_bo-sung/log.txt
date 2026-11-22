@@ -1,0 +1,59 @@
+20:32:54 Bắt đầu giai đoạn bo-sung, seed [3, 4, 5]
+20:32:54 seed 3, N = 50, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.0 giây
+20:32:54   B1 [CHI_SO]: 0.1 giây
+20:32:54   P [CHI_SO]: 0.0 giây
+20:32:54   P_mot_ds [CHI_SO]: 0.0 giây
+20:32:54 seed 3, N = 100, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.0 giây
+20:32:54   B1 [CHI_SO]: 0.0 giây
+20:32:55   P [CHI_SO]: 0.0 giây
+20:32:55   P_mot_ds [CHI_SO]: 0.0 giây
+20:32:55 seed 3, N = 500, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.1 giây
+20:32:55   B1 [CHI_SO, NHOM]: 0.5 giây
+20:32:56   P [CHI_SO, NHOM]: 0.4 giây
+20:32:56   P_mot_ds [CHI_SO, NHOM]: 0.4 giây
+20:32:56   P_bo_level_tl [CHI_SO]: 0.2 giây
+20:32:56   P_bo_schedule_tl [CHI_SO]: 0.2 giây
+20:32:57   P_bo_mode_tl [CHI_SO]: 0.2 giây
+20:32:57 seed 3, N = 1000, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.3 giây
+20:32:58   B1 [CHI_SO]: 1.4 giây
+20:33:00   P [CHI_SO]: 1.7 giây
+20:33:02   P_mot_ds [CHI_SO]: 1.6 giây
+20:33:02 seed 4, N = 50, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.0 giây
+20:33:02   B1 [CHI_SO]: 0.0 giây
+20:33:02   P [CHI_SO]: 0.0 giây
+20:33:02   P_mot_ds [CHI_SO]: 0.0 giây
+20:33:02 seed 4, N = 100, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.0 giây
+20:33:02   B1 [CHI_SO]: 0.0 giây
+20:33:02   P [CHI_SO]: 0.0 giây
+20:33:02   P_mot_ds [CHI_SO]: 0.0 giây
+20:33:02 seed 4, N = 500, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.1 giây
+20:33:02   B1 [CHI_SO, NHOM]: 0.6 giây
+20:33:03   P [CHI_SO, NHOM]: 0.6 giây
+20:33:04   P_mot_ds [CHI_SO, NHOM]: 0.7 giây
+20:33:04   P_bo_level_tl [CHI_SO]: 0.4 giây
+20:33:04   P_bo_schedule_tl [CHI_SO]: 0.3 giây
+20:33:05   P_bo_mode_tl [CHI_SO]: 0.3 giây
+20:33:05 seed 4, N = 1000, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.6 giây
+20:33:07   B1 [CHI_SO]: 1.3 giây
+20:33:08   P [CHI_SO]: 1.4 giây
+20:33:09   P_mot_ds [CHI_SO]: 1.5 giây
+20:33:09 seed 5, N = 50, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.0 giây
+20:33:09   B1 [CHI_SO]: 0.0 giây
+20:33:09   P [CHI_SO]: 0.0 giây
+20:33:09   P_mot_ds [CHI_SO]: 0.0 giây
+20:33:09 seed 5, N = 100, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.0 giây
+20:33:10   B1 [CHI_SO]: 0.0 giây
+20:33:10   P [CHI_SO]: 0.0 giây
+20:33:10   P_mot_ds [CHI_SO]: 0.0 giây
+20:33:10 seed 5, N = 500, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.1 giây
+20:33:10   B1 [CHI_SO, NHOM]: 0.4 giây
+20:33:10   P [CHI_SO, NHOM]: 0.4 giây
+20:33:11   P_mot_ds [CHI_SO, NHOM]: 0.4 giây
+20:33:11   P_bo_level_tl [CHI_SO]: 0.2 giây
+20:33:11   P_bo_schedule_tl [CHI_SO]: 0.2 giây
+20:33:11   P_bo_mode_tl [CHI_SO]: 0.2 giây
+20:33:12 seed 5, N = 1000, nhiễu mac_dinh: sinh dữ liệu và gán nhãn 0.3 giây
+20:33:12   B1 [CHI_SO]: 0.8 giây
+20:33:13   P [CHI_SO]: 0.8 giây
+20:33:14   P_mot_ds [CHI_SO]: 0.8 giây
+20:33:16 Xong
