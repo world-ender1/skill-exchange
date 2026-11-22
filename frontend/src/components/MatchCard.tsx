@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, CalendarDays, ChevronDown, GraduationCap, MonitorSmartphone, Star } from 'lucide-react'
+import { BookOpen, CalendarDays, ChevronDown, GraduationCap, MonitorSmartphone, Send, Star } from 'lucide-react'
 import { Link } from 'react-router'
 import type { ReactNode } from 'react'
 
@@ -14,7 +14,7 @@ import { UserAvatar } from './UserAvatar'
 
 /**
  * Một ứng viên trong S05 (wireframe TK 6.3). Mọi lý do hiển thị lấy thẳng từ response (NFR-09):
- * giao diện không tự tính lại điểm. Chưa có nút "Gửi yêu cầu" (bước 9 tuần 6).
+ * giao diện không tự tính lại điểm. Nút "Gửi yêu cầu" mở S07 (D95, tuần 6 bước 9).
  */
 export function MatchCard({ match }: { match: MatchItem }) {
   const [showDetail, setShowDetail] = useState(false)
@@ -88,6 +88,16 @@ export function MatchCard({ match }: { match: MatchItem }) {
             <Button asChild variant="ghost" size="sm">
               <Link to={`/users/${match.userId}`}>Xem hồ sơ</Link>
             </Button>
+            {/* D95: ẩn khi đã có yêu cầu đang chờ gửi tới người này (nhãn "Đã gửi yêu cầu" ở trên vẫn hiện).
+                match.type cho biết thẻ thuộc tab nào: tab hai chiều thì S07 chọn sẵn TWO_WAY. */}
+            {!match.hasPendingRequest && (
+              <Button asChild size="sm" className="ml-auto">
+                <Link to={`/users/${match.userId}/request${match.type === 'TWO_WAY' ? '?type=TWO_WAY' : ''}`}>
+                  <Send aria-hidden="true" />
+                  Gửi yêu cầu
+                </Link>
+              </Button>
+            )}
           </div>
         </Collapsible>
       </CardContent>

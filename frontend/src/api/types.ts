@@ -160,3 +160,54 @@ export type AdminSkillRelation = {
   skillBId: number
   skillBName: string
 }
+
+// ---------- Tuần 6: yêu cầu trao đổi (TK 4.6, D89–D91) ----------
+
+/** Cùng hai giá trị với MatchType: tab của S05 chọn sẵn loại yêu cầu (D95). */
+export type RequestType = MatchType
+/** Hình thức của một buổi: không có ANY như LearningMode (D89). */
+export type MeetingMode = 'ONLINE' | 'OFFLINE'
+export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED'
+export type RequestRole = 'SENDER' | 'RECEIVER'
+
+/** Body của POST /api/requests (D89). Không có senderId: người gửi luôn là chủ của vé. */
+export type CreateRequestBody = {
+  receiverId: number
+  type: RequestType
+  senderLearnSkillId: number | null
+  // ONE_WAY phải để null; TWO_WAY bắt buộc có (D89 bước 2).
+  receiverLearnSkillId: number | null
+  // Chuỗi ISO-8601 có múi giờ (D88), ví dụ "2026-11-24T12:00:00.000Z".
+  proposedStartAt: string | null
+  durationMinutes: number | null
+  mode: MeetingMode
+  locationOrLink: string
+  message: string
+}
+
+export type PersonRef = { id: number; fullName: string }
+export type SkillRef = { id: number; name: string }
+
+/**
+ * Một yêu cầu như người xem thấy (RequestItem, bảng 2.2). Mọi khóa luôn có, không có giá trị thì null.
+ * locationOrLink là null khi người nhận xem yêu cầu chưa ACCEPTED (Q1, D91).
+ */
+export type RequestItem = {
+  id: number
+  type: RequestType
+  status: RequestStatus
+  myRole: RequestRole
+  sender: PersonRef
+  receiver: PersonRef
+  senderLearnSkill: SkillRef
+  receiverLearnSkill: SkillRef | null
+  proposedStartAt: string
+  durationMinutes: number
+  mode: MeetingMode
+  locationOrLink: string | null
+  message: string | null
+  responseNote: string | null
+  createdAt: string
+  respondedAt: string | null
+  sessionId: number | null
+}

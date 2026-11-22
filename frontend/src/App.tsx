@@ -10,11 +10,12 @@ import { LoginPage } from './pages/LoginPage'
 import { MatchesPage } from './pages/MatchesPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SearchPage } from './pages/SearchPage'
+import { SendRequestPage } from './pages/SendRequestPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { UserProfilePage } from './pages/UserProfilePage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
-/** Bản đồ đường dẫn → màn hình (kế hoạch tuần 3 bước 10, tuần 4 bước 10, tuần 5 bước 10). */
+/** Bản đồ đường dẫn → màn hình (kế hoạch tuần 3 bước 10, tuần 4 bước 10, tuần 5 bước 10, tuần 6 bước 9). */
 export default function App() {
   return (
     <BrowserRouter>
@@ -31,6 +32,8 @@ export default function App() {
               <Route path="/skills" element={<SkillsPage />} />
               <Route path="/matches" element={<MatchesPage />} />
               <Route path="/users/:id" element={<UserProfilePage />} />
+              {/* S07 (D95): trang riêng, mở từ nút "Gửi yêu cầu" ở S05, S06; ?type=TWO_WAY chọn sẵn loại. */}
+              <Route path="/users/:id/request" element={<SendRequestPage />} />
               <Route path="/search" element={<SearchPage />} />
             </Route>
 

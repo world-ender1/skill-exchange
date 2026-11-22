@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { MonitorSmartphone } from 'lucide-react'
-import { useParams } from 'react-router'
+import { MonitorSmartphone, Send } from 'lucide-react'
+import { Link, useParams } from 'react-router'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { apiRequest, toError } from '../api/client'
-import type { PublicProfile } from '../api/types'
+import type { MyProfile, PublicProfile } from '../api/types'
 import { slotKey } from '../availability'
 import { AvailabilityGrid } from '../components/AvailabilityGrid'
 import { Notice } from '../components/Notice'
@@ -16,19 +17,26 @@ import { formatLevel, formatMode } from '../format'
 /**
  * S06 – Hồ sơ người khác (TK 4.3, 6.1). Chỉ thông tin công khai: API không trả email, số điện thoại,
  * liên hệ (NFR-02), nên trang này không có gì riêng tư để "lỡ" hiện ra.
- * Nút "Gửi yêu cầu" thêm ở bước 9 tuần 6 (phần đầu trang đã chừa chỗ); phần đánh giá ở tuần 7.
+ * Nút "Gửi yêu cầu" ở thẻ đầu trang mở S07 (D95, tuần 6 bước 9); phần đánh giá ở tuần 7.
  */
 export function UserProfilePage() {
   // useParams: đọc phần ":id" của đường dẫn /users/:id.
   const { id } = useParams()
-  const [result, setResult] = useState<{ id: string; profile?: PublicProfile; error?: string } | null>(null)
+  const [result, setResult] = useState<
+    { id: string; profile?: PublicProfile; myId?: number; error?: string } | null
+  >(null)
 
   useEffect(() => {
     let cancelled = false
     // encodeURIComponent: id lấy từ URL người dùng gõ được, không ghép thô vào đường dẫn API.
-    apiRequest<PublicProfile>(`/api/users/${encodeURIComponent(id ?? '')}`)
-      .then((profile) => {
-        if (!cancelled) setResult({ id: id ?? '', profile })
+    // /api/me gọi song song để biết đây có phải hồ sơ của chính mình (ẩn nút "Gửi yêu cầu", D95):
+    // trang trong RequireStudent không nhận được thông tin người dùng từ Layout.
+    Promise.all([
+      apiRequest<PublicProfile>(`/api/users/${encodeURIComponent(id ?? '')}`),
+      apiRequest<MyProfile>('/api/me'),
+    ])
+      .then(([profile, me]) => {
+        if (!cancelled) setResult({ id: id ?? '', profile, myId: me.id })
       })
       .catch((e: unknown) => {
         // 404 (không có, bị khóa, admin...) và 400 (/users/abc) đều hiện detail của backend.
@@ -63,6 +71,16 @@ export function UserProfilePage() {
                 Hình thức học: {formatMode(profile.learningMode)}
               </span>
             </div>
+            {/* D95: luôn hiện, trừ hồ sơ của chính mình. Đã có yêu cầu đang chờ thì S07 hiện lỗi 409 khi gửi.
+                Không truyền ?type: mở từ S06 thì loại mặc định là ONE_WAY. */}
+            {profile.id !== result.myId && (
+              <Button asChild>
+                <Link to={`/users/${profile.id}/request`}>
+                  <Send aria-hidden="true" />
+                  Gửi yêu cầu
+                </Link>
+              </Button>
+            )}
           </div>
           {profile.bio
             ? <p className="break-words whitespace-pre-line">{profile.bio}</p>

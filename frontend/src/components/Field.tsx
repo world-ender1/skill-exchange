@@ -12,7 +12,8 @@ type FieldProps = {
   label: string
   /** Lỗi của ô này lấy từ errors[] của backend (D24); không có thì không hiện gì. */
   error?: string
-  hint?: string
+  /** Gợi ý dưới ô; có thể chứa link (ví dụ S07 trỏ tới trang Kỹ năng). */
+  hint?: ReactNode
   /** Lớp thêm cho khung ngoài, ví dụ "sm:col-span-2" để ô chiếm hai cột của lưới form. */
   className?: string
   /** Đúng một ô nhập (input, select, textarea...). */

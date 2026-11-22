@@ -249,7 +249,25 @@ Quy ước chung:
 - **Tạo:** trang S07 theo đường dẫn của Q8. **Sửa:** `MatchCard.tsx`, `UserProfilePage.tsx` (nút "Gửi yêu cầu"; ẩn khi `hasPendingRequest`, giữ badge "Đã gửi yêu cầu"), `App.tsx`, `api/types.ts`.
 - **Ca:** TC356–TC358 (thủ công).
 - **Chốt ở bước này:** chọn loại bằng `RadioGroup`; ngày và giờ dùng ô `date`, `time` của trình duyệt (không thêm thư viện lịch); chip khung trùng theo Q7; hình thức chỉ `ONLINE`/`OFFLINE`; dưới ô địa điểm/link ghi ai được xem theo Q1. Gửi xong chuyển sang S08, tab "Đã gửi". Lỗi theo ô hiện dưới ô (D24).
-- **Tự kiểm:** gửi yêu cầu hai chiều từ S05 ở 360 px; gửi trùng nhận thông báo 409.
+  - `RadioGroup` sinh bằng CLI như các component khác (`npx shadcn@4.23.0 add radio-group`), thành `src/components/ui/radio-group.tsx`; không thêm gói npm (`radix-ui` đã có).
+  - S07 tải song song `GET /api/users/{id}`, `/api/me/learn-skills`, `/api/me/availability`. Tải lỗi (kể cả 404 người nhận) thì hiện `detail` kèm nút "Thử lại" (`LoadError`).
+  - Tiêu đề "Gửi yêu cầu trao đổi tới {họ tên}" như wireframe. Loại: "Hai chiều" và "Một chiều", mỗi nút kèm một dòng giải thích. Đổi sang `ONE_WAY` thì ẩn ô "Bạn sẽ dạy" và không gửi `receiverLearnSkillId`; giá trị đã chọn vẫn giữ, đổi lại `TWO_WAY` thì hiện lại. `?type=` khác `TWO_WAY` (hoặc không có) coi là `ONE_WAY`.
+  - Hai ô kỹ năng là `NativeSelect` như ô "Hình thức học" của S03, dòng đầu "Chọn kỹ năng" (rỗng). Danh sách rỗng thì dưới ô có gợi ý: của tôi trỏ tới `/skills`; của người nhận ghi "Người này chưa khai báo kỹ năng muốn học, hãy gửi yêu cầu một chiều".
+  - Giá trị mặc định lấy theo wireframe: thời lượng 90 phút, hình thức "Trực tuyến"; ngày và giờ để trống. Nhãn hình thức dùng `formatMode` ("Trực tuyến", "Gặp trực tiếp") như S03, S05. Ô thời lượng là `number` (min 15, max 480, bước 15); ô trống gửi `null` để backend báo lỗi theo ô.
+  - Ngày và giờ ghép thành giờ máy người dùng rồi gửi dạng ISO giờ UTC (`toISOString()`, D88 nhận cả `Z`). Thiếu một trong hai thì gửi `null`. Lỗi của `proposedStartAt` hiện dưới cụm ngày giờ. Ô ngày có `min` là hôm nay; "phải ở tương lai" vẫn do backend kiểm.
+  - Chip khung trùng: giao của hai lịch rảnh, xếp theo thứ rồi buổi, ghi như `formatSlot` ("Tối T3"). Không có buổi trùng thì ghi "Không có buổi rảnh trùng". Phần tính ngày giờ của chip nằm trong hàm thuần ở `src/requestTime.ts`, để chạy thử được bằng Node mà không cần trình duyệt.
+  - Ô địa điểm/link luôn có nhãn "Địa điểm hoặc link"; chữ mờ đổi theo hình thức. Dòng gợi ý dưới ô dùng câu của D95 "Người nhận chỉ thấy sau khi chấp nhận" (wireframe cũ ghi "Chỉ hiển thị cho ... sau khi chấp nhận"; D95 mới hơn nên theo D95).
+  - Lỗi: `detail` hiện ở hộp lỗi đầu form (409 trùng, 400 gửi cho chính mình, "Dữ liệu không hợp lệ" khi có lỗi theo ô), lỗi theo ô hiện dưới đúng ô như S03.
+  - Nút "Hủy" quay lại trang trước (`navigate(-1)`); mở S07 bằng cách gõ thẳng đường dẫn (không có trang trước) thì về S06 của người nhận.
+  - S06 biết "hồ sơ của chính mình" bằng cách gọi thêm `GET /api/me` song song với hồ sơ: các trang trong `RequireStudent` không nhận được context từ `Layout`. Nút đặt trong thẻ đầu trang.
+  - Thẻ S05 dùng `match.type` để biết đang ở tab nào: thẻ `TWO_WAY` thêm `?type=TWO_WAY`.
+  - Trước khi có S08 (bước 10), `/requests?box=sent` rơi vào route `*` và về trang chính. Vì vậy phần "thấy yêu cầu `PENDING`" của TC358 kiểm lại ở bước 10.
+- **Tự kiểm:** gửi yêu cầu hai chiều từ S05 ở 360 px; gửi trùng nhận thông báo 409. Khi làm: `npm run build` (gồm `tsc -b`) và `npm run lint` sạch. Phần ngày giờ của TC357 chạy bằng Node (`TZ=Asia/Ho_Chi_Minh`, gọi thẳng `src/requestTime.ts`): khung trùng của An và Bình chỉ còn "Tối T3"; thứ Ba 20:00 → thứ Ba tuần sau 19:00; thứ Hai → thứ Ba ngày mai; thứ Ba 18:59 → hôm nay; đúng 19:00 → tuần sau; ghép ô ngày giờ ra ISO giờ UTC. Làm hỏng rồi trả lại:
+  - coi "bằng 19:00" là còn ở tương lai → đỏ ở ca đúng 19:00;
+  - ghép ngày giờ như giờ UTC (thêm `Z`) → đỏ (`19:00Z` thay vì `12:00Z`);
+  - `localDateString` dùng `toISOString()` → đỏ (00:30 ngày 1/12 giờ Việt Nam thành `2026-11-30`);
+  - bỏ `% 7` khi đổi `dayOfWeek` → vẫn xanh: đột biến tương đương, vì `daysAhead` đã lấy `% 7` nên thứ 7 và 0 cho cùng kết quả.
+  - Phần cần trình duyệt (TC356–TC358, 360 px, hộp lỗi 409) người dùng tự làm; `npm run lint` từng báo `react(purity)` khi gọi `new Date()` lúc vẽ, đã sửa bằng `useState(() => ...)` cho "hôm nay" và đọc đồng hồ trong `onClick` của chip.
 - **Commit:** `feat(frontend): add send request page`
 
 ### Bước 10 – S08 Hộp yêu cầu (Q10)
