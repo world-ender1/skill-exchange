@@ -13,7 +13,7 @@ Nguồn: `git log` tuần 6, `Quyet_dinh_tuan_6.md` (D78–D96, bảng 2.1–2.3
 | Quyền, dữ liệu riêng tư, thao tác đồng thời (D87, D91, D92, D94) | 4.5 | Sửa 3 ý, thêm 2 ý |
 | Thư viện giao diện | 5.1 | Sửa dòng "Frontend" của Bảng 5.1 |
 | Package `exchange`, màn hình mới | 5.2 | Thay Bảng 5.2; thêm dòng tuần 6 vào Bảng 5.3 |
-| Yêu cầu, phiên, báo cáo; giao diện mới; S07–S09 | 5.3 | Hình 5.12–5.15; ghi chú về Hình 5.1–5.11 |
+| Yêu cầu, phiên, báo cáo; giao diện mới; S07–S09 | 5.3 | Hình 5.12–5.15 mới; thay ảnh Hình 5.1–5.8, 5.10, 5.11 bằng ảnh chụp lại (`*_t6.png`) |
 | `kiem_thu/README.md` | 6.1, 6.2 | Bảng 6.8, 6.9 mới, Hình 6.5; **dời số 8 bảng của mục 6.3** |
 | Điều chỉnh so với báo cáo trước | Báo cáo tuần 6 (`Bao_cao_tuan_6.md`, mục 4) | Báo cáo chính sửa thẳng ở các mục trên |
 | Hạn chế mới; Reputation đã có dữ liệu phiên | 7.2 | Thay 1 ý, thêm 5 ý |
@@ -189,6 +189,14 @@ Thêm sau đoạn tuần 5:
 
 ## 5.3. Cài đặt các chức năng chính (bổ sung)
 
+Sửa ba câu đã có ở mục 5.3, vì ảnh đã chụp lại và S05 đã có nút "Gửi yêu cầu":
+
+- Đoạn "Hình 5.1–5.4 là giao diện bốn màn hình đã làm...": thêm vào cuối "; ảnh chụp lại ở tuần 6 với giao diện mới, cùng dữ liệu."
+- Đoạn "Giao diện S05, S06, S10": thay câu "Nút "Gửi yêu cầu" chưa có, sẽ thêm ở tuần 6." bằng "Từ tuần 6, thẻ có nút "Gửi yêu cầu" mở S07 (ẩn khi đã có yêu cầu đang chờ)."
+- Câu "Hình 5.6–5.8 chụp khi chạy thật với tài khoản demo.": thêm "(chụp lại ở tuần 6 với giao diện mới, cùng dữ liệu)".
+
+Thêm sau Hình 5.11 (trước mục 5.4):
+
 **Yêu cầu trao đổi và phiên (FR-05, FR-06).** Package `exchange` gồm ba Entity (`ExchangeRequest`, `ExchangeSession`, `IncidentReport`), hai service (`ExchangeRequestService`, `ExchangeSessionService`), hai controller và các DTO. Hình 3.2, 3.3 là hai máy trạng thái; mỗi thao tác đổi trạng thái kiểm người gọi, vai trò, trạng thái và thời điểm ở service theo bảng trạng thái × hành động của quyết định tuần 6, rồi mới gọi phương thức đổi trạng thái của Entity. Các điểm đáng chú ý:
 
 - **Chấp nhận và tạo phiên trong một transaction.** `accept` đổi yêu cầu sang `ACCEPTED`, ghi xuống CSDL ngay để lỗi khóa lạc quan (nếu có) nổ ra trước, rồi tạo phiên chép thời điểm, thời lượng, hình thức, địa điểm từ yêu cầu. Lệnh tạo phiên lỗi thì cả lệnh đổi trạng thái yêu cầu cũng bị hoàn tác; có test chứng minh (chèn trước một phiên trùng `request_id` để lệnh tạo phiên chắc chắn lỗi).
@@ -198,7 +206,7 @@ Thêm sau đoạn tuần 5:
 
 **Báo cáo sự cố (FR-09, phần người dùng).** Báo cáo chỉ gửi được khi phiên đang `WAITING_CONFIRMATION`; khi có báo cáo đang mở, lệnh xác nhận hoàn thành bị từ chối và chỉ quản trị viên chốt được phiên (tuần 7). Lệnh gửi báo cáo đọc phiên kèm khóa lạc quan ép tăng `version` (mục 4.5). Chi tiết phiên cho biết có báo cáo đang mở, do ai gửi, lúc nào, nhưng không trả lý do: lý do chỉ quản trị viên đọc.
 
-**Giao diện mới (D78–D85).** Tám màn hình đã có (S01–S06, S10, A01) chuyển sang shadcn/ui trong cùng một đợt, trên nhánh riêng, vì kiểu mặc định của Tailwind (Preflight) làm vỡ CSS cũ ngay khi cài. Đường dẫn, lời gọi API, câu thông báo không đổi. Ô chọn trình độ, hình thức học dùng thẻ `<select>` thật thay vì `Select` của Radix, để nhãn nối được với ô và điện thoại mở bộ chọn của hệ điều hành. Ô thêm kỹ năng ở S04 là ô gõ để lọc, không phân biệt dấu ("tieng" ra "Tiếng Anh"). Hình 5.1–5.8, 5.10, 5.11 chụp giao diện trước tuần 6; chức năng và dữ liệu trên các màn hình đó không đổi.
+**Giao diện mới (D78–D85).** Tám màn hình đã có (S01–S06, S10, A01) chuyển sang shadcn/ui trong cùng một đợt, trên nhánh riêng, vì kiểu mặc định của Tailwind (Preflight) làm vỡ CSS cũ ngay khi cài. Đường dẫn, lời gọi API, câu thông báo không đổi. Ô chọn trình độ, hình thức học dùng thẻ `<select>` thật thay vì `Select` của Radix, để nhãn nối được với ô và điện thoại mở bộ chọn của hệ điều hành. Ô thêm kỹ năng ở S04 là ô gõ để lọc, không phân biệt dấu ("tieng" ra "Tiếng Anh"). Hình 5.1–5.8, 5.10, 5.11 chụp lại bằng giao diện mới, cùng dữ liệu demo như bản trước (Hình 5.6 vẫn khớp Bảng 5.4: mức phù hợp 79.7%, D = 0.688 và 0.925); ảnh mới ở `docs/hinh/*_t6.png`, ảnh cũ giữ nguyên cho các báo cáo đã nộp.
 
 **Màn hình S07–S09 (D95).** Phần luật của giao diện viết thành hàm thuần (`requestTime.ts`, `sessionView.ts`) để kiểm bằng Node mà không cần trình duyệt; quyền vẫn do backend kiểm, giao diện chỉ ẩn nút.
 
