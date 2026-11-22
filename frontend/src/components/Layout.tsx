@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, LogOut, Search, Sparkles, Tags, User } from 'lucide-react'
+import { BookOpen, Inbox, LogOut, Search, Sparkles, Tags, User } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
@@ -27,12 +27,13 @@ import { PageSkeleton } from './PageSkeleton'
 
 type NavItem = { to: string; label: string; icon: LucideIcon }
 
-/** D81: mục menu và icon theo vai trò. Yêu cầu, Phiên thêm ở bước 10, 11 khi có S08, S09. */
+/** D81: mục menu và icon theo vai trò. Không có số yêu cầu đang chờ (D86). Phiên thêm ở bước 11 khi có S09. */
 const STUDENT_NAV: NavItem[] = [
   { to: '/profile', label: 'Hồ sơ', icon: User },
   { to: '/skills', label: 'Kỹ năng', icon: BookOpen },
   { to: '/matches', label: 'Gợi ý', icon: Sparkles },
   { to: '/search', label: 'Tìm kiếm', icon: Search },
+  { to: '/requests', label: 'Yêu cầu', icon: Inbox },
 ]
 const ADMIN_NAV: NavItem[] = [
   { to: '/admin/skills', label: 'Danh mục kỹ năng', icon: Tags },

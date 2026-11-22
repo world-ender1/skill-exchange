@@ -1,4 +1,4 @@
-// Cách hiển thị dùng chung cho S05, S06, S10 (kế hoạch tuần 4, bước 10).
+// Cách hiển thị dùng chung cho S05, S06, S10 (kế hoạch tuần 4, bước 10) và S08, S09 (tuần 6).
 import type { AvailabilitySlot, LearningMode, Period } from './api/types'
 
 /**
@@ -44,4 +44,20 @@ const LEVEL_LABELS = ['Mới bắt đầu', 'Cơ bản', 'Khá', 'Thành thạo'
 /** 3 → "3 – Khá" (như S04). */
 export function formatLevel(level: number): string {
   return `${level} – ${LEVEL_LABELS[level - 1] ?? ''}`
+}
+
+/**
+ * Thời điểm API trả (ISO giờ UTC, D88) → giờ máy người dùng, ví dụ "2026-11-24T12:00:00Z" → "19:00, T3 24/11/2026"
+ * ở Việt Nam (S08, S09). Ghép tay thay vì dùng Intl để cách ghi thứ khớp "Tối T3" của formatSlot.
+ */
+export function formatDateTime(iso: string): string {
+  const value = new Date(iso)
+  // getDay(): 0..6 = CN..T7, còn SHORT_DAYS bắt đầu từ T2 → dời một bậc.
+  const day = SHORT_DAYS[(value.getDay() + 6) % 7]
+  const time = `${pad(value.getHours())}:${pad(value.getMinutes())}`
+  return `${time}, ${day} ${pad(value.getDate())}/${pad(value.getMonth() + 1)}/${value.getFullYear()}`
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, '0')
 }

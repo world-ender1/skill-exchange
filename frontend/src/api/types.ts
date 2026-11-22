@@ -211,3 +211,9 @@ export type RequestItem = {
   respondedAt: string | null
   sessionId: number | null
 }
+
+/** Response của POST /api/requests/{id}/accept (D90): chỉ hai mã, đủ để mở phiên vừa tạo. */
+export type AcceptResponse = {
+  requestId: number
+  sessionId: number
+}

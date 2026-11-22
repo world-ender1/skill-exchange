@@ -9,13 +9,14 @@ import { AdminSkillsPage } from './pages/AdminSkillsPage'
 import { LoginPage } from './pages/LoginPage'
 import { MatchesPage } from './pages/MatchesPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { RequestsPage } from './pages/RequestsPage'
 import { SearchPage } from './pages/SearchPage'
 import { SendRequestPage } from './pages/SendRequestPage'
 import { SkillsPage } from './pages/SkillsPage'
 import { UserProfilePage } from './pages/UserProfilePage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
-/** Bản đồ đường dẫn → màn hình (kế hoạch tuần 3 bước 10, tuần 4 bước 10, tuần 5 bước 10, tuần 6 bước 9). */
+/** Bản đồ đường dẫn → màn hình (kế hoạch tuần 3 bước 10, tuần 4 bước 10, tuần 5 bước 10, tuần 6 bước 9–10). */
 export default function App() {
   return (
     <BrowserRouter>
@@ -35,6 +36,8 @@ export default function App() {
               {/* S07 (D95): trang riêng, mở từ nút "Gửi yêu cầu" ở S05, S06; ?type=TWO_WAY chọn sẵn loại. */}
               <Route path="/users/:id/request" element={<SendRequestPage />} />
               <Route path="/search" element={<SearchPage />} />
+              {/* S08 (D95, Q10): hai tab theo ?box=received|sent; không có trang chi tiết yêu cầu riêng. */}
+              <Route path="/requests" element={<RequestsPage />} />
             </Route>
 
             <Route element={<RequireAdmin />}>
