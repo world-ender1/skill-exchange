@@ -14,6 +14,9 @@ target/
 node_modules/
 dist/
 
+# Python
+__pycache__/
+
 # Log và file hệ điều hành
 *.log
 .DS_Store
@@ -24,3 +27,8 @@ hoc_vibe_coding/
 
 # Skill Claude Code của dự án: chỉ giữ trên máy
 .claude/skills/
+
+# Tài liệu làm việc cá nhân: chỉ giữ trên máy
+/CLAUDE.md
+/docs/harness-log.md
+/docs/To_chuc_ket_qua.md
