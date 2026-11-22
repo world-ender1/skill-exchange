@@ -294,6 +294,62 @@ class ExperimentRunnerTest {
         return result.stream().mapToDouble(Double::doubleValue).toArray();
     }
 
+    // ---------- D97–D100: giai đoạn bổ sung ----------
+
+    @Test
+    @DisplayName("D97–D100 Giai đoạn bổ sung bản nhỏ: đúng phương án; có chỉ số trong nhóm; B1, P và phép P − B1 gộp trùng giai đoạn báo cáo; kiểm định gộp và từng seed")
+    void d100_supplementPhase() throws IOException {
+        Path dir = runInto("bo_sung", ExperimentConfig.boSung(List.of(3L, 4L), 50, List.of(50), 2000));
+        Path report = runInto("bao_cao_doi_chieu", smallReport(List.of(3L, 4L), WeightSets.MAC_DINH, ScheduleFitFormula.MIN));
+        List<Map<String, String>> metrics = readCsv(dir.resolve("metrics.csv"));
+
+        assertThat(column(metrics, "vai_tro_seed")).containsExactly("bo_sung");
+        assertThat(column(metrics, "phuong_an")).containsExactlyInAnyOrder("B1", "P", "P_mot_ds",
+                "P_bo_level_tl", "P_bo_schedule_tl", "P_bo_mode_tl");
+        for (String name : List.of("B1", "P", "P_mot_ds")) {
+            for (String chiSo : List.of("ndcg_at_5_loai_suy_bien_hai_chieu", "ndcg_at_5_loai_suy_bien_mot_chieu",
+                    "precision_at_5_nghiem_ngat_hai_chieu", "precision_at_5_nghiem_ngat_mot_chieu")) {
+                assertThat(rows(metrics, r -> r.get("phuong_an").equals(name) && r.get("chi_so").equals(chiSo)))
+                        .as(name + " " + chiSo).hasSize(2);
+            }
+        }
+
+        // Cùng dữ liệu, cùng lõi: chỉ số đầy đủ của B1, P trùng giai đoạn báo cáo từng ô.
+        List<Map<String, String>> reportMetrics = readCsv(report.resolve("metrics.csv"));
+        for (String name : List.of("B1", "P")) {
+            for (Map<String, String> row : rows(metrics, r -> r.get("phuong_an").equals(name)
+                    && CHI_SO_DAY_DU.contains(r.get("chi_so")))) {
+                List<Map<String, String>> same = rows(reportMetrics, r -> r.get("seed").equals(row.get("seed"))
+                        && r.get("n").equals(row.get("n")) && r.get("muc_nhieu").equals(row.get("muc_nhieu"))
+                        && r.get("phuong_an").equals(name) && r.get("chi_so").equals(row.get("chi_so")));
+                assertThat(same).as(name + " " + row.get("chi_so")).hasSize(1);
+                assertThat(row.get("gia_tri")).as(name + " " + row.get("chi_so")).isEqualTo(same.get(0).get("gia_tri"));
+            }
+        }
+
+        // N = 50 có 3 phép, chia theo tỉ lệ 3 phép, trong nhóm 4 phép: 10 phép × 2 chỉ số × (gộp + 2 seed).
+        List<Map<String, String>> tests = readCsv(dir.resolve("kiem_dinh.csv"));
+        assertThat(tests).hasSize(60);
+        assertThat(column(tests, "seeds")).containsExactlyInAnyOrder("3;4", "3", "4");
+        // Phép P − B1 gộp hai seed trùng từng ô với giai đoạn báo cáo (cùng người, cùng Random).
+        List<Map<String, String>> reportTests = readCsv(report.resolve("kiem_dinh.csv"));
+        for (String chiSo : List.of("ndcg_at_5", "precision_at_5_nghiem_ngat")) {
+            Map<String, String> mine = rows(tests, r -> r.get("phuong_an").equals("P") && r.get("so_voi").equals("B1")
+                    && r.get("chi_so").equals(chiSo) && r.get("seeds").equals("3;4")).get(0);
+            Map<String, String> theirs = rows(reportTests, r -> r.get("so_voi").equals("B1")
+                    && r.get("chi_so").equals(chiSo)).get(0);
+            assertThat(mine).as(chiSo).isEqualTo(theirs);
+        }
+        // Mỗi phép: số cặp của các seed riêng cộng lại bằng phép gộp.
+        for (Map<String, String> pooled : rows(tests, r -> r.get("seeds").equals("3;4"))) {
+            int sum = rows(tests, r -> !r.get("seeds").contains(";") && r.get("phuong_an").equals(pooled.get("phuong_an"))
+                    && r.get("so_voi").equals(pooled.get("so_voi")) && r.get("chi_so").equals(pooled.get("chi_so")))
+                    .stream().mapToInt(r -> Integer.parseInt(r.get("so_cap"))).sum();
+            assertThat(sum).as(pooled.get("phuong_an") + " − " + pooled.get("so_voi") + " " + pooled.get("chi_so"))
+                    .isEqualTo(Integer.parseInt(pooled.get("so_cap")));
+        }
+    }
+
     // ---------- D61, D70 (d): hàm phụ ----------
 
     @Test

@@ -39,6 +39,31 @@ public final class WeightSets {
     /** Ba bộ bỏ thành phần, theo thứ tự LevelFit, ScheduleFit, ModeFit. */
     public static final List<Named> ABLATION = List.of(BO_LEVEL, BO_SCHEDULE, BO_MODE);
 
+    // ---------- Bỏ từng thành phần, chia lại theo tỉ lệ (D98, bổ sung theo nhận xét báo cáo tuần 5) ----------
+    // Mỗi trọng số còn lại chia cho (1 − trọng số bị bỏ), nên tỷ lệ giữa các thành phần còn lại giữ nguyên như
+    // bộ mặc định. Hiệu đo được khi so với P chỉ còn một thay đổi: bỏ thành phần đó (cách chia đều lẫn hai thay đổi).
+
+    public static final Named BO_LEVEL_TI_LE = proportionalWithout("P_bo_level_tl", 1);
+    public static final Named BO_SCHEDULE_TI_LE = proportionalWithout("P_bo_schedule_tl", 2);
+    public static final Named BO_MODE_TI_LE = proportionalWithout("P_bo_mode_tl", 3);
+
+    /** Ba bộ bỏ thành phần chia theo tỉ lệ, cùng thứ tự với ABLATION. */
+    public static final List<Named> ABLATION_PROPORTIONAL = List.of(BO_LEVEL_TI_LE, BO_SCHEDULE_TI_LE, BO_MODE_TI_LE);
+
+    /**
+     * Bộ mặc định bỏ thành phần thứ index (0 = SkillFit, ..., 4 = Reputation), chia lại theo tỉ lệ.
+     * Tính từ MatchingWeights.DEFAULT chứ không chép số, để đổi bộ mặc định thì bộ này đổi theo.
+     */
+    static Named proportionalWithout(String phuongAn, int index) {
+        MatchingWeights d = MatchingWeights.DEFAULT;
+        double[] w = {d.skillFit(), d.levelFit(), d.scheduleFit(), d.modeFit(), d.reputation()};
+        double rest = 1 - w[index];
+        for (int i = 0; i < w.length; i++) {
+            w[i] = i == index ? 0 : w[i] / rest;
+        }
+        return new Named(phuongAn, new MatchingWeights(w[0], w[1], w[2], w[3], w[4]));
+    }
+
     private WeightSets() {
     }
 }

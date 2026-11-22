@@ -292,6 +292,58 @@ class RankersTest {
     // ---------- Tiện ích ----------
 
     /** Mọi phương án của bước 6, có tên để thông báo lỗi chỉ ra phương án nào sai. */
+    @Test
+    @DisplayName("D97 N = 200, seed 1: P một danh sách có đúng tập ứng viên của P, xếp chung theo D chiều u học từ v, không đặt nhóm hai chiều lên trước")
+    void d97_pSingleListRanksByForwardD() {
+        List<MatchProfile> profiles = generatedProfiles(200, 1, NoiseLevel.MAC_DINH);
+        MatchingEngine engine = new MatchingEngine(new SkillSimilarity(CATALOG.relations()), MatchingWeights.DEFAULT);
+        Ranker single = rankers.pSingleList(MatchingWeights.DEFAULT);
+        Ranker p = rankers.p(MatchingWeights.DEFAULT, MIN);
+        int differentFromP = 0;
+
+        for (MatchProfile u : profiles) {
+            MatchingResult core = engine.match(u, profiles);
+            Map<Long, Double> forwardD = new LinkedHashMap<>();
+            for (MatchResult r : core.twoWay()) {
+                forwardD.put(r.userId(), r.forward().d());
+            }
+            for (MatchResult r : core.oneWay()) {
+                forwardD.put(r.userId(), r.forward().d());
+            }
+            List<Long> actual = single.rank(u, profiles);
+            List<Long> pList = p.rank(u, profiles);
+
+            assertThat(actual).as("người %d", u.userId()).containsExactlyInAnyOrderElementsOf(pList);
+            // Kiểm từng cặp kề nhau: D không tăng (dung sai 1e-9, D36); bằng điểm thì mã nhỏ trước.
+            for (int i = 1; i < actual.size(); i++) {
+                double before = forwardD.get(actual.get(i - 1));
+                double now = forwardD.get(actual.get(i));
+                assertThat(now).as("người %d, vị trí %d", u.userId(), i).isLessThanOrEqualTo(before + 1e-9);
+                if (Math.abs(before - now) <= 1e-9) {
+                    assertThat(actual.get(i)).isGreaterThan(actual.get(i - 1));
+                }
+            }
+            if (!actual.equals(pList)) {
+                differentFromP++;
+            }
+        }
+        // Có người mà thứ tự khác P: so P với P một danh sách mới đo được ảnh hưởng của việc chia hai nhóm.
+        assertThat(differentFromP).isPositive();
+    }
+
+    @Test
+    @DisplayName("D99 N = 200, seed 1: twoWayIds đúng là các ứng viên lõi xếp vào nhóm hai chiều, như nhau với mọi bộ trọng số")
+    void d99_twoWayIdsMatchCoreGroupForEveryWeightSet() {
+        List<MatchProfile> profiles = generatedProfiles(200, 1, NoiseLevel.MAC_DINH);
+        for (WeightSets.Named named : List.of(WeightSets.MAC_DINH, WeightSets.KY_NANG, WeightSets.BO_LEVEL, WeightSets.BO_LEVEL_TI_LE)) {
+            MatchingEngine engine = new MatchingEngine(new SkillSimilarity(CATALOG.relations()), named.weights());
+            for (MatchProfile u : profiles) {
+                assertThat(rankers.twoWayIds(u, profiles)).as("%s, người %d", named.phuongAn(), u.userId())
+                        .containsExactlyInAnyOrderElementsOf(ids(engine.match(u, profiles).twoWay()));
+            }
+        }
+    }
+
     private Map<String, Ranker> allRankers(long seed) {
         Map<String, Ranker> all = new LinkedHashMap<>();
         all.put("B0", rankers.b0());

@@ -131,6 +131,32 @@ class EvaluationMainTest {
         assertThat(config.selectedFormula()).isEqualTo(ScheduleFitFormula.JACCARD);
     }
 
+    @Test
+    @DisplayName("D97 Giai đoạn bổ sung chỉ cần --giai-doan, --ten; không nhận --trong-so, --schedule; dùng seed, N, quy mô, bootstrap như báo cáo")
+    void d97_parseSupplementPhase() {
+        Options options = EvaluationMain.parse(args("--giai-doan", "bo-sung", "--ten", "bo-sung"));
+
+        assertThat(options.phase()).isEqualTo(Phase.BO_SUNG);
+        assertThat(options.weights()).isNull();
+        assertThat(options.formula()).isNull();
+        ExperimentConfig config = EvaluationMain.configFor(options);
+        assertThat(config.phase()).isEqualTo(Phase.BO_SUNG);
+        assertThat(config.seeds()).containsExactly(3L, 4L, 5L);
+        assertThat(config.mainN()).isEqualTo(500);
+        assertThat(config.scaleNs()).containsExactly(50, 100, 500, 1000);
+        assertThat(config.bootstrapTimes()).isEqualTo(2000);
+        assertThatThrownBy(() -> EvaluationMain.parse(args("--giai-doan", "bo-sung", "--ten", "t", "--trong-so", "mac_dinh")))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("D97 Giai đoạn bổ sung cũng dừng khi backend/ có thay đổi chưa commit hoặc không rõ commit (số đi vào báo cáo)")
+    void d97_supplementNeedsCleanKnownCommit() {
+        assertThat(EvaluationMain.refusal(Phase.BO_SUNG, DIRTY)).isPresent();
+        assertThat(EvaluationMain.refusal(Phase.BO_SUNG, GitInfo.UNKNOWN)).isPresent();
+        assertThat(EvaluationMain.refusal(Phase.BO_SUNG, CLEAN)).isEmpty();
+    }
+
     // ---------- Điều kiện dừng và thư mục (D71, D72) ----------
 
     @Test

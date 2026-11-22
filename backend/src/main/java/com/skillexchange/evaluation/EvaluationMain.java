@@ -21,8 +21,9 @@ import com.skillexchange.evaluation.ResultWriter.RunInfo;
  * java -cp target/classes com.skillexchange.evaluation.EvaluationMain --giai-doan chon --ten chon-cau-hinh
  * java -cp target/classes com.skillexchange.evaluation.EvaluationMain --giai-doan bao-cao --ten bao-cao \
  *      --trong-so mac_dinh --schedule min
+ * java -cp target/classes com.skillexchange.evaluation.EvaluationMain --giai-doan bo-sung --ten bo-sung
  * </pre>
- * Thứ tự (kế hoạch tuần 5, bước 7): kiểm tham số → kiểm git (giai đoạn báo cáo) → tạo thư mục → chạy.
+ * Thứ tự (kế hoạch tuần 5, bước 7): kiểm tham số → kiểm git (giai đoạn báo cáo, bổ sung) → tạo thư mục → chạy.
  * Mọi lỗi trước khi tạo thư mục đều không để lại file nào.
  */
 public final class EvaluationMain {
@@ -31,10 +32,10 @@ public final class EvaluationMain {
     private static final Set<String> KNOWN_OPTIONS = Set.of("--giai-doan", "--ten", "--trong-so", "--schedule", "--out");
     /** Tên dùng làm một phần tên thư mục: chỉ chữ không dấu, số, "-", "_", để không thoát ra thư mục khác. */
     private static final String NAME_PATTERN = "[A-Za-z0-9_-]+";
-    private static final String USAGE = "Cách dùng: --giai-doan chon|bao-cao --ten <tên> "
+    private static final String USAGE = "Cách dùng: --giai-doan chon|bao-cao|bo-sung --ten <tên> "
             + "[--trong-so mac_dinh|ky_nang|lich|uy_tin --schedule min|jaccard|tran3 (chỉ bao-cao)] [--out <thư mục>]";
 
-    /** Tham số đã kiểm tra. weights, formula null ở giai đoạn chọn; out null = thư mục mặc định. */
+    /** Tham số đã kiểm tra. weights, formula null ở giai đoạn chọn và bổ sung; out null = thư mục mặc định. */
     record Options(Phase phase, String ten, WeightSets.Named weights, ScheduleFitFormula formula, Path out) {
     }
 
@@ -109,8 +110,9 @@ public final class EvaluationMain {
 
         WeightSets.Named weights = null;
         ScheduleFitFormula formula = null;
-        if (phase == Phase.CHON) {
-            // Giai đoạn chọn so mọi bộ và mọi công thức, nên chỉ định một cấu hình là nhầm giai đoạn.
+        if (phase != Phase.BAO_CAO) {
+            // Giai đoạn chọn so mọi bộ và mọi công thức; giai đoạn bổ sung dùng bộ mặc định (D97).
+            // Chỉ định một cấu hình ở hai giai đoạn này là nhầm giai đoạn.
             if (values.containsKey("--trong-so") || values.containsKey("--schedule")) {
                 throw new IllegalArgumentException("--trong-so và --schedule chỉ dùng ở giai đoạn bao-cao (D71)");
             }
@@ -123,9 +125,9 @@ public final class EvaluationMain {
         return new Options(phase, ten, weights, formula, out);
     }
 
-    /** Lý do không được chạy, nếu có. Chỉ giai đoạn báo cáo cần commit rõ ràng (D71, TC247). */
+    /** Lý do không được chạy, nếu có. Giai đoạn báo cáo và bổ sung cần commit rõ ràng vì số đi vào báo cáo (D71, TC247, D97). */
     static Optional<String> refusal(Phase phase, GitInfo git) {
-        if (phase != Phase.BAO_CAO) {
+        if (phase == Phase.CHON) {
             return Optional.empty();
         }
         if (!git.known()) {
@@ -139,9 +141,11 @@ public final class EvaluationMain {
 
     /** Ma trận đúng của D70 cho giai đoạn đã chọn. */
     static ExperimentConfig configFor(Options options) {
-        return options.phase() == Phase.CHON
-                ? ExperimentConfig.chon()
-                : ExperimentConfig.baoCao(options.weights(), options.formula());
+        return switch (options.phase()) {
+            case CHON -> ExperimentConfig.chon();
+            case BAO_CAO -> ExperimentConfig.baoCao(options.weights(), options.formula());
+            case BO_SUNG -> ExperimentConfig.boSung();
+        };
     }
 
     /** --out là chính thư mục lượt chạy; mặc định <backend>/../thuc_nghiem/ket_qua/<yyyy-MM-dd>_<tên> (D72). */
@@ -167,7 +171,7 @@ public final class EvaluationMain {
                 return phase;
             }
         }
-        throw new IllegalArgumentException("--giai-doan phải là chon hoặc bao-cao: " + value);
+        throw new IllegalArgumentException("--giai-doan phải là chon, bao-cao hoặc bo-sung: " + value);
     }
 
     /** Tên trên dòng lệnh của 4 bộ độ nhạy (D71). */

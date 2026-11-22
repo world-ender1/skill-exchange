@@ -282,6 +282,11 @@ public final class ResultWriter implements AutoCloseable {
         md.append("- `per_user.csv`: chỉ số của từng người dùng, dùng cho kiểm định theo cặp.\n");
         md.append("- `kiem_dinh.csv`: bootstrap và Wilcoxon theo cặp (D62); cột ở kế hoạch tuần 5, bước 7.\n");
         md.append("- `log.txt`: log lượt chạy, có giờ.\n");
+        if (config.phase() == Phase.BO_SUNG) {
+            md.append("\nGiai đoạn bổ sung theo nhận xét báo cáo tuần 5 (D97–D100): B1, P và P_mot_ds (P xếp một danh sách)")
+                    .append(" ở mọi quy mô; bỏ từng thành phần chia lại theo tỉ lệ (_tl); chỉ số trong từng nhóm hai chiều /")
+                    .append(" một chiều (_hai_chieu, _mot_chieu). kiem_dinh.csv có cả phép gộp các seed lẫn từng seed riêng.\n");
+        }
         if (config.phase() == Phase.BAO_CAO) {
             md.append("\nGhi chú latency (D61): đo trong bộ nhớ, đơn luồng, sau một lượt làm nóng. B0, B1, R chạy qua")
                     .append(" cùng lõi với P (D65) rồi lọc hoặc xếp lại, nên không phương án nào bỏ qua được phần việc")

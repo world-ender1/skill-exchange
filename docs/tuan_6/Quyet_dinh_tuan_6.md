@@ -167,3 +167,14 @@ Tổng hợp từ D87, D90, D93, D94; thay cho phụ lục của rà soát. Admi
 
 - Bước 0 của kế hoạch (xong 2026-11-18): D86–D96; sửa ngược spec 6.1–6.4, NFR-02, 7.1; TK 3.3, 3.6, 4.6–4.8, 4.10, 5.1, 5.2, 8; bộ kiểm thử ràng buộc tuần 2 (A19–A23); CLAUDE.md; rà soát (đợt 4a, 4b, phụ lục).
 - Ca kiểm thử tuần 6: `docs/tuan_6/kiem_thu/ca_kiem_thu.md`.
+
+## 4. Thực nghiệm bổ sung theo nhận xét báo cáo tuần 5
+
+Chốt 2026-11-22: người học chọn chạy thêm thực nghiệm cho các câu hỏi của giảng viên, thay vì chỉ trả lời bằng lập luận. Module `evaluation` vẫn không sửa lõi `matching` (D68), không dùng Spring, CSDL (D71).
+
+| Mã | Quyết định |
+| --- | --- |
+| D97 | **Giai đoạn bổ sung và "P một danh sách".** Thêm giai đoạn thứ ba `--giai-doan bo-sung` (vai_tro_seed `bo_sung`), cùng seed 3–5, N chính 500, quy mô 50 / 100 / 500 / 1.000, nhiễu mặc định và 2.000 lần bootstrap như giai đoạn báo cáo, nên số của B1, P lặp lại đúng lượt báo cáo (có test). Như giai đoạn báo cáo, chỉ chạy khi `backend/` đã commit sạch (D71), ghi vào thư mục kết quả mới (D72). Phương án mới `P_mot_ds`: chấm điểm như P (bộ mặc định, ScheduleFit của lõi) nhưng gộp hai nhóm và xếp chung theo D chiều u học từ v, như B1 xếp theo SkillFit. So P, `P_mot_ds`, B1 ở mọi quy mô tách được hai nguyên nhân có thể khiến P thua B1 ở N nhỏ: việc đặt nhóm hai chiều lên trước (D56) và công thức điểm. |
+| D98 | **Bỏ từng thành phần, chia lại theo tỉ lệ.** Ba phương án `P_bo_level_tl`, `P_bo_schedule_tl`, `P_bo_mode_tl`: thành phần bị bỏ bằng 0, mỗi trọng số còn lại chia cho (1 − trọng số bị bỏ), tính từ bộ mặc định chứ không chép số. Tỷ lệ giữa các thành phần còn lại giữ như bộ mặc định, nên hiệu so với P chỉ còn một thay đổi (cách chia đều của D66 lẫn hai thay đổi). D66 và các số cũ giữ nguyên. |
+| D99 | **Chỉ số trong từng nhóm.** Với B1, P, `P_mot_ds` ở N = 500: lọc danh sách của từng người theo nhóm lõi xếp ứng viên vào (hai chiều / một chiều; nhóm do lọc cứng hai chiều quyết định, không phụ thuộc trọng số nên như nhau với mọi phương án), giữ thứ tự. Tập lý tưởng của nhóm là chính các ứng viên của nhóm đó, nên chỉ số đo thứ tự xếp trong nhóm, không đo việc lọc ứng viên. Ghi `precision_at_5_nghiem_ngat_<nhóm>`, `ndcg_at_5_loai_suy_bien_<nhóm>` (bản (2) của D59); người không có ứng viên nào ở nhóm thì không tính cho nhóm đó. |
+| D100 | **Kiểm định của giai đoạn bổ sung, kiểm định bội.** Mỗi phép so sánh (ở mỗi quy mô: P − B1, `P_mot_ds` − B1, P − `P_mot_ds`; ở N = 500: P − từng phương án chia theo tỉ lệ; trong từng nhóm: P − B1, `P_mot_ds` − B1) chạy như D62 trên hai chỉ số, gộp người dùng của 3 seed, rồi **từng seed riêng** (mỗi seed là một bộ dữ liệu sinh độc lập). Hiệu chỉnh kiểm định bội bằng Holm–Bonferroni, tính trong `docs/ket_qua.md` từ cột `p` của `kiem_dinh.csv`: họ 1 = 8 phép của giai đoạn báo cáo (D62); họ 2 = các phép gộp 3 seed của giai đoạn bổ sung. Phép từng seed chỉ để xem kết quả có cùng chiều ở cả 3 bộ dữ liệu không, không hiệu chỉnh. |

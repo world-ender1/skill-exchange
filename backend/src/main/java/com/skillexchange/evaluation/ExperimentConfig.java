@@ -39,7 +39,9 @@ public record ExperimentConfig(
     /** Hai giai đoạn của D69, D70: tên trên dòng lệnh (D71) và giá trị cột vai_tro_seed (D72). */
     public enum Phase {
         CHON("chon", "chon"),
-        BAO_CAO("bao-cao", "bao_cao");
+        BAO_CAO("bao-cao", "bao_cao"),
+        /** Thực nghiệm bổ sung theo nhận xét báo cáo tuần 5 (D97): cùng seed với giai đoạn báo cáo. */
+        BO_SUNG("bo-sung", "bo_sung");
 
         private final String cliName;
         private final String vaiTroSeed;
@@ -85,6 +87,9 @@ public record ExperimentConfig(
                 throw new IllegalArgumentException("Seed đo latency " + latencySeed + " không có trong " + seeds);
             }
         }
+        if (phase == Phase.BO_SUNG && (scaleNs.isEmpty() || bootstrapTimes < 1)) {
+            throw new IllegalArgumentException("Giai đoạn bổ sung cần quy mô và số lần bootstrap");
+        }
     }
 
     /** Giai đoạn chọn của D70: seed 1–2, N = 500, nhiễu mặc định. */
@@ -95,6 +100,19 @@ public record ExperimentConfig(
     /** Giai đoạn báo cáo của D70: seed 3–5, cấu hình đã chọn ở D69. */
     public static ExperimentConfig baoCao(WeightSets.Named weights, ScheduleFitFormula formula) {
         return baoCao(BAO_CAO_SEEDS, MAIN_N, SCALE_NS, LATENCY_N, LATENCY_SEED, BOOTSTRAP_TIMES, weights, formula);
+    }
+
+    /**
+     * Giai đoạn bổ sung (D97): cùng seed, N chính, các quy mô và số lần bootstrap với giai đoạn báo cáo, để số của
+     * B1, P lặp lại đúng lượt báo cáo. Không đo latency; cấu hình đã chọn không dùng nên để mặc định.
+     */
+    public static ExperimentConfig boSung() {
+        return boSung(BAO_CAO_SEEDS, MAIN_N, SCALE_NS, BOOTSTRAP_TIMES);
+    }
+
+    public static ExperimentConfig boSung(List<Long> seeds, int mainN, List<Integer> scaleNs, int bootstrapTimes) {
+        return new ExperimentConfig(Phase.BO_SUNG, seeds, mainN, scaleNs, 0, 0, bootstrapTimes,
+                WeightSets.MAC_DINH, ScheduleFitFormula.MIN);
     }
 
     /** Giai đoạn chọn với seed và N tùy ý (dùng cho test). Các tham số chỉ dùng ở báo cáo để 0 hoặc mặc định. */

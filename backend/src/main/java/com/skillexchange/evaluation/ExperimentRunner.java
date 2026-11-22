@@ -40,6 +40,11 @@ public final class ExperimentRunner {
     private static final String B1 = "B1";
     private static final String R = "R";
     private static final String P = "P";
+    /** P chấm điểm như thường nhưng xếp chung một danh sách theo D chiều u học từ v (D97). */
+    private static final String P_MOT_DS = "P_mot_ds";
+    /** Hai nhóm của lõi, dùng ở chỉ số trong từng nhóm (D99). */
+    private static final String HAI_CHIEU = "hai_chieu";
+    private static final String MOT_CHIEU = "mot_chieu";
 
     private static final SkillCatalog CATALOG = SkillCatalog.V2;
     /** Thứ tự ghi các mức nhiễu (kế hoạch bước 7). */
@@ -49,8 +54,8 @@ public final class ExperimentRunner {
     /** Nhóm "khai ít khung" của D70 (d): lịch tự khai từ 1 đến 3 khung. */
     private static final int FEW_SLOTS_MAX = 3;
 
-    /** Các phần một ô cần ghi: chỉ số đầy đủ ((a)–(c)), latency ((e)), nhóm khai ít khung ((d)). */
-    private enum Part { CHI_SO, LATENCY, IT_KHUNG }
+    /** Các phần một ô cần ghi: chỉ số đầy đủ ((a)–(c)), latency ((e)), nhóm khai ít khung ((d)), từng nhóm hai chiều / một chiều (D99). */
+    private enum Part { CHI_SO, LATENCY, IT_KHUNG, NHOM }
 
     /** Một ô của một seed. parts là EnumSet sửa được, chỉ dùng trong lúc lập danh sách ô. */
     private record Cell(int n, NoiseLevel noise, String phuongAn, EnumSet<Part> parts) {
@@ -72,6 +77,11 @@ public final class ExperimentRunner {
     private final Map<String, PVariant> pVariants = new LinkedHashMap<>();
     /** Chỉ số từng người của các ô dùng cho kiểm định, gộp các seed theo thứ tự chạy (D62). */
     private final Map<String, List<UserMetrics>> forPairedTests = new LinkedHashMap<>();
+    /**
+     * Giai đoạn bổ sung: chỉ số từng người theo khóa "seed|n|phương án" (chỉ số trong nhóm thêm "@nhóm"), để kiểm định
+     * cả gộp các seed lẫn riêng từng seed (D100). Map riêng, không đụng forPairedTests nên giai đoạn báo cáo không đổi.
+     */
+    private final Map<String, List<UserMetrics>> supplementUsers = new LinkedHashMap<>();
 
     public ExperimentRunner(ExperimentConfig config, ResultWriter writer) {
         this.config = config;
@@ -85,6 +95,9 @@ public final class ExperimentRunner {
         }
         for (ScheduleFitFormula formula : List.of(ScheduleFitFormula.JACCARD, ScheduleFitFormula.TRAN_3)) {
             pVariants.put(scheduleVariantName(formula), new PVariant(MatchingWeights.DEFAULT, formula));
+        }
+        for (WeightSets.Named named : WeightSets.ABLATION_PROPORTIONAL) {
+            pVariants.put(named.phuongAn(), new PVariant(named.weights(), ScheduleFitFormula.MIN));
         }
     }
 
@@ -122,6 +135,9 @@ public final class ExperimentRunner {
         if (config.phase() == Phase.BAO_CAO) {
             writePairedTests();
         }
+        if (config.phase() == Phase.BO_SUNG) {
+            writeSupplementTests();
+        }
         writer.log("Xong");
     }
 
@@ -142,6 +158,21 @@ public final class ExperimentRunner {
             }
             add(cells, mainN, md, scheduleVariantName(ScheduleFitFormula.JACCARD), Part.CHI_SO);
             add(cells, mainN, md, scheduleVariantName(ScheduleFitFormula.TRAN_3), Part.CHI_SO);
+        } else if (config.phase() == Phase.BO_SUNG) {
+            // (f) D97: B1, P và P một danh sách ở mọi quy mô, để xem vì sao P thua B1 ở N nhỏ.
+            for (int n : config.scaleNs()) {
+                for (String name : List.of(B1, P, P_MOT_DS)) {
+                    add(cells, n, md, name, Part.CHI_SO);
+                }
+            }
+            // (g) D98: bỏ từng thành phần, chia lại theo tỉ lệ.
+            for (WeightSets.Named named : WeightSets.ABLATION_PROPORTIONAL) {
+                add(cells, mainN, md, named.phuongAn(), Part.CHI_SO);
+            }
+            // (h) D99: chỉ số trong từng nhóm hai chiều / một chiều.
+            for (String name : List.of(B1, P, P_MOT_DS)) {
+                add(cells, mainN, md, name, Part.NHOM);
+            }
         } else {
             // (a) bảng chính, cộng cấu hình đã chọn dưới dạng hai phương án riêng.
             for (String name : baseline) {
@@ -249,12 +280,18 @@ public final class ExperimentRunner {
                 writer.perUser(seed, cell.n(), cell.noise().ten(), cell.phuongAn(), m);
             }
             keepForPairedTests(cell, perUser);
+            if (config.phase() == Phase.BO_SUNG) {
+                supplementUsers.put(supplementKey(seed, cell.n(), cell.phuongAn()), perUser);
+            }
         }
         if (cell.parts().contains(Part.LATENCY)) {
             writeLatency(seed, data, cell, ranker);
         }
         if (cell.parts().contains(Part.IT_KHUNG)) {
             writeFewSlots(seed, data, cell, perUser, lists);
+        }
+        if (cell.parts().contains(Part.NHOM)) {
+            writeGroups(seed, data, cell, lists);
         }
     }
 
@@ -264,6 +301,7 @@ public final class ExperimentRunner {
             case B1 -> rankers.b1();
             // R xáo theo seed của bộ dữ liệu (D64).
             case R -> rankers.random(seed);
+            case P_MOT_DS -> rankers.pSingleList(MatchingWeights.DEFAULT);
             default -> {
                 PVariant variant = pVariants.get(phuongAn);
                 if (variant == null) {
@@ -387,26 +425,29 @@ public final class ExperimentRunner {
         for (String other : comparedWithP()) {
             List<UserMetrics> o = forPairedTests.get(other);
             checkSameUsers(p, o, other);
-            writePairedTest(seeds, other, "ndcg_at_5", p, o, UserMetrics::ndcgAt5);
-            writePairedTest(seeds, other, "precision_at_5_nghiem_ngat", p, o, UserMetrics::strictPrecisionAt5);
+            writePairedTest(config.mainN(), seeds, P, other, "ndcg_at_5", p, o, UserMetrics::ndcgAt5);
+            writePairedTest(config.mainN(), seeds, P, other, "precision_at_5_nghiem_ngat", p, o, UserMetrics::strictPrecisionAt5);
         }
     }
 
-    private void writePairedTest(String seeds, String other, String chiSo, List<UserMetrics> p, List<UserMetrics> o,
-            ToDoubleFunction<UserMetrics> metric) {
+    /**
+     * Một phép so sánh theo cặp, hiệu = a − b. Giai đoạn báo cáo gọi với a = P, n = mainN như trước nên kiem_dinh.csv
+     * của nó không đổi; giai đoạn bổ sung gọi với các cặp của D100.
+     */
+    private void writePairedTest(int n, String seeds, String a, String b, String chiSo, List<UserMetrics> la,
+            List<UserMetrics> lb, ToDoubleFunction<UserMetrics> metric) {
         List<Double> diffList = new ArrayList<>();
-        for (int i = 0; i < p.size(); i++) {
-            // Chỉ người thuộc bản (2) của D59. Tập lý tưởng không phụ thuộc phương án, nên xét theo P là đủ.
-            if (p.get(i).nonDegenerate()) {
-                diffList.add(metric.applyAsDouble(p.get(i)) - metric.applyAsDouble(o.get(i)));
+        for (int i = 0; i < la.size(); i++) {
+            // Chỉ người thuộc bản (2) của D59. Tập lý tưởng không phụ thuộc phương án, nên xét theo a là đủ.
+            if (la.get(i).nonDegenerate()) {
+                diffList.add(metric.applyAsDouble(la.get(i)) - metric.applyAsDouble(lb.get(i)));
             }
         }
         double[] diffs = diffList.stream().mapToDouble(Double::doubleValue).toArray();
-        int n = config.mainN();
         String noise = NoiseLevel.MAC_DINH.ten();
 
         if (diffs.length == 0) {
-            writer.test(new TestRow(n, noise, seeds, P, other, chiSo, 0, "", "", "", 0, "", "", "", "khong_co_nguoi_tinh"));
+            writer.test(new TestRow(n, noise, seeds, a, b, chiSo, 0, "", "", "", 0, "", "", "", "khong_co_nguoi_tinh"));
             return;
         }
         double sum = 0;
@@ -421,13 +462,112 @@ public final class ExperimentRunner {
         String low = ResultWriter.number(ci.low());
         String high = ResultWriter.number(ci.high());
         if (wilcoxon.isEmpty()) {
-            writer.test(new TestRow(n, noise, seeds, P, other, chiSo, diffs.length, mean, low, high,
+            writer.test(new TestRow(n, noise, seeds, a, b, chiSo, diffs.length, mean, low, high,
                     0, "", "", "", "khong_co_cap_khac_nhau"));
         } else {
             WilcoxonResult w = wilcoxon.get();
-            writer.test(new TestRow(n, noise, seeds, P, other, chiSo, diffs.length, mean, low, high, w.n(),
+            writer.test(new TestRow(n, noise, seeds, a, b, chiSo, diffs.length, mean, low, high, w.n(),
                     ResultWriter.number(w.wPlus()), ResultWriter.number(w.z()), ResultWriter.number(w.p()), ""));
         }
+    }
+
+    // ---------- Giai đoạn bổ sung (D97–D100) ----------
+
+    private static String supplementKey(long seed, int n, String name) {
+        return seed + "|" + n + "|" + name;
+    }
+
+    /**
+     * D99: chỉ số trong từng nhóm. Nhóm của mỗi ứng viên lấy từ lõi (lọc cứng hai chiều), như nhau với mọi phương án
+     * vì không phụ thuộc trọng số; danh sách của phương án lọc theo nhóm, giữ thứ tự. Tập lý tưởng của nhóm là chính các
+     * ứng viên của nhóm đó, nên chỉ số đo thứ tự xếp trong nhóm, không đo việc lọc ứng viên.
+     */
+    private void writeGroups(long seed, Dataset data, Cell cell, List<List<Long>> lists) {
+        List<UserMetrics> twoWay = new ArrayList<>();
+        List<UserMetrics> oneWay = new ArrayList<>();
+        for (int k = 0; k < data.eligible.size(); k++) {
+            int u = data.eligible.get(k);
+            Set<Long> twoWayIds = rankers.twoWayIds(data.profiles.get(u), data.profiles);
+            List<Long> two = new ArrayList<>();
+            List<Long> one = new ArrayList<>();
+            for (long v : lists.get(k)) {
+                (twoWayIds.contains(v) ? two : one).add(v);
+            }
+            long id = data.users.get(u).id();
+            // Người không có ứng viên nào ở nhóm thì không tính cho nhóm đó; mọi phương án có cùng nhóm nên cùng người.
+            if (!two.isEmpty()) {
+                List<Integer> rels = data.relsOf(u, two);
+                twoWay.add(UserMetrics.of(id, rels, rels));
+            }
+            if (!one.isEmpty()) {
+                List<Integer> rels = data.relsOf(u, one);
+                oneWay.add(UserMetrics.of(id, rels, rels));
+            }
+        }
+        writeGroup(seed, cell, HAI_CHIEU, twoWay);
+        writeGroup(seed, cell, MOT_CHIEU, oneWay);
+    }
+
+    private void writeGroup(long seed, Cell cell, String group, List<UserMetrics> users) {
+        supplementUsers.put(supplementKey(seed, cell.n(), cell.phuongAn() + "@" + group), users);
+        if (users.isEmpty()) {
+            for (String chiSo : List.of("precision_at_5_nghiem_ngat_", "ndcg_at_5_loai_suy_bien_")) {
+                metric(seed, cell, chiSo + group, ResultWriter.number(Double.NaN), 0);
+            }
+            return;
+        }
+        MetricSummary s = MetricSummary.of(users);
+        metric(seed, cell, "precision_at_5_nghiem_ngat_" + group, ResultWriter.number(s.strictPrecisionAt5()), s.userCount());
+        metric(seed, cell, "ndcg_at_5_loai_suy_bien_" + group, ResultWriter.number(s.ndcgAt5NonDegenerate()),
+                s.nonDegenerateCount());
+    }
+
+    /** D100: mỗi phép so sánh gộp các seed như D62, rồi từng seed riêng (mỗi seed là một bộ dữ liệu độc lập). */
+    private void writeSupplementTests() {
+        for (int n : config.scaleNs()) {
+            supplementTest(n, P, B1, "");
+            supplementTest(n, P_MOT_DS, B1, "");
+            supplementTest(n, P, P_MOT_DS, "");
+        }
+        for (WeightSets.Named named : WeightSets.ABLATION_PROPORTIONAL) {
+            supplementTest(config.mainN(), P, named.phuongAn(), "");
+        }
+        for (String group : List.of(HAI_CHIEU, MOT_CHIEU)) {
+            supplementTest(config.mainN(), P, B1, group);
+            supplementTest(config.mainN(), P_MOT_DS, B1, group);
+        }
+    }
+
+    private void supplementTest(int n, String a, String b, String group) {
+        String keyA = group.isEmpty() ? a : a + "@" + group;
+        String keyB = group.isEmpty() ? b : b + "@" + group;
+        String suffix = group.isEmpty() ? "" : "_" + group;
+        List<UserMetrics> allA = new ArrayList<>();
+        List<UserMetrics> allB = new ArrayList<>();
+        for (long seed : config.seeds()) {
+            allA.addAll(supplementUsersOf(seed, n, keyA));
+            allB.addAll(supplementUsersOf(seed, n, keyB));
+        }
+        String allSeeds = config.seeds().stream().map(String::valueOf).collect(Collectors.joining(";"));
+        pairedBothMetrics(n, allSeeds, a, b, suffix, allA, allB);
+        for (long seed : config.seeds()) {
+            pairedBothMetrics(n, String.valueOf(seed), a, b, suffix, supplementUsersOf(seed, n, keyA), supplementUsersOf(seed, n, keyB));
+        }
+    }
+
+    private List<UserMetrics> supplementUsersOf(long seed, int n, String key) {
+        List<UserMetrics> users = supplementUsers.get(supplementKey(seed, n, key));
+        if (users == null) {
+            throw new IllegalStateException("Thiếu chỉ số của " + key + " ở seed " + seed + ", N = " + n);
+        }
+        return users;
+    }
+
+    private void pairedBothMetrics(int n, String seeds, String a, String b, String suffix, List<UserMetrics> la,
+            List<UserMetrics> lb) {
+        checkSameUsers(la, lb, b);
+        writePairedTest(n, seeds, a, b, "ndcg_at_5" + suffix, la, lb, UserMetrics::ndcgAt5);
+        writePairedTest(n, seeds, a, b, "precision_at_5_nghiem_ngat" + suffix, la, lb, UserMetrics::strictPrecisionAt5);
     }
 
     /** Hai danh sách phải cùng người, cùng thứ tự; lệch là lỗi lập trình, ghép nhầm sẽ cho kiểm định sai âm thầm. */

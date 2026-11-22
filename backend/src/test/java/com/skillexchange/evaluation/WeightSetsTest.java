@@ -61,6 +61,26 @@ class WeightSetsTest {
         }
     }
 
+    @Test
+    @DisplayName("D98 Bỏ thành phần chia theo tỉ lệ: thành phần bị bỏ bằng 0, còn lại = mặc định / (1 − trọng số bị bỏ)")
+    void d98_proportionalAblationKeepsRatios() {
+        double[] base = toArray(MatchingWeights.DEFAULT);
+        int[] dropped = {1, 2, 3}; // LevelFit, ScheduleFit, ModeFit
+        List<String> names = List.of("P_bo_level_tl", "P_bo_schedule_tl", "P_bo_mode_tl");
+
+        for (int k = 0; k < dropped.length; k++) {
+            WeightSets.Named named = WeightSets.ABLATION_PROPORTIONAL.get(k);
+            double[] expected = new double[base.length];
+            for (int i = 0; i < base.length; i++) {
+                expected[i] = i == dropped[k] ? 0 : base[i] / (1 - base[dropped[k]]);
+            }
+            assertThat(named.phuongAn()).isEqualTo(names.get(k));
+            assertWeights(named.weights(), expected);
+        }
+        // Ví dụ tính tay: bỏ LevelFit (0.20) thì SkillFit 0.55 / 0.8 = 0.6875, khác cách chia đều (0.60).
+        assertWeights(WeightSets.BO_LEVEL_TI_LE.weights(), 0.55 / 0.8, 0, 0.15 / 0.8, 0.05 / 0.8, 0.05 / 0.8);
+    }
+
     private static void assertWeights(MatchingWeights actual, double... expected) {
         double[] values = toArray(actual);
         List<String> names = List.of("skillFit", "levelFit", "scheduleFit", "modeFit", "reputation");
