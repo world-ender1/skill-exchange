@@ -384,7 +384,7 @@ Lược đồ trên đã được viết thành `V1__init.sql` và chạy thử 
   "type": "about:blank",
   "title": "Conflict",
   "status": 409,
-  "detail": "Chỉ hủy được yêu cầu đang ở trạng thái PENDING",
+  "detail": "Yêu cầu không còn ở trạng thái chờ",
   "instance": "/api/requests/42/cancel"
 }
 ```

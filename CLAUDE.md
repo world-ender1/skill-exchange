@@ -52,7 +52,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Không sửa migration đã chạy (`V1__init.sql`); thay đổi lược đồ thì thêm file `V<n>__mo_ta.sql` mới
 - Ràng buộc nghiệp vụ quan trọng đã nằm trong DB (CHECK, unique index một phần). Đọc `V1__init.sql` trước khi viết Entity/Service
 - Mã xác thực email/đặt lại mật khẩu chỉ lưu bản băm (`user_tokens.token_hash`)
-- Mốc thời gian của token và xác thực (`user_tokens.*_at`, `users.email_verified_at`) lấy từ bean `Clock`, không dùng `Instant.now()` hay `@CreationTimestamp` (D18), để test giả được thời gian
+- Mốc thời gian của token và xác thực (`user_tokens.*_at`, `users.email_verified_at`) và mọi mốc thời gian của yêu cầu, phiên, báo cáo sự cố lấy từ bean `Clock`, không dùng `Instant.now()` hay `@CreationTimestamp` (D18, D88), để test giả được thời gian
 
 ## Lõi matching (tuần 4)
 - Phần lõi của `matching/` là Java thuần: không import `org.springframework`, không gọi Repository (D34). `MatchingService`, `MatchingController`, `MatchingDataRepository` là lớp vỏ nối lõi với Spring
@@ -71,7 +71,7 @@ Thứ bậc khi tài liệu mâu thuẫn: tài liệu giai đoạn sau đúng. Q
 - Danh sách lịch rảnh/kỹ năng của tôi: `PUT` thay cả danh sách
 - Chỉ sinh viên đã xác thực (`status = ACTIVE` và `role = STUDENT`) mới được dùng matching, tìm kiếm và xem hồ sơ người khác; admin chỉ dùng API quản trị và không xuất hiện trong gợi ý, tìm kiếm
 - Đuôi email trường lấy từ cấu hình, không ghi cứng
-- `phone`, `contact_info` là riêng tư: chỉ trả trong `/api/me` và chi tiết phiên `GET /api/sessions/{id}` cho hai người tham gia; API yêu cầu không bao giờ trả chúng. `location_or_link` trả cho người gửi, cho người nhận khi yêu cầu đã `ACCEPTED`, và trong chi tiết phiên (NFR-02, D91, D92). Admin xem khi tra cứu vi phạm: tuần 7 (D86)
+- `phone`, `contact_info` là riêng tư: chỉ trả trong `/api/me` và chi tiết phiên (`GET /api/sessions/{id}`, cùng response `SessionDetail` của `start`, `complete`, `cancel`, D93) cho hai người tham gia; API yêu cầu không bao giờ trả chúng. `location_or_link` trả cho người gửi, cho người nhận khi yêu cầu đã `ACCEPTED`, và trong chi tiết phiên (NFR-02, D91, D92). Admin xem khi tra cứu vi phạm: tuần 7 (D86)
 
 ## Quy tắc làm việc với AI
 - Khi tôi nói "đề xuất" hoặc "lập kế hoạch": KHÔNG tạo/sửa file
