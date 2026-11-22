@@ -1,6 +1,6 @@
 # Sửa báo cáo theo nhận xét báo cáo tuần 5
 
-Ngày 22/11/2026. Các sửa đổi dưới đây đã đưa vào báo cáo tổng (`docs/tuan_6/Update báo cáo tuần 6.docx`), chủ yếu ở mục 6.3, 6.4 và chương 7. Mọi số lấy từ `docs/ket_qua.md`, mục "Bổ sung theo nhận xét báo cáo tuần 5".
+Ngày 22/11/2026. Các sửa đổi dưới đây đã đưa vào báo cáo tổng (`docs/tuan_6/Update báo cáo tuần 6.docx`), chủ yếu ở mục 6.3, 6.4 và chương 7, kèm một trang tóm tắt ở đầu báo cáo. Mọi số lấy từ `docs/ket_qua.md`, mục "Bổ sung theo nhận xét báo cáo tuần 5".
 
 ## 1. Tóm tắt
 
