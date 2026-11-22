@@ -1,0 +1,233 @@
+﻿
+2026-11-22T19:20:57.357+07:00  WARN 14864 --- [backend] [pool-3-thread-5] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:20:57.357+07:00  WARN 14864 --- [backend] [pool-3-thread-1] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:20:57.357+07:00  WARN 14864 --- [backend] [pool-3-thread-2] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:20:57.357+07:00  WARN 14864 --- [backend] [pool-3-thread-4] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:20:57.358+07:00  WARN 14864 --- [backend] [pool-3-thread-1] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "skills_name_key"
+2026-11-22T19:20:57.358+07:00  WARN 14864 --- [backend] [pool-3-thread-2] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "skills_name_key"
+2026-11-22T19:20:57.358+07:00  WARN 14864 --- [backend] [pool-3-thread-5] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "skills_name_key"
+2026-11-22T19:20:57.358+07:00  WARN 14864 --- [backend] [pool-3-thread-4] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "skills_name_key"
+2026-11-22T19:20:57.386+07:00  WARN 14864 --- [backend] [pool-3-thread-4] c.s.common.GlobalExceptionHandler        : 
+Vi phạm ràng buộc DB không được service kiểm trước: ERROR: duplicate key value violates unique constraint 
+"skills_name_key"
+2026-11-22T19:20:57.386+07:00  WARN 14864 --- [backend] [pool-3-thread-2] c.s.common.GlobalExceptionHandler        : 
+Vi phạm ràng buộc DB không được service kiểm trước: ERROR: duplicate key value violates unique constraint 
+"skills_name_key"
+2026-11-22T19:20:57.386+07:00  WARN 14864 --- [backend] [pool-3-thread-5] c.s.common.GlobalExceptionHandler        : 
+Vi phạm ràng buộc DB không được service kiểm trước: ERROR: duplicate key value violates unique constraint 
+"skills_name_key"
+2026-11-22T19:20:57.386+07:00  WARN 14864 --- [backend] [pool-3-thread-1] c.s.common.GlobalExceptionHandler        : 
+Vi phạm ràng buộc DB không được service kiểm trước: ERROR: duplicate key value violates unique constraint 
+"skills_name_key"
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 37.17 s -- in 
+com.skillexchange.admin.AdminSkillApiTest
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' 
+enabled.
+2026-11-22T19:21:03.194+07:00 ERROR 14864 --- [backend] [           main] o.s.boot.SpringApplication               : 
+Application run failed
+	at com.skillexchange.auth.AdminInitializerTest.lambda$startupError$0(AdminInitializerTest.java:125) 
+~[test-classes/:na]
+	at com.skillexchange.auth.AdminInitializerTest.startupError(AdminInitializerTest.java:125) ~[test-classes/:na]
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' 
+enabled.
+2026-11-22T19:21:05.741+07:00 ERROR 14864 --- [backend] [           main] o.s.boot.SpringApplication               : 
+Application run failed
+	at com.skillexchange.auth.AdminInitializerTest.lambda$startupError$0(AdminInitializerTest.java:125) 
+~[test-classes/:na]
+	at com.skillexchange.auth.AdminInitializerTest.startupError(AdminInitializerTest.java:125) ~[test-classes/:na]
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' 
+enabled.
+2026-11-22T19:21:07.884+07:00 ERROR 14864 --- [backend] [           main] o.s.boot.SpringApplication               : 
+Application run failed
+	at com.skillexchange.auth.AdminInitializerTest.lambda$startupError$0(AdminInitializerTest.java:125) 
+~[test-classes/:na]
+	at com.skillexchange.auth.AdminInitializerTest.startupError(AdminInitializerTest.java:125) ~[test-classes/:na]
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' 
+enabled.
+2026-11-22T19:21:10.687+07:00 ERROR 14864 --- [backend] [           main] o.s.boot.SpringApplication               : 
+Application run failed
+	at com.skillexchange.auth.AdminInitializerTest.lambda$startupError$0(AdminInitializerTest.java:125) 
+~[test-classes/:na]
+	at com.skillexchange.auth.AdminInitializerTest.startupError(AdminInitializerTest.java:125) ~[test-classes/:na]
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.50 s -- in 
+com.skillexchange.auth.AdminInitializerTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.797 s -- in com.skillexchange.auth.LoginTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.404 s -- in 
+com.skillexchange.auth.RegistrationTest
+2026-11-22T19:21:20.807+07:00 ERROR 14864 --- [backend] [           main] c.skillexchange.auth.VerificationMailer  : 
+Không gửi được thư xác thực tới an@student.example.edu.vn
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.139 s -- in 
+com.skillexchange.auth.ResendVerificationTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.874 s -- in 
+com.skillexchange.auth.TokenValidationTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in 
+com.skillexchange.auth.UserTokenTest
+2026-11-22T19:21:25.181+07:00 ERROR 14864 --- [backend] [           main] c.skillexchange.auth.VerificationMailer  : 
+Không gửi được thư xác thực tới an@student.example.edu.vn
+	at com.skillexchange.auth.VerificationTest.tc80_mailFailureDoesNotFailRegistration(VerificationTest.java:145) 
+~[test-classes/:na]
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.240 s -- in 
+com.skillexchange.auth.VerificationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.986 s -- in 
+com.skillexchange.BackendApplicationTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.287 s -- in 
+com.skillexchange.common.ActiveAccessTest
+[INFO] Running com.skillexchange.common.ErrorHandlingTest
+2026-11-22T19:21:32.522+07:00  INFO 14864 --- [backend] [           main] t.c.s.AnnotationConfigContextLoaderUtils : 
+Could not detect default configuration classes for test class [com.skillexchange.common.ErrorHandlingTest]: 
+ErrorHandlingTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-22T19:21:32.527+07:00  INFO 14864 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : 
+Found @SpringBootConfiguration com.skillexchange.BackendApplication for test class 
+com.skillexchange.common.ErrorHandlingTest
+2026-11-22T19:21:32.529+07:00  INFO 14864 --- [backend] [           main] t.c.s.AnnotationConfigContextLoaderUtils : 
+Could not detect default configuration classes for test class [com.skillexchange.common.ErrorHandlingTest]: 
+ErrorHandlingTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-11-22T19:21:32.534+07:00  INFO 14864 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : 
+Found @SpringBootConfiguration com.skillexchange.BackendApplication for test class 
+com.skillexchange.common.ErrorHandlingTest
+2026-11-22T19:21:32.537+07:00  WARN 14864 --- [backend] [           main] .b.t.c.SpringBootTestContextBootstrapper : 
+For test class [com.skillexchange.common.ErrorHandlingTest], the following 'default' context configuration classes 
+were detected but are currently ignored: com.skillexchange.IntegrationTestBase$TestClockConfig. In Spring Framework 
+7.1, these classes will no longer be ignored. Please update your test configuration accordingly. For details, see: 
+https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/default-config.html
+2026-11-22T19:21:32.602+07:00  INFO 14864 --- [backend] [           main] c.s.common.ErrorHandlingTest             : 
+Starting ErrorHandlingTest using Java 21.0.12.1 with PID 14864 (started by ADMIN in C:\DACN\backend)
+2026-11-22T19:21:32.602+07:00  INFO 14864 --- [backend] [           main] c.s.common.ErrorHandlingTest             : 
+The following 1 profile is active: "test"
+2026-11-22T19:21:34.497+07:00  INFO 14864 --- [backend] [           main] c.s.common.ErrorHandlingTest             : 
+Started ErrorHandlingTest in 1.953 seconds (process running for 74.149)
+2026-11-22T19:21:34.889+07:00 ERROR 14864 --- [backend] [           main] c.s.common.GlobalExceptionHandler        : 
+Lỗi không lường trước
+	at com.skillexchange.common.ErrorHandlingTest$TestOnlyController.crash(ErrorHandlingTest.java:52) ~[test-classes/:na]
+	at com.skillexchange.common.ErrorHandlingTest.tc73_internalErrorDoesNotLeakDetails(ErrorHandlingTest.java:70) 
+~[test-classes/:na]
+	at 
+org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218) 
+~[junit-platform-launcher-6.0.3.jar:6.0.3]
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.413 s -- in 
+com.skillexchange.common.ErrorHandlingTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in 
+com.skillexchange.common.LikePatternsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.124 s -- in 
+com.skillexchange.common.SecurityTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.143 s -- in 
+com.skillexchange.evaluation.EvaluationMainTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.031 s -- in 
+com.skillexchange.evaluation.ExperimentRunnerTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.283 s -- in 
+com.skillexchange.evaluation.GroundTruthLabelerTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in 
+com.skillexchange.evaluation.MetricSummaryTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in 
+com.skillexchange.evaluation.NoiseLevelTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in 
+com.skillexchange.evaluation.PairedStatisticsTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.007 s -- in 
+com.skillexchange.evaluation.RankersTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in 
+com.skillexchange.evaluation.RankingMetricsTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.772 s -- in 
+com.skillexchange.evaluation.RescorerTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.211 s -- in 
+com.skillexchange.evaluation.ResultWriterTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in 
+com.skillexchange.evaluation.SimUserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in 
+com.skillexchange.evaluation.SkillCatalogTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.289 s -- in 
+com.skillexchange.evaluation.SyntheticDataGeneratorTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in 
+com.skillexchange.evaluation.WeightSetsTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.70 s -- in 
+com.skillexchange.exchange.CreateRequestApiTest
+2026-11-22T19:21:59.139+07:00  WARN 14864 --- [backend] [           main] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:21:59.139+07:00  WARN 14864 --- [backend] [           main] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "uq_requests_one_pending"
+2026-11-22T19:21:59.497+07:00  WARN 14864 --- [backend] [           main] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23514
+2026-11-22T19:21:59.497+07:00  WARN 14864 --- [backend] [           main] org.hibernate.orm.jdbc.error             : 
+ERROR: new row for relation "exchange_requests" violates check constraint "exchange_requests_check1"
+  Detail: Failing row contains (1, 1, 2, TWO_WAY, 6, null, 2026-11-20 19:00:00+07, 90, ONLINE, 
+https://meet.google.com/abc-defg-hij, null, PENDING, null, 2026-11-02 15:00:00+07, null, 0).
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.767 s -- in 
+com.skillexchange.exchange.ExchangeMappingTest
+2026-11-22T19:22:11.936+07:00  WARN 14864 --- [backend] [pool-5-thread-1] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:22:11.936+07:00  WARN 14864 --- [backend] [pool-5-thread-1] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "uq_reports_one_open"
+2026-11-22T19:22:11.940+07:00  WARN 14864 --- [backend] [pool-5-thread-1] c.s.common.GlobalExceptionHandler        : 
+Vi phạm ràng buộc DB không được service kiểm trước: ERROR: duplicate key value violates unique constraint 
+"uq_reports_one_open"
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.43 s -- in 
+com.skillexchange.exchange.IncidentReportApiTest
+2026-11-22T19:22:18.683+07:00  WARN 14864 --- [backend] [           main] org.hibernate.orm.jdbc.error             : 
+HHH000247: ErrorCode: 0, SQLState: 23505
+2026-11-22T19:22:18.683+07:00  WARN 14864 --- [backend] [           main] org.hibernate.orm.jdbc.error             : 
+ERROR: duplicate key value violates unique constraint "exchange_sessions_request_id_key"
+2026-11-22T19:22:18.687+07:00  WARN 14864 --- [backend] [           main] c.s.common.GlobalExceptionHandler        : 
+Vi phạm ràng buộc DB không được service kiểm trước: ERROR: duplicate key value violates unique constraint 
+"exchange_sessions_request_id_key"
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.99 s -- in 
+com.skillexchange.exchange.RequestInboxApiTest
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 24.46 s -- in 
+com.skillexchange.exchange.SessionLifecycleApiTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in 
+com.skillexchange.matching.HardFilterTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.137 s -- in 
+com.skillexchange.matching.LevelFitTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.85 s -- in 
+com.skillexchange.matching.MatchesApiTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in 
+com.skillexchange.matching.MatchingEngineTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in 
+com.skillexchange.matching.MatchingWeightsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in 
+com.skillexchange.matching.RankingComparatorTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.042 s -- in 
+com.skillexchange.matching.ReputationCalculatorTest
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in 
+com.skillexchange.matching.ScheduleAndModeFitTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in 
+com.skillexchange.matching.SkillFitTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in 
+com.skillexchange.matching.SkillSimilarityTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.272 s -- in 
+com.skillexchange.skill.SkillCatalogTest
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.211 s -- in 
+com.skillexchange.user.MyProfileTest
+[INFO] Tests run: 30, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.981 s -- in 
+com.skillexchange.user.ProfileListsTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.228 s -- in 
+com.skillexchange.user.PublicProfileTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.25 s -- in 
+com.skillexchange.user.UserSearchTest
+[INFO] Tests run: 497, Failures: 0, Errors: 0, Skipped: 0
+
+
